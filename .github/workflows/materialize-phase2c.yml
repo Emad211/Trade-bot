@@ -83,13 +83,15 @@ jobs:
                       raise SystemExit(f"unsupported archive member: {member.name}")
               handle.extractall(Path.cwd(), filter="data")
           PY
-      - name: Replace bootstrap with final source tree
+      - name: Commit non-workflow Phase 2C source tree
         shell: bash
         run: |
           set -euo pipefail
           target_branch="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          test -f .github/workflows/phase2c-real-data.yml
+          sha256sum .github/workflows/phase2c-real-data.yml
+          rm .github/workflows/phase2c-real-data.yml
           rm .phase2c-payload.part*
-          rm .github/workflows/materialize-phase2c.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
