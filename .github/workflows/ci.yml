@@ -79,3 +79,18 @@ jobs:
           print(hybrid_trader.__version__, type(app).__name__)
           PY
           /tmp/hybrid-trader-package-smoke/bin/python -m pip check
+      - name: Create reproducible source bundle
+        run: |
+          git archive \
+            --format=tar.gz \
+            --prefix="Trade-bot-${GITHUB_SHA}/" \
+            --output="dist/Trade-bot-${GITHUB_SHA}.tar.gz" \
+            HEAD
+          sha256sum dist/* > dist/SHA256SUMS
+      - name: Upload verified distribution artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-dist-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
