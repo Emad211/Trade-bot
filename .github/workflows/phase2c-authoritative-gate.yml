@@ -1,0 +1,106 @@
+name: phase2c-authoritative-gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      strict_run_id:
+        description: "Successful phase2c-real-benchmark-strict run ID; blank waits for latest"
+        required: false
+        type: string
+  workflow_run:
+    workflows: ["phase2c-real-benchmark-strict"]
+    types: [completed]
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - "scripts/verify_phase2c_macro_gate.py"
+      - ".github/workflows/phase2c-authoritative-gate.yml"
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  authoritative-gate:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Wait for successful strict baseline
+        id: baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ID="${{ inputs.strict_run_id }}"
+          if [ -z "$RUN_ID" ] && [ "${{ github.event_name }}" = "workflow_run" ]; then
+            RUN_ID="${{ github.event.workflow_run.id }}"
+          fi
+          for attempt in $(seq 1 120); do
+            if [ -z "$RUN_ID" ]; then
+              RUN_ID=$(gh api \
+                "repos/${GITHUB_REPOSITORY}/actions/runs?branch=${GITHUB_REF_NAME}&status=success&per_page=100" \
+                --jq '[.workflow_runs[] | select(.name == "phase2c-real-benchmark-strict")][0].id // empty')
+            fi
+            if [ -n "$RUN_ID" ]; then
+              echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "Strict baseline unavailable (attempt $attempt/120); waiting 30s."
+            sleep 30
+          done
+          exit 1
+      - name: Download strict evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p authoritative-download
+          gh run download "${{ steps.baseline.outputs.run_id }}" --dir authoritative-download
+          REGISTRY=$(find authoritative-download -type f -name source_registry.json -print -quit)
+          if [ -z "$REGISTRY" ]; then
+            echo "No source registry in strict baseline artifact." >&2
+            exit 1
+          fi
+          ROOT=$(dirname "$REGISTRY")
+          echo "AUTHORITATIVE_ROOT=$ROOT" >> "$GITHUB_ENV"
+      - name: Install verification dependencies
+        run: python -m pip install -e .
+      - name: Re-run integrity and strict coverage gates
+        run: |
+          python scripts/verify_phase2c_artifacts.py "$AUTHORITATIVE_ROOT"
+          python scripts/verify_phase2c_artifacts_strict.py \
+            "$AUTHORITATIVE_ROOT" \
+            --spec configs/phase2c_sources_runtime.yaml
+      - name: Require Nasdaq, dollar and gold context
+        run: |
+          python scripts/verify_phase2c_macro_gate.py \
+            "$AUTHORITATIVE_ROOT" \
+            --spec configs/phase2c_sources_runtime.yaml
+      - name: Copy approved historical artifact
+        run: |
+          mkdir -p artifacts
+          cp -a "$AUTHORITATIVE_ROOT" artifacts/phase2c-authoritative
+          printf '%s\n' "${{ steps.baseline.outputs.run_id }}" \
+            > artifacts/phase2c-authoritative/strict_source_run_id.txt
+      - name: Build deterministic archive
+        run: |
+          mkdir -p artifacts/distribution
+          tar --sort=name --mtime='UTC 1970-01-01' \
+            --owner=0 --group=0 --numeric-owner \
+            -czf artifacts/distribution/phase2c-authoritative-${GITHUB_SHA}.tar.gz \
+            -C artifacts phase2c-authoritative
+          find artifacts -type f -not -path 'artifacts/distribution/SHA256SUMS' -print0 \
+            | sort -z | xargs -0 sha256sum > artifacts/distribution/SHA256SUMS
+      - name: Upload authoritative historical evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2c-authoritative-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 90
