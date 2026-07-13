@@ -3,13 +3,17 @@ name: bootstrap-phase2
 on:
   push:
     branches: ["agent/phase-2-point-in-time-benchmarks"]
+  pull_request:
+    branches: ["agent/phase-1-foundation"]
 
 permissions:
   contents: write
 
 jobs:
   materialize:
-    if: github.actor != 'github-actions[bot]'
+    if: >-
+      github.actor != 'github-actions[bot]' &&
+      (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
