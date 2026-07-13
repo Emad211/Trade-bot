@@ -156,3 +156,131 @@ def test_cli_snapshot_foundation_benchmark_and_forward(tmp_path: Path) -> None:
     verified = runner.invoke(app, ["forward-verify", "--ledger", str(ledger)])
     assert verified.exit_code == 0, verified.output
     assert '"records": 1' in verified.output
+
+
+def test_cli_phase2c_plan_audit_report_and_registry(tmp_path: Path, pit_ohlcv) -> None:
+    from hybrid_trader.data.snapshot import write_snapshot
+
+    left = tmp_path / "left"
+    right = tmp_path / "right"
+    created_at = pit_ohlcv["available_at"].iloc[-1].to_pydatetime()
+    left_manifest = write_snapshot(
+        pit_ohlcv,
+        left,
+        source="left",
+        symbol="BTC/USD",
+        timeframe="4h",
+        created_at=created_at,
+    )
+    shifted = pit_ohlcv.copy()
+    for column in ("open", "high", "low", "close"):
+        shifted[column] *= 1.001
+    write_snapshot(
+        shifted,
+        right,
+        source="right",
+        symbol="BTC/USD",
+        timeframe="4h",
+        created_at=created_at,
+    )
+
+    planned = runner.invoke(app, ["phase2c-plan", "--spec", "configs/phase2c_btc_4h.yaml"])
+    assert planned.exit_code == 0, planned.output
+    assert "plan_sha256" in planned.output
+
+    audit = tmp_path / "audit"
+    audited = runner.invoke(
+        app,
+        [
+            "audit-snapshots",
+            "--snapshot",
+            str(left),
+            "--snapshot",
+            str(right),
+            "--output",
+            str(audit),
+        ],
+    )
+    assert audited.exit_code == 0, audited.output
+    assert (audit / "cross_venue_quality.csv").exists()
+
+    experiment = tmp_path / "experiment"
+    benchmark = runner.invoke(
+        app,
+        [
+            "benchmark",
+            "--snapshot",
+            str(left),
+            "--config",
+            "configs/btc_spot_4h_phase2c_smoke.yaml",
+            "--output",
+            str(experiment),
+        ],
+    )
+    assert benchmark.exit_code == 0, benchmark.output
+
+    report = tmp_path / "report"
+    reported = runner.invoke(
+        app,
+        [
+            "phase2c-report",
+            "--experiment",
+            str(experiment),
+            "--spec",
+            "configs/phase2c_btc_4h.yaml",
+            "--output",
+            str(report),
+        ],
+    )
+    assert reported.exit_code == 0, reported.output
+    assert (report / "phase2c_report.json").exists()
+
+    registry = tmp_path / "registry.jsonl"
+    registered = runner.invoke(
+        app,
+        [
+            "registry-append",
+            "--registry",
+            str(registry),
+            "--spec",
+            "configs/phase2c_btc_4h.yaml",
+            "--status",
+            "completed",
+            "--dataset-sha256",
+            left_manifest.content_sha256,
+            "--experiment",
+            str(experiment),
+            "--artifact",
+            str(report),
+        ],
+    )
+    assert registered.exit_code == 0, registered.output
+    verified = runner.invoke(app, ["registry-verify", "--registry", str(registry)])
+    assert verified.exit_code == 0, verified.output
+    assert '"records": 1' in verified.output
+
+
+def test_cli_registers_blocked_collection_without_dataset(tmp_path: Path) -> None:
+    blocked = tmp_path / "blocked.json"
+    blocked.write_text('{"status":"blocked"}\n', encoding="utf-8")
+    registry = tmp_path / "registry.jsonl"
+    result = runner.invoke(
+        app,
+        [
+            "registry-append",
+            "--registry",
+            str(registry),
+            "--spec",
+            "configs/phase2c_btc_4h.yaml",
+            "--status",
+            "blocked",
+            "--artifact",
+            str(blocked),
+            "--notes",
+            "public endpoint unavailable",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    verified = runner.invoke(app, ["registry-verify", "--registry", str(registry)])
+    assert verified.exit_code == 0, verified.output
+    assert '"last_status": "blocked"' in verified.output

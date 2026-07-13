@@ -1,0 +1,79 @@
+schema_version: "1.0"
+experiment_name: btc-spot-4h-phase2c
+as_of: "2026-07-13T16:30:00Z"
+since: "2026-03-01T00:00:00Z"
+canonical_spot_source: kraken_btc_usd
+sources:
+  - source_id: kraken_btc_usd
+    dataset_kind: spot_ohlcv
+    provider: Kraken
+    symbol: BTC/USD
+    timeframe: 4h
+    retrieval_method: CCXT public fetch_ohlcv
+    event_time_policy: candle open timestamp supplied by venue
+    availability_time_policy: candle open plus 4h plus 30s source latency
+    source_latency_seconds: 30
+    revision_policy: append_only
+    credentials_required: false
+    notes: Public market data only; venue eligibility is a separate deployment gate.
+  - source_id: bitstamp_btc_usd
+    dataset_kind: spot_ohlcv
+    provider: Bitstamp
+    symbol: BTC/USD
+    timeframe: 4h
+    retrieval_method: CCXT public fetch_ohlcv
+    event_time_policy: candle open timestamp supplied by venue
+    availability_time_policy: candle open plus 4h plus 30s source latency
+    source_latency_seconds: 30
+    revision_policy: append_only
+    credentials_required: false
+  - source_id: okx_btc_usdt_funding
+    dataset_kind: funding
+    provider: OKX
+    symbol: BTC/USDT:USDT
+    retrieval_method: CCXT public fetch_funding_rate_history
+    event_time_policy: funding settlement timestamp supplied by venue
+    availability_time_policy: settlement timestamp plus 60s source latency
+    source_latency_seconds: 60
+    revision_policy: append_only
+    credentials_required: false
+  - source_id: okx_btc_usdt_open_interest
+    dataset_kind: open_interest
+    provider: OKX
+    symbol: BTC/USDT:USDT
+    timeframe: 4h
+    retrieval_method: CCXT public fetch_open_interest_history
+    event_time_policy: interval timestamp supplied by venue
+    availability_time_policy: interval timestamp plus 4h plus 60s source latency
+    source_latency_seconds: 60
+    revision_policy: append_only
+    credentials_required: false
+  - source_id: okx_btc_usdt_basis
+    dataset_kind: basis
+    provider: OKX
+    symbol: BTC/USDT:USDT
+    timeframe: 4h
+    retrieval_method: CCXT public mark and index OHLCV
+    event_time_policy: candle open timestamp supplied by venue
+    availability_time_policy: candle open plus 4h plus 60s source latency
+    source_latency_seconds: 60
+    revision_policy: append_only
+    credentials_required: false
+model_matrix:
+  - buy_and_hold
+  - trend
+  - prior
+  - ridge_logistic
+  - lightgbm
+  - catboost
+  - timesfm_2_5
+  - chronos_2
+  - market_derivatives_hybrid
+  - market_derivatives_foundation_hybrid
+large_move_quantile: 0.90
+gate:
+  minimum_test_folds: 3
+  minimum_positive_fold_rate: 0.50
+  maximum_fold_concentration: 0.65
+  maximum_drawdown: -0.25
+  require_positive_two_x_cost_return: true

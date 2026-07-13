@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +14,7 @@ from rich.console import Console
 from rich.table import Table
 
 from hybrid_trader.ablation import build_ablation_plan, summarize_ablation
+from hybrid_trader.audit import audit_snapshots, audit_tables
 from hybrid_trader.backtest import run_backtest
 from hybrid_trader.config import AppConfig, load_config
 from hybrid_trader.data import (
@@ -56,6 +57,14 @@ from hybrid_trader.models import (
     PriorProbabilityModel,
     RidgeLogisticModel,
 )
+from hybrid_trader.phase2c import load_phase2c_spec
+from hybrid_trader.registry import (
+    ExperimentRecord,
+    append_registry_record,
+    file_sha256,
+    verify_registry,
+)
+from hybrid_trader.reporting import build_phase2c_report, write_phase2c_report
 from hybrid_trader.splits import SplitSpec
 from hybrid_trader.strategies import generate_trend_exposure
 from hybrid_trader.walkforward import run_walk_forward
@@ -581,6 +590,141 @@ def ablation(
     summary = summarize_ablation(combined)
     summary.to_csv(output / "ablation_summary.csv", index=False)
     console.print(summary.to_string(index=False))
+
+
+def _artifact_hashes(paths: list[Path]) -> dict[str, str]:
+    hashes: dict[str, str] = {}
+    for supplied in paths:
+        if not supplied.exists():
+            raise FileNotFoundError(f"Artifact path not found: {supplied}")
+        files = sorted(supplied.rglob("*")) if supplied.is_dir() else [supplied]
+        for path in files:
+            if not path.is_file():
+                continue
+            key = (
+                f"{supplied.name}/{path.relative_to(supplied).as_posix()}"
+                if supplied.is_dir()
+                else supplied.name
+            )
+            if key in hashes:
+                raise ValueError(f"Duplicate artifact registry key: {key}")
+            hashes[key] = file_sha256(path)
+    return hashes
+
+
+@app.command("phase2c-plan")
+def phase2c_plan(spec_path: Path = typer.Option(..., "--spec")) -> None:
+    """Validate and print the immutable Phase 2C plan identity."""
+
+    spec = load_phase2c_spec(spec_path)
+    payload = {
+        "experiment_name": spec.experiment_name,
+        "plan_sha256": spec.plan_sha256,
+        "as_of": spec.as_of.isoformat(),
+        "since": spec.since.isoformat(),
+        "spot_sources": [
+            source.source_id for source in spec.sources if source.dataset_kind == "spot_ohlcv"
+        ],
+        "source_contract_sha256": {
+            source.source_id: source.contract_sha256 for source in spec.sources
+        },
+        "model_matrix": list(spec.model_matrix),
+    }
+    console.print_json(json.dumps(payload))
+
+
+@app.command("audit-snapshots")
+def audit_snapshot_command(
+    snapshots: list[Path] = typer.Option(..., "--snapshot"),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Audit two or more immutable spot snapshots and their cross-venue agreement."""
+
+    report = audit_snapshots(snapshots)
+    snapshot_table, pair_table = audit_tables(report)
+    output.mkdir(parents=True, exist_ok=True)
+    (output / "dataset_audit.json").write_text(
+        report.model_dump_json(indent=2) + "\n", encoding="utf-8"
+    )
+    snapshot_table.to_csv(output / "snapshot_quality.csv", index=False)
+    pair_table.to_csv(output / "cross_venue_quality.csv", index=False)
+    console.print(snapshot_table.to_string(index=False))
+    console.print(pair_table.to_string(index=False))
+
+
+@app.command("phase2c-report")
+def phase2c_report_command(
+    experiment_dir: Path = typer.Option(..., "--experiment"),
+    spec_path: Path = typer.Option(..., "--spec"),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Build concentration, tail, cost-stress and promotion-gate reports."""
+
+    spec = load_phase2c_spec(spec_path)
+    report = build_phase2c_report(experiment_dir, spec)
+    write_phase2c_report(report, output)
+    console.print(report.gate_results.to_string(index=False))
+
+
+@app.command("registry-append")
+def registry_append_command(
+    registry: Path = typer.Option(..., "--registry"),
+    spec_path: Path = typer.Option(..., "--spec"),
+    status: str = typer.Option(..., help="completed, null, failed or blocked"),
+    dataset_sha256: list[str] | None = typer.Option(None, "--dataset-sha256"),
+    experiment_dir: Path | None = typer.Option(None, "--experiment"),
+    artifact: list[Path] | None = typer.Option(None, "--artifact"),
+    notes: str = typer.Option(""),
+) -> None:
+    """Append an outcome without deleting null, failed or blocked experiments."""
+
+    if status not in {"completed", "null", "failed", "blocked"}:
+        raise typer.BadParameter("status must be completed, null, failed or blocked")
+    spec = load_phase2c_spec(spec_path)
+    experiment_id: str | None = None
+    datasets = list(dataset_sha256 or [])
+    summary: dict[str, float | int | str | bool | None] = {}
+    artifact_paths = list(artifact or [])
+    if experiment_dir is not None:
+        manifest_path = experiment_dir / "experiment.json"
+        manifest = json.loads(manifest_path.read_text("utf-8"))
+        experiment_id = str(manifest["experiment_id"])
+        datasets.append(str(manifest["dataset_sha256"]))
+        artifact_paths.append(experiment_dir)
+        summary_path = experiment_dir / "summary.csv"
+        if summary_path.exists():
+            table = pd.read_csv(summary_path)
+            summary["models"] = int(table["model"].nunique()) if "model" in table else len(table)
+            summary["summary_rows"] = len(table)
+    datasets = list(dict.fromkeys(datasets))
+    if status in {"completed", "null"} and not datasets:
+        raise typer.BadParameter("Completed/null records require at least one dataset SHA-256")
+    head, _, _ = verify_registry(registry)
+    record = ExperimentRecord(
+        recorded_at=datetime.now(UTC),
+        status=status,
+        plan_sha256=spec.plan_sha256,
+        experiment_id=experiment_id,
+        dataset_sha256=tuple(datasets),
+        artifact_sha256=_artifact_hashes(artifact_paths),
+        summary=summary,
+        notes=notes,
+        previous_record_sha256=head,
+    )
+    digest = append_registry_record(registry, record)
+    console.print(f"Appended experiment registry record: [bold]{digest}[/bold]")
+
+
+@app.command("registry-verify")
+def registry_verify_command(registry: Path = typer.Option(..., "--registry")) -> None:
+    head, record, count = verify_registry(registry)
+    payload = {
+        "records": count,
+        "head_sha256": head,
+        "last_status": record.status if record else None,
+        "last_recorded_at": record.recorded_at.isoformat() if record else None,
+    }
+    console.print_json(json.dumps(payload))
 
 
 @app.command("forward-record")

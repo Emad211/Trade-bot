@@ -5,13 +5,13 @@ Long/Flat** strategy. The repository deliberately separates point-in-time data,
 model research, risk, and eventual execution so every added component must prove
 incremental out-of-sample value after realistic costs.
 
-> **Status: Phase 2B research foundation.** No live orders, exchange credentials,
+> **Status: Phase 2C public-data research gate.** No live orders, exchange credentials,
 > leverage, shorting, or withdrawal permissions are implemented. Nothing in this
 > repository is financial advice.
 
 ## فارسی
 
-این مخزن زیرساخت پژوهشی مرحله دوم بات هیبریدی BTC Spot است. داده‌ها به‌صورت
+این مخزن زیرساخت پژوهشی مرحله 2C بات هیبریدی BTC Spot است. داده‌ها به‌صورت
 point-in-time و دارای زمان واقعی دسترس‌پذیری ذخیره می‌شوند؛ مدل‌ها در ساختار
 Train / Calibration / Validation / Test جداگانه ارزیابی می‌شوند؛ هزینه، اسلیپیج،
 خروج اجباری پایان هر fold و دفتر forward-test ثبت می‌شوند. TimesFM و Chronos فقط
@@ -191,6 +191,40 @@ hybrid-trader forward-verify \
   --ledger artifacts/forward/decisions.jsonl
 ```
 
+
+## Phase 2C: predeclared public-data execution
+
+Phase 2C freezes the observation window, source contracts, model matrix and
+promotion gates before any venue data is downloaded. It retains blocked, failed,
+null and completed attempts in a tamper-evident experiment registry.
+
+```bash
+# Inspect the frozen plan and its content hash.
+hybrid-trader phase2c-plan --spec configs/phase2c_btc_4h.yaml
+
+# Audit two independently created point-in-time snapshots.
+hybrid-trader audit-snapshots \
+  --snapshot data/snapshots/kraken \
+  --snapshot data/snapshots/bitstamp \
+  --output artifacts/phase2c/audit
+
+# Build the fold/tail/cost/promotion report after a sealed benchmark.
+hybrid-trader phase2c-report \
+  --experiment artifacts/phase2c/experiment \
+  --spec configs/phase2c_btc_4h.yaml \
+  --output artifacts/phase2c/report
+
+# Verify the append-only experiment registry.
+hybrid-trader registry-verify \
+  --registry artifacts/phase2c/registry.jsonl
+```
+
+The GitHub workflow `.github/workflows/phase2c-real-data.yml` performs the first
+credential-free smoke execution using Kraken and Bitstamp spot data and optional
+OKX derivatives data. Endpoint failure is recorded as a blocked experiment rather
+than silently replaced by synthetic data. Its fixed historical window is a
+reproducibility smoke test, not a production data schedule.
+
 ## Safety boundary
 
 The repository currently cannot:
@@ -214,4 +248,5 @@ execution.
 - [TimesFM and Chronos protocol](docs/foundation-models.md)
 - [Forward-test ledger](docs/forward-test.md)
 - [Platform selection](docs/platform-selection.md)
+- [Phase 2C execution contract](docs/phase-2c-execution.md)
 - [Release gates](docs/release-gates.md)
