@@ -1,0 +1,91 @@
+[build-system]
+requires = ["hatchling>=1.25", "editables>=0.5"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hybrid-trader"
+version = "0.2.0"
+description = "Leakage-aware point-in-time research foundation for hybrid BTC spot trading systems"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Emad Karimi" }]
+dependencies = [
+  "numpy>=1.26,<3",
+  "pandas>=2.2,<3",
+  "pydantic>=2.8,<3",
+  "PyYAML>=6.0,<7",
+  "rich>=13.7,<15",
+  "scikit-learn>=1.5,<2",
+  "typer>=0.12,<1",
+]
+
+[project.optional-dependencies]
+exchange = ["ccxt>=4.4,<5"]
+ml = [
+  "catboost>=1.2,<2",
+  "lightgbm>=4.5,<5",
+]
+forecast = [
+  "chronos-forecasting>=2.2,<3",
+  "timesfm[torch]>=2.0.2,<3",
+]
+dev = [
+  "mypy>=1.11,<2",
+  "pandas-stubs>=2.2",
+  "pytest>=8.3,<10",
+  "pytest-cov>=5,<8",
+  "ruff>=0.8,<1",
+  "types-PyYAML>=6.0",
+]
+all = [
+  "catboost>=1.2,<2",
+  "ccxt>=4.4,<5",
+  "chronos-forecasting>=2.2,<3",
+  "lightgbm>=4.5,<5",
+  "timesfm[torch]>=2.0.2,<3",
+]
+
+[project.urls]
+Repository = "https://github.com/Emad211/Trade-bot"
+Issues = "https://github.com/Emad211/Trade-bot/issues"
+
+[project.scripts]
+hybrid-trader = "hybrid_trader.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hybrid_trader"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/hybrid_trader/cli.py" = ["B008"]
+
+[tool.mypy]
+strict = true
+warn_unused_ignores = true
+ignore_missing_imports = true
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+addopts = "-q --strict-markers --disable-warnings"
+testpaths = ["tests"]
+markers = [
+  "optional_ml: integration tests requiring LightGBM and CatBoost",
+]
+
+[tool.coverage.run]
+source = ["hybrid_trader"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 75

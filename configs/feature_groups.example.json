@@ -1,0 +1,32 @@
+{
+  "market": [
+    "log_return_1",
+    "log_return_2",
+    "log_return_6",
+    "log_return_24",
+    "realized_vol_6",
+    "realized_vol_24",
+    "realized_vol_42",
+    "ema_ratio",
+    "atr_pct",
+    "volume_zscore",
+    "bar_range_pct",
+    "close_location"
+  ],
+  "derivatives": [
+    "funding_rate",
+    "open_interest",
+    "basis"
+  ],
+  "local_market": [
+    "local_premium"
+  ],
+  "foundation_models": [
+    "timesfm_point_1",
+    "timesfm_q0p1_1",
+    "timesfm_q0p9_1",
+    "chronos_point_1",
+    "chronos_q0p1_1",
+    "chronos_q0p9_1"
+  ]
+}
