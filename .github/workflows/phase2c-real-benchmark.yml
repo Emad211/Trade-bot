@@ -1,0 +1,65 @@
+name: phase2c-real-benchmark
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/phase2c-real-benchmark.yml"
+      - "configs/phase2c_*.yaml"
+      - "scripts/verify_phase2c_artifacts.py"
+      - "src/hybrid_trader/**"
+      - "pyproject.toml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase2c-real-benchmark-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  real-data-benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install exchange and tree-model dependencies
+        run: python -m pip install -e '.[exchange,ml]'
+      - name: Execute fixed-cutoff Phase 2C benchmark
+        run: |
+          python -m hybrid_trader.phase2c \
+            --spec configs/phase2c_sources.yaml \
+            --config configs/phase2c_btc_4h.yaml \
+            --output artifacts/phase2c
+      - name: Verify artifacts fail-closed
+        run: python scripts/verify_phase2c_artifacts.py artifacts/phase2c
+      - name: Create checksums and immutable bundle
+        if: always()
+        run: |
+          mkdir -p dist
+          if [ -d artifacts/phase2c ]; then
+            tar --sort=name \
+              --mtime='UTC 1970-01-01' \
+              --owner=0 --group=0 --numeric-owner \
+              -czf dist/phase2c-real-benchmark-${GITHUB_SHA}.tar.gz \
+              artifacts/phase2c
+          fi
+          find artifacts/phase2c -type f -print0 2>/dev/null \
+            | sort -z \
+            | xargs -0 sha256sum > dist/ARTIFACT_SHA256SUMS || true
+          sha256sum dist/*.tar.gz >> dist/ARTIFACT_SHA256SUMS 2>/dev/null || true
+      - name: Upload benchmark evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2c-real-benchmark-${{ github.sha }}
+          path: |
+            artifacts/phase2c/
+            dist/
+          if-no-files-found: error
+          retention-days: 90
