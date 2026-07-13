@@ -33,8 +33,9 @@ jobs:
           find . -mindepth 1 -maxdepth 1 ! -name .git ! -name .phase2-bootstrap ! -name .github -exec rm -rf {} +
           tar -xzf /tmp/phase2b-source.tar.gz -C .
           rm -rf .phase2-bootstrap
-          rm -f .github/workflows/bootstrap-phase2.yml
-      - name: Commit materialized Phase 2B
+          # Workflow-file writes are published separately by the connected GitHub App.
+          rm -f .github/workflows/bootstrap-phase2.yml .github/workflows/ci.yml
+      - name: Commit materialized Phase 2B source
         shell: bash
         run: |
           set -euo pipefail
