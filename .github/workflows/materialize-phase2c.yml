@@ -1,0 +1,89 @@
+name: materialize-phase2c
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data"]
+    paths:
+      - ".phase2c-payload.part*"
+      - ".github/workflows/materialize-phase2c.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: materialize-phase2c-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify payload parts and extract allow-listed source
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected_parts=6
+          actual_parts="$(find . -maxdepth 1 -type f -name '.phase2c-payload.part*' | wc -l)"
+          test "${actual_parts}" -eq "${expected_parts}"
+          echo "cb343a586aa9610ba4bc876fd244e42a28192e0d56baa2aef5f9d3432e3fa909  .phase2c-payload.part00" | sha256sum --check -
+          echo "a3575d4240f50f4e8eeed48621bcf0e826a016c7e93e0770e01d437d550c3e86  .phase2c-payload.part01" | sha256sum --check -
+          echo "af17e4c072cc32b7955835696f0e19578a38436d928f89926fe28ca72e668634  .phase2c-payload.part02" | sha256sum --check -
+          echo "f58095f46e2f61104cff71571632698874ce4e57df334d13ddcb633c398a8953  .phase2c-payload.part03" | sha256sum --check -
+          echo "5223d12cf3d8ef3fd6879dd945aa701fcd3d38405d1699fd3af567f0984253ed  .phase2c-payload.part04" | sha256sum --check -
+          echo "908bce03c4c9060c12308fc1d54cdf0179a4f37f25bececae928aef18a6cc35b  .phase2c-payload.part05" | sha256sum --check -
+          cat .phase2c-payload.part00 .phase2c-payload.part01 \
+              .phase2c-payload.part02 .phase2c-payload.part03 \
+              .phase2c-payload.part04 .phase2c-payload.part05 \
+            | base64 --decode > /tmp/phase2c-payload.tar.gz
+          echo "961d7ff6c4d9a23bfb990887a23675384669815558800cef1aefc24204e30f54  /tmp/phase2c-payload.tar.gz" | sha256sum --check -
+          python - <<'PY'
+          from pathlib import Path, PurePosixPath
+          import tarfile
+
+          expected = {
+              "Makefile",
+              "README.md",
+              ".github/workflows/phase2c-real-data.yml",
+              "configs/btc_spot_4h_phase2c_smoke.yaml",
+              "configs/phase2c_btc_4h.yaml",
+              "docs/phase-2c-execution.md",
+              "src/hybrid_trader/cli.py",
+              "src/hybrid_trader/audit.py",
+              "src/hybrid_trader/phase2c.py",
+              "src/hybrid_trader/registry.py",
+              "src/hybrid_trader/reporting.py",
+              "tests/test_cli.py",
+              "tests/test_audit.py",
+              "tests/test_phase2c.py",
+              "tests/test_registry.py",
+              "tests/test_reporting.py",
+          }
+          archive = Path("/tmp/phase2c-payload.tar.gz")
+          with tarfile.open(archive, "r:gz") as handle:
+              members = handle.getmembers()
+              names = {member.name for member in members}
+              if names != expected:
+                  raise SystemExit(f"payload member mismatch: {sorted(names ^ expected)}")
+              for member in members:
+                  path = PurePosixPath(member.name)
+                  if path.is_absolute() or ".." in path.parts:
+                      raise SystemExit(f"unsafe archive path: {member.name}")
+                  if not member.isfile() or member.issym() or member.islnk():
+                      raise SystemExit(f"unsupported archive member: {member.name}")
+              handle.extractall(Path.cwd(), filter="data")
+          PY
+      - name: Replace bootstrap with final source tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .phase2c-payload.part*
+          rm .github/workflows/materialize-phase2c.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "materialize phase 2c public-data research gate"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
