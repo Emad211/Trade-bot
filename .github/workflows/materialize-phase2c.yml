@@ -6,21 +6,29 @@ on:
     paths:
       - ".phase2c-payload.part*"
       - ".github/workflows/materialize-phase2c.yml"
+  pull_request:
+    branches: ["agent/phase-2-point-in-time-benchmarks"]
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".phase2c-payload.part*"
+      - ".github/workflows/materialize-phase2c.yml"
 
 permissions:
   contents: write
 
 concurrency:
-  group: materialize-phase2c-${{ github.ref }}
+  group: materialize-phase2c-${{ github.head_ref || github.ref }}
   cancel-in-progress: false
 
 jobs:
   materialize:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.head_ref || github.ref_name }}
       - name: Verify payload parts and extract allow-listed source
         shell: bash
         run: |
@@ -79,6 +87,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          target_branch="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
           rm .phase2c-payload.part*
           rm .github/workflows/materialize-phase2c.yml
           git config user.name "github-actions[bot]"
@@ -86,4 +95,4 @@ jobs:
           git add -A
           git diff --cached --check
           git commit -m "materialize phase 2c public-data research gate"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          git push origin "HEAD:${target_branch}"
