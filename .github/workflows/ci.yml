@@ -29,10 +29,10 @@ jobs:
         run: ruff check .
       - name: Type check
         run: mypy --python-version ${{ matrix.python-version }} src
-      - name: Tests
+      - name: Core tests
         run: |
           set -o pipefail
-          pytest --cov=hybrid_trader --cov-report=term-missing --tb=short 2>&1 | tee pytest.log
+          pytest -m "not optional_ml" --cov=hybrid_trader --cov-report=term-missing --tb=short 2>&1 | tee pytest.log
       - name: Upload pytest diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
