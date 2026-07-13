@@ -1,0 +1,117 @@
+name: phase2c-foundation-assessment
+
+on:
+  workflow_dispatch:
+    inputs:
+      foundation_run_id:
+        description: "Successful phase2c-foundation-final run ID; blank waits for latest"
+        required: false
+        type: string
+  workflow_run:
+    workflows: ["phase2c-foundation-final"]
+    types: [completed]
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - "scripts/assess_phase2c_foundation.py"
+      - ".github/workflows/phase2c-foundation-assessment.yml"
+
+permissions:
+  actions: read
+  pull-requests: write
+  contents: read
+
+jobs:
+  assessment:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Wait for successful final foundation run
+        id: foundation
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ID="${{ inputs.foundation_run_id }}"
+          if [ -z "$RUN_ID" ] && [ "${{ github.event_name }}" = "workflow_run" ]; then
+            RUN_ID="${{ github.event.workflow_run.id }}"
+          fi
+          for attempt in $(seq 1 120); do
+            if [ -z "$RUN_ID" ]; then
+              RUN_ID=$(gh api \
+                "repos/${GITHUB_REPOSITORY}/actions/runs?branch=${GITHUB_REF_NAME}&status=success&per_page=100" \
+                --jq '[.workflow_runs[] | select(.name == "phase2c-foundation-final")][0].id // empty')
+            fi
+            if [ -n "$RUN_ID" ]; then
+              echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "Final foundation artifact unavailable (attempt $attempt/120); waiting 30s."
+            sleep 30
+          done
+          exit 1
+      - name: Download final foundation evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p assessment-download
+          gh run download "${{ steps.foundation.outputs.run_id }}" --dir assessment-download
+          MANIFEST=$(find assessment-download -type f -name foundation_manifest.json -print -quit)
+          if [ -z "$MANIFEST" ]; then
+            echo "No foundation manifest in final artifact." >&2
+            exit 1
+          fi
+          ROOT=$(dirname "$MANIFEST")
+          echo "FOUNDATION_ROOT=$ROOT" >> "$GITHUB_ENV"
+      - name: Install assessment dependencies
+        run: python -m pip install -e .
+      - name: Produce non-activating screening assessment
+        run: python scripts/assess_phase2c_foundation.py "$FOUNDATION_ROOT"
+      - name: Enforce human-review-only status
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["FOUNDATION_ROOT"])
+          assessment = json.loads((root / "foundation_assessment.json").read_text())
+          if assessment["status"] != "human_review_required":
+              raise RuntimeError("Assessment attempted automatic promotion")
+          if (root / "prospective_decisions.jsonl").read_text().strip():
+              raise RuntimeError("Assessment artifact contains prospective decisions")
+          PY
+      - name: Copy assessed artifact
+        run: |
+          mkdir -p artifacts
+          cp -a "$FOUNDATION_ROOT" artifacts/phase2c-foundation-assessed
+          printf '%s\n' "${{ steps.foundation.outputs.run_id }}" \
+            > artifacts/phase2c-foundation-assessed/foundation_source_run_id.txt
+      - name: Build deterministic archive
+        run: |
+          mkdir -p artifacts/distribution
+          tar --sort=name --mtime='UTC 1970-01-01' \
+            --owner=0 --group=0 --numeric-owner \
+            -czf artifacts/distribution/phase2c-foundation-assessed-${GITHUB_SHA}.tar.gz \
+            -C artifacts phase2c-foundation-assessed
+          find artifacts -type f -not -path 'artifacts/distribution/SHA256SUMS' -print0 \
+            | sort -z | xargs -0 sha256sum > artifacts/distribution/SHA256SUMS
+      - name: Upload assessed evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2c-foundation-assessed-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 90
+      - name: Comment assessment status on PR
+        run: |
+          gh pr comment 4 --repo "$GITHUB_REPOSITORY" --body \
+            "Foundation assessment completed with status \`human_review_required\`. No strategy was promoted or activated. Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
