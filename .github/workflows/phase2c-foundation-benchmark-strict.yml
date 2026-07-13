@@ -1,0 +1,142 @@
+name: phase2c-foundation-benchmark-strict
+
+on:
+  workflow_dispatch:
+    inputs:
+      baseline_run_id:
+        description: "Successful strict baseline run ID; blank waits for latest"
+        required: false
+        type: string
+  workflow_run:
+    workflows: ["phase2c-real-benchmark-strict"]
+    types: [completed]
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/phase2c-foundation-benchmark-strict.yml"
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  foundation-benchmark:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Wait for strict baseline evidence
+        id: baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ID="${{ inputs.baseline_run_id }}"
+          if [ -z "$RUN_ID" ] && [ "${{ github.event_name }}" = "workflow_run" ]; then
+            RUN_ID="${{ github.event.workflow_run.id }}"
+          fi
+          for attempt in $(seq 1 120); do
+            if [ -z "$RUN_ID" ]; then
+              RUN_ID=$(gh api \
+                "repos/${GITHUB_REPOSITORY}/actions/runs?branch=${GITHUB_REF_NAME}&status=success&per_page=100" \
+                --jq '[.workflow_runs[] | select(.name == "phase2c-real-benchmark-strict")][0].id // empty')
+            fi
+            if [ -n "$RUN_ID" ]; then
+              echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "Strict baseline unavailable (attempt $attempt/120); waiting 30s."
+            sleep 30
+          done
+          exit 1
+      - name: Download and re-verify strict baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p baseline-download
+          gh run download "${{ steps.baseline.outputs.run_id }}" --dir baseline-download
+          REGISTRY=$(find baseline-download -type f -name source_registry.json -print -quit)
+          if [ -z "$REGISTRY" ]; then
+            echo "Strict baseline artifact has no source registry." >&2
+            exit 1
+          fi
+          BASELINE_ROOT=$(dirname "$REGISTRY")
+          python scripts/verify_phase2c_artifacts.py "$BASELINE_ROOT"
+          python scripts/verify_phase2c_artifacts_strict.py \
+            "$BASELINE_ROOT" \
+            --spec configs/phase2c_sources_runtime.yaml
+          echo "BASELINE_ROOT=$BASELINE_ROOT" >> "$GITHUB_ENV"
+      - name: Resolve immutable model revisions
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          models = {
+              "TIMESFM_REVISION": "google/timesfm-2.5-200m-pytorch",
+              "CHRONOS_REVISION": "amazon/chronos-2",
+          }
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as output:
+              for variable, model in models.items():
+                  request = urllib.request.Request(
+                      f"https://huggingface.co/api/models/{model}",
+                      headers={"User-Agent": "hybrid-trader-phase2c/1.0"},
+                  )
+                  with urllib.request.urlopen(request, timeout=60) as response:
+                      payload = json.load(response)
+                  revision = payload.get("sha")
+                  if not revision or len(revision) != 40:
+                      raise RuntimeError(f"Unresolved model revision: {model}")
+                  output.write(f"{variable}={revision}\n")
+          PY
+      - name: Install foundation and tree-model dependencies
+        run: python -m pip install -e '.[forecast,ml]'
+      - name: Execute pinned foundation scenarios
+        run: |
+          python scripts/run_phase2c_foundation.py \
+            --baseline-root "$BASELINE_ROOT" \
+            --config configs/phase2c_btc_4h.yaml \
+            --output artifacts/phase2c-foundation \
+            --timesfm-revision "$TIMESFM_REVISION" \
+            --chronos-revision "$CHRONOS_REVISION" \
+            --device cpu \
+            --context 256 \
+            --horizon 6 \
+            --stride 6 \
+            --batch-size 16 \
+            --inference-latency-seconds 120
+      - name: Verify challenger artifacts and non-activation
+        run: |
+          python scripts/verify_phase2c_foundation.py \
+            artifacts/phase2c-foundation \
+            --baseline-root "$BASELINE_ROOT"
+      - name: Build deterministic archive
+        if: always()
+        run: |
+          mkdir -p artifacts/distribution
+          if [ -d artifacts/phase2c-foundation ]; then
+            tar --sort=name --mtime='UTC 1970-01-01' \
+              --owner=0 --group=0 --numeric-owner \
+              -czf artifacts/distribution/phase2c-foundation-strict-${GITHUB_SHA}.tar.gz \
+              -C artifacts phase2c-foundation
+          fi
+          find artifacts -type f -not -path 'artifacts/distribution/SHA256SUMS' -print0 \
+            | sort -z | xargs -0 sha256sum > artifacts/distribution/SHA256SUMS || true
+      - name: Upload strict foundation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2c-foundation-strict-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 90
