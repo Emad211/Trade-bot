@@ -1,0 +1,231 @@
+diff --git a/.github/workflows/phase2c-real-benchmark.yml b/.github/workflows/phase2c-real-benchmark.yml
+new file mode 100644
+index 0000000..792699e
+--- /dev/null
++++ b/.github/workflows/phase2c-real-benchmark.yml
+@@ -0,0 +1,67 @@
++name: phase2c-real-benchmark
++
++on:
++  push:
++    branches: ["agent/phase-2c-real-data-benchmark"]
++    paths:
++      - ".github/workflows/phase2c-real-benchmark.yml"
++      - "configs/phase2c_*.yaml"
++      - "scripts/verify_phase2c_artifacts.py"
++      - "src/hybrid_trader/**"
++      - "pyproject.toml"
++  workflow_dispatch:
++
++permissions:
++  contents: read
++
++concurrency:
++  group: phase2c-real-benchmark-${{ github.ref }}
++  cancel-in-progress: false
++
++jobs:
++  real-data-benchmark:
++    runs-on: ubuntu-latest
++    timeout-minutes: 120
++    steps:
++      - uses: actions/checkout@v4
++      - uses: actions/setup-python@v5
++        with:
++          python-version: "3.12"
++          cache: pip
++      - name: Install exchange and tree-model dependencies
++        run: python -m pip install -e '.[exchange,ml]'
++      - name: Verify installed dependency consistency
++        run: python -m pip check
++      - name: Execute fixed-cutoff Phase 2C benchmark
++        run: |
++          python -m hybrid_trader.phase2c \
++            --spec configs/phase2c_sources.yaml \
++            --config configs/phase2c_btc_4h.yaml \
++            --output artifacts/phase2c
++      - name: Verify artifacts fail-closed
++        run: python scripts/verify_phase2c_artifacts.py artifacts/phase2c
++      - name: Create checksums and immutable bundle
++        if: always()
++        run: |
++          mkdir -p dist
++          if [ -d artifacts/phase2c ]; then
++            tar --sort=name \
++              --mtime='UTC 1970-01-01' \
++              --owner=0 --group=0 --numeric-owner \
++              -czf dist/phase2c-real-benchmark-${GITHUB_SHA}.tar.gz \
++              artifacts/phase2c
++          fi
++          find artifacts/phase2c -type f -print0 2>/dev/null \
++            | sort -z \
++            | xargs -0 sha256sum > dist/ARTIFACT_SHA256SUMS || true
++          sha256sum dist/*.tar.gz >> dist/ARTIFACT_SHA256SUMS 2>/dev/null || true
++      - name: Upload benchmark evidence
++        if: always()
++        uses: actions/upload-artifact@v4
++        with:
++          name: phase2c-real-benchmark-${{ github.sha }}
++          path: |
++            artifacts/phase2c/
++            dist/
++          if-no-files-found: error
++          retention-days: 90
+diff --git a/README.md b/README.md
+index 33e1d91..490aad5 100644
+--- a/README.md
++++ b/README.md
+@@ -5,13 +5,15 @@ Long/Flat** strategy. The repository deliberately separates point-in-time data,
+ model research, risk, and eventual execution so every added component must prove
+ incremental out-of-sample value after realistic costs.
+ 
+-> **Status: Phase 2B research foundation.** No live orders, exchange credentials,
+-> leverage, shorting, or withdrawal permissions are implemented. Nothing in this
+-> repository is financial advice.
++> **Status: Phase 2C real-data research pipeline.** The fixed-cutoff workflow can
++> collect public multi-venue BTC data and execute sealed historical benchmarks on
++> GitHub Actions. No live orders, exchange credentials, leverage, shorting, or
++> withdrawal permissions are implemented. Nothing in this repository is financial
++> advice.
+ 
+ ## فارسی
+ 
+-این مخزن زیرساخت پژوهشی مرحله دوم بات هیبریدی BTC Spot است. داده‌ها به‌صورت
++این مخزن زیرساخت پژوهشی مرحله 2C بات هیبریدی BTC Spot است. داده‌ها به‌صورت
+ point-in-time و دارای زمان واقعی دسترس‌پذیری ذخیره می‌شوند؛ مدل‌ها در ساختار
+ Train / Calibration / Validation / Test جداگانه ارزیابی می‌شوند؛ هزینه، اسلیپیج،
+ خروج اجباری پایان هر fold و دفتر forward-test ثبت می‌شوند. TimesFM و Chronos فقط
+@@ -58,6 +60,33 @@ python -m pip install -e '.[ml]'        # LightGBM + CatBoost
+ python -m pip install -e '.[forecast]'  # TimesFM + Chronos
+ ```
+ 
++
++## Phase 2C fixed-cutoff real-data workflow
++
++The GitHub Actions workflow `phase2c-real-benchmark.yml` executes a predeclared
++research run with no credentials. It attempts multiple independent spot venues,
++public derivatives history and availability-lagged FRED market context, then writes
++immutable source artifacts, a combined snapshot, sealed benchmark output, ablations,
++quality diagnostics and a prospective freeze candidate.
++
++```bash
++python -m pip install -e '.[exchange,ml]'
++python -m hybrid_trader.phase2c \
++  --spec configs/phase2c_sources.yaml \
++  --config configs/phase2c_btc_4h.yaml \
++  --output artifacts/phase2c
++python scripts/verify_phase2c_artifacts.py artifacts/phase2c
++```
++
++The checked-in specification freezes the observation cutoff, source candidates,
++latency assumptions, split sizes, model list, threshold grid and cost multipliers.
++Changing any of them creates a different experiment identity. Failed public sources
++remain in the registry rather than being silently omitted.
++
++The historical workflow deliberately creates an **empty** prospective ledger. A
++human-reviewed freeze must be activated before any future paper decisions are
++recorded. See [`docs/phase-2c-real-benchmark.md`](docs/phase-2c-real-benchmark.md).
++
+ ## Reproducible smoke workflow
+ 
+ ```bash
+@@ -215,3 +244,4 @@ execution.
+ - [Forward-test ledger](docs/forward-test.md)
+ - [Platform selection](docs/platform-selection.md)
+ - [Release gates](docs/release-gates.md)
++- [Phase 2C real-data benchmark](docs/phase-2c-real-benchmark.md)
+diff --git a/configs/phase2c_btc_4h.yaml b/configs/phase2c_btc_4h.yaml
+new file mode 100644
+index 0000000..8b9898c
+--- /dev/null
++++ b/configs/phase2c_btc_4h.yaml
+@@ -0,0 +1,49 @@
++market:
++  symbol: BTC/USD
++  timeframe: 4h
++  periods_per_year: 2190
++data:
++  source_latency_seconds: 30.0
++  require_regular_bars: true
++  drop_incomplete_last_bar: true
++strategy:
++  ema_fast: 20
++  ema_slow: 100
++  donchian_entry: 40
++  donchian_exit: 20
++  atr_window: 14
++  volatility_window: 30
++  max_annualized_volatility: 1.20
++features:
++  return_windows: [1, 2, 6, 24]
++  volatility_windows: [6, 24, 42]
++  volume_window: 30
++labels:
++  execution_delay_bars: 1
++  holding_period_bars: 1
++  positive_threshold_bps: 0.0
++evaluation:
++  initial_train: 2500
++  calibration_size: 360
++  validation_size: 360
++  test_size: 360
++  step_size: 360
++  embargo: 2
++  thresholds: [0.50, 0.55, 0.60, 0.65]
++  min_entries: 3
++  drawdown_penalty: 0.5
++  cost_multipliers: [1.0, 1.5, 2.0]
++ml:
++  models: [prior, ridge_logistic, lightgbm, catboost]
++  random_seed: 42
++  ridge_c: 1.0
++risk:
++  target_annualized_volatility: 0.35
++  max_exposure: 0.35
++  min_exposure: 0.05
++costs:
++  fee_bps: 15.0
++  slippage_bps: 10.0
++backtest:
++  initial_cash: 10000.0
++  min_history_bars: 150
+diff --git a/configs/phase2c_sources.yaml b/configs/phase2c_sources.yaml
+new file mode 100644
+index 0000000..e21f3f3
+--- /dev/null
++++ b/configs/phase2c_sources.yaml
+@@ -0,0 +1,44 @@
++schema_version: "1.0"
++timeframe: 4h
++start: 2023-01-01T00:00:00Z
++end: 2026-07-12T20:00:00Z
++as_of: 2026-07-13T00:15:00Z
++spot_required_count: 2
++source_latency_seconds: 30.0
++derivative_latency_seconds: 60.0
++page_limit: 1000
++max_pages: 100
++cross_venue_tolerance_hours: 8.0
++spot_sources:
++  - exchange_id: coinbase
++    symbol: BTC/USD
++  - exchange_id: bitstamp
++    symbol: BTC/USD
++  - exchange_id: gemini
++    symbol: BTC/USD
++derivative_sources:
++  - exchange_id: okx
++    symbol: BTC/USDT:USDT
++  - exchange_id: bybit
++    symbol: BTC/USDT:USDT
++  - exchange_id: binanceusdm
++    symbol: BTC/USDT:USDT
++  - exchange_id: deribit
++    symbol: BTC/USD:BTC
++minimum_derivative_features: 1
++fred_series:
++  - series_id: NASDAQCOM
++    feature_name: nasdaq_composite
++    release_lag_hours: 24
++    source_latency_seconds: 300
++    tolerance_day
