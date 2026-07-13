@@ -1,0 +1,199 @@
+s: 10
++  - series_id: DTWEXBGS
++    feature_name: usd_broad_index
++    release_lag_hours: 24
++    source_latency_seconds: 300
++    tolerance_days: 10
++  - series_id: GOLDAMGBD228NLBM
++    feature_name: gold_usd_am
++    release_lag_hours: 24
++    source_latency_seconds: 300
++    tolerance_days: 10
+diff --git a/docs/phase-2c-real-benchmark.md b/docs/phase-2c-real-benchmark.md
+new file mode 100644
+index 0000000..c14e063
+--- /dev/null
++++ b/docs/phase-2c-real-benchmark.md
+@@ -0,0 +1,40 @@
++# Phase 2C: fixed-cutoff real-data benchmark
++
++Phase 2C runs in GitHub Actions because the local development sandbox has no
++reliable outbound DNS. The workflow uses a fixed observation cutoff rather than
++"latest" data, so a re-run requests the same historical window.
++
++## Sources
++
++The runner attempts three independent BTC/USD spot venues and requires at least
++two successes. It then tries several public derivatives venues independently for:
++
++- settled funding history;
++- interval-close open interest;
++- mark/index basis.
++
++Daily market context is requested from FRED for Nasdaq Composite, the Federal
++Reserve broad dollar index and the London morning gold price. These are explicitly
++marked as latest-vintage market/reference-price series. Revisable macroeconomic
++series are prohibited until an ALFRED/vintage-aware adapter is implemented.
++
++## Evidence bundle
++
++The uploaded workflow artifact contains:
++
++- immutable source snapshots and manifests;
++- raw content-addressed derivatives and FRED artifacts;
++- source attempt registry, including failures;
++- missing-bar and cross-venue diagnostics;
++- sealed fold metrics, predictions and cost stress;
++- feature-group ablations;
++- large-move conditional performance;
++- fold concentration;
++- a human-review-only prospective freeze candidate;
++- a verification manifest and SHA-256 inventory.
++
++## Safety
++
++The workflow has no secrets, exchange credentials or write-capable API. It cannot
++submit orders, withdraw funds, open short positions or enable leverage. The empty
++prospective decision ledger must remain empty during historical automation.
+diff --git a/pyproject.toml b/pyproject.toml
+index 243f0db..0d2a505 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
+ 
+ [project]
+ name = "hybrid-trader"
+-version = "0.2.0"
++version = "0.3.0"
+ description = "Leakage-aware point-in-time research foundation for hybrid BTC spot trading systems"
+ readme = "README.md"
+ requires-python = ">=3.11"
+@@ -17,6 +17,7 @@ dependencies = [
+   "PyYAML>=6.0,<7",
+   "rich>=13.7,<15",
+   "scikit-learn>=1.5,<2",
++  "tabulate>=0.9,<1",
+   "typer>=0.12,<1",
+ ]
+ 
+diff --git a/scripts/verify_phase2c_artifacts.py b/scripts/verify_phase2c_artifacts.py
+new file mode 100644
+index 0000000..d7848c2
+--- /dev/null
++++ b/scripts/verify_phase2c_artifacts.py
+@@ -0,0 +1,131 @@
++"""Fail closed when a Phase 2C artifact bundle is incomplete or inconsistent."""
++
++from __future__ import annotations
++
++import argparse
++import hashlib
++import json
++from pathlib import Path
++
++import pandas as pd
++
++from hybrid_trader.data.snapshot import canonical_json_sha256, read_snapshot
++
++
++def _sha256(path: Path) -> str:
++    return hashlib.sha256(path.read_bytes()).hexdigest()
++
++
++def verify(root: Path) -> dict[str, object]:
++    required = [
++        "source_registry.json",
++        "run_spec.json",
++        "benchmark_config.json",
++        "quality_report.json",
++        "combined_snapshot/data.csv.gz",
++        "combined_snapshot/manifest.json",
++        "benchmark/all_features/fold_metrics.csv",
++        "benchmark/all_features/summary.csv",
++        "benchmark/all_features/cost_stress.csv",
++        "benchmark/all_features/experiment.json",
++        "ablation_summary.csv",
++        "conditional_large_moves.csv",
++        "fold_concentration.csv",
++        "phase2c_report.md",
++        "phase2c_report.sha256",
++        "prospective/freeze_candidate.json",
++        "prospective/decisions.jsonl",
++    ]
++    missing = [path for path in required if not (root / path).exists()]
++    if missing:
++        raise ValueError(f"Missing Phase 2C artifacts: {missing}")
++
++    data, snapshot = read_snapshot(root / "combined_snapshot")
++    registry = json.loads((root / "source_registry.json").read_text("utf-8"))
++    run_spec = json.loads((root / "run_spec.json").read_text("utf-8"))
++    if canonical_json_sha256(run_spec) != registry["spec_sha256"]:
++        raise ValueError("Run spec SHA-256 does not match the source registry")
++    attempts = registry["attempts"]
++    registry_identity = {
++        "observation_cutoff": registry["observation_cutoff"],
++        "spec": run_spec,
++        "combined_snapshot_sha256": registry["combined_snapshot_sha256"],
++        "attempts": [
++            {key: value for key, value in attempt.items() if key != "retrieved_at"}
++            for attempt in attempts
++        ],
++    }
++    if canonical_json_sha256(registry_identity) != registry["registry_id"]:
++        raise ValueError("Source registry identity hash does not match")
++    spot_success = [
++        item
++        for item in attempts
++        if item["source_type"] == "spot_ohlcv" and item["status"] == "success"
++    ]
++    derivative_success = [
++        item
++        for item in attempts
++        if item["source_type"] in {"funding", "open_interest", "basis"}
++        and item["status"] == "success"
++    ]
++    if len(spot_success) < 2:
++        raise ValueError(f"Only {len(spot_success)} independent spot sources succeeded")
++    if not derivative_success:
++        raise ValueError("No derivative feature family succeeded")
++    if registry["combined_snapshot_sha256"] != snapshot.content_sha256:
++        raise ValueError("Registry and combined snapshot SHA do not match")
++
++    metrics = pd.read_csv(root / "benchmark/all_features/fold_metrics.csv")
++    summary = pd.read_csv(root / "benchmark/all_features/summary.csv")
++    stress = pd.read_csv(root / "benchmark/all_features/cost_stress.csv")
++    required_models = {"trend", "prior", "ridge_logistic", "lightgbm", "catboost"}
++    missing_models = required_models.difference(metrics["model"].unique())
++    if missing_models:
++        raise ValueError(f"Benchmark is missing models: {sorted(missing_models)}")
++    if set(stress["cost_multiplier"].round(6)) != {1.0, 1.5, 2.0}:
++        raise ValueError("Cost stress multipliers are incomplete")
++    if summary.empty or metrics.empty or data.empty:
++        raise ValueError("Phase 2C produced an empty core artifact")
++
++    report_hash_line = (root / "phase2c_report.sha256").read_text("utf-8").strip()
++    expected_report_hash = report_hash_line.split()[0]
++    actual_report_hash = _sha256(root / "phase2c_report.md")
++    if expected_report_hash != actual_report_hash:
++        raise ValueError("Report SHA-256 does not match")
++    freeze = json.loads((root / "prospective/freeze_candidate.json").read_text("utf-8"))
++    if freeze["status"] != "candidate_not_activated":
++        raise ValueError("Historical automation must not activate the prospective strategy")
++    freeze_identity = {key: value for key, value in freeze.items() if key != "freeze_sha256"}
++    if canonical_json_sha256(freeze_identity) != freeze["freeze_sha256"]:
++        raise ValueError("Prospective freeze candidate hash does not match")
++    if (root / "prospective/decisions.jsonl").read_text("utf-8"):
++        raise ValueError("Historical workflow must not fabricate prospective decisions")
++
++    verification = {
++        "schema_version": "1.0",
++        "combined_snapshot_sha256": snapshot.content_sha256,
++        "rows": len(data),
++        "successful_spot_sources": len(spot_success),
++        "successful_derivative_features": sorted(
++            {item["source_type"] for item in derivative_success}
++        ),
++        "models": sorted(metrics["model"].unique().tolist()),
++        "folds": int(metrics["fold"].nunique()),
++        "report_sha256": actual_report_hash,
++        
