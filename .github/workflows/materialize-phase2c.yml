@@ -36,12 +36,12 @@ jobs:
           expected_parts=6
           actual_parts="$(find . -maxdepth 1 -type f -name '.phase2c-payload.part*' | wc -l)"
           test "${actual_parts}" -eq "${expected_parts}"
-          echo "cb343a586aa9610ba4bc876fd244e42a28192e0d56baa2aef5f9d3432e3fa909  .phase2c-payload.part00" | sha256sum --check -
-          echo "a3575d4240f50f4e8eeed48621bcf0e826a016c7e93e0770e01d437d550c3e86  .phase2c-payload.part01" | sha256sum --check -
-          echo "af17e4c072cc32b7955835696f0e19578a38436d928f89926fe28ca72e668634  .phase2c-payload.part02" | sha256sum --check -
-          echo "f58095f46e2f61104cff71571632698874ce4e57df334d13ddcb633c398a8953  .phase2c-payload.part03" | sha256sum --check -
-          echo "5223d12cf3d8ef3fd6879dd945aa701fcd3d38405d1699fd3af567f0984253ed  .phase2c-payload.part04" | sha256sum --check -
-          echo "908bce03c4c9060c12308fc1d54cdf0179a4f37f25bececae928aef18a6cc35b  .phase2c-payload.part05" | sha256sum --check -
+          echo "cb343a771f7973387965e7a53481986043511786b2780b086dcae1f6509d642d  .phase2c-payload.part00" | sha256sum --check -
+          echo "a3575d33a8e9b1d667bc49fe279aeafabef9ef175a195a0d25be1f068c15f9f2  .phase2c-payload.part01" | sha256sum --check -
+          echo "af17e4ef306c144c6aa929474701b2f2e6dbc0e2274f1240a6760dc0576aad10  .phase2c-payload.part02" | sha256sum --check -
+          echo "f58095ed05791bec40046291401d95e1eb915a927cf8feded4fe52b22d49e7f9  .phase2c-payload.part03" | sha256sum --check -
+          echo "5223d1141eb5be093cc13c8d2b9d71de480755c058fbb479af4dcf9cd496d12d  .phase2c-payload.part04" | sha256sum --check -
+          echo "908bcef0e02adc8835926f6a1607bd254569bd35346b490874c5de8e29fa10e7  .phase2c-payload.part05" | sha256sum --check -
           cat .phase2c-payload.part00 .phase2c-payload.part01 \
               .phase2c-payload.part02 .phase2c-payload.part03 \
               .phase2c-payload.part04 .phase2c-payload.part05 \
