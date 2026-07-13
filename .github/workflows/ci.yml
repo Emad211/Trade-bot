@@ -30,7 +30,15 @@ jobs:
       - name: Type check
         run: mypy --python-version ${{ matrix.python-version }} src
       - name: Tests
-        run: pytest --cov=hybrid_trader --cov-report=term-missing
+        run: |
+          set -o pipefail
+          pytest --cov=hybrid_trader --cov-report=term-missing --tb=short 2>&1 | tee pytest.log
+      - name: Upload pytest diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-${{ matrix.python-version }}
+          path: pytest.log
       - name: Dependency consistency
         run: python -m pip check
 
