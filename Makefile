@@ -7,7 +7,7 @@ lint:
 	ruff check .
 
 typecheck:
-	mypy src
+	mypy --python-version 3.11 src
 
 test:
 	pytest --cov=hybrid_trader --cov-report=term-missing

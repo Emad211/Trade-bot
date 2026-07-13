@@ -9,6 +9,7 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.11", "3.12"]
     steps:
@@ -24,7 +25,7 @@ jobs:
       - name: Mypy
         run: |
           set -o pipefail
-          mypy src 2>&1 | tee mypy.log
+          mypy --python-version ${{ matrix.python-version }} src 2>&1 | tee mypy.log
       - name: Upload mypy diagnostics
         if: failure()
         uses: actions/upload-artifact@v4

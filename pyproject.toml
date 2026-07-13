@@ -58,7 +58,6 @@ ignore = ["E501"]
 "src/hybrid_trader/cli.py" = ["B008"]
 
 [tool.mypy]
-python_version = "3.11"
 strict = true
 warn_unused_ignores = true
 ignore_missing_imports = true
