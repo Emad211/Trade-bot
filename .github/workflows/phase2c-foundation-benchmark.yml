@@ -1,0 +1,149 @@
+name: phase2c-foundation-benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      baseline_run_id:
+        description: "Successful phase2c-real-benchmark-fixed run ID; blank selects latest"
+        required: false
+        type: string
+  workflow_run:
+    workflows: ["phase2c-real-benchmark-fixed"]
+    types: [completed]
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - "src/hybrid_trader/forecasting/batched.py"
+      - "scripts/run_phase2c_foundation.py"
+      - "scripts/verify_phase2c_foundation.py"
+      - "tests/test_batched_forecasting.py"
+      - ".github/workflows/phase2c-foundation-benchmark.yml"
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  foundation-benchmark:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Resolve verified baseline workflow run
+        id: baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ID="${{ inputs.baseline_run_id }}"
+          if [ -z "$RUN_ID" ] && [ "${{ github.event_name }}" = "workflow_run" ]; then
+            RUN_ID="${{ github.event.workflow_run.id }}"
+          fi
+          if [ -z "$RUN_ID" ]; then
+            RUN_ID=$(gh run list \
+              --workflow phase2c-real-benchmark-fixed.yml \
+              --branch "${GITHUB_REF_NAME}" \
+              --status success \
+              --limit 1 \
+              --json databaseId \
+              --jq '.[0].databaseId')
+          fi
+          if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+            echo "No successful fixed-cutoff Phase 2C baseline run is available." >&2
+            exit 1
+          fi
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+      - name: Download baseline evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p baseline-download
+          gh run download "${{ steps.baseline.outputs.run_id }}" --dir baseline-download
+          REGISTRY=$(find baseline-download -type f -name source_registry.json -print -quit)
+          if [ -z "$REGISTRY" ]; then
+            echo "Downloaded run has no verified Phase 2C source registry." >&2
+            find baseline-download -maxdepth 4 -type f -print >&2 || true
+            exit 1
+          fi
+          BASELINE_ROOT=$(dirname "$REGISTRY")
+          python scripts/verify_phase2c_artifacts.py "$BASELINE_ROOT"
+          echo "BASELINE_ROOT=$BASELINE_ROOT" >> "$GITHUB_ENV"
+      - name: Resolve immutable Hugging Face revisions
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          models = {
+              "TIMESFM_REVISION": "google/timesfm-2.5-200m-pytorch",
+              "CHRONOS_REVISION": "amazon/chronos-2",
+          }
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as output:
+              for variable, model in models.items():
+                  request = urllib.request.Request(
+                      f"https://huggingface.co/api/models/{model}",
+                      headers={"User-Agent": "hybrid-trader-phase2c/1.0"},
+                  )
+                  with urllib.request.urlopen(request, timeout=60) as response:
+                      payload = json.load(response)
+                  revision = payload.get("sha")
+                  if not revision or len(revision) != 40:
+                      raise RuntimeError(
+                          f"Could not resolve immutable revision for {model}"
+                      )
+                  output.write(f"{variable}={revision}\n")
+          PY
+      - name: Install foundation and tree-model dependencies
+        run: python -m pip install -e '.[forecast,ml]'
+      - name: Execute pinned TimesFM and Chronos challenger matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/run_phase2c_foundation.py \
+            --baseline-root "$BASELINE_ROOT" \
+            --config configs/phase2c_btc_4h.yaml \
+            --output artifacts/phase2c-foundation \
+            --timesfm-revision "$TIMESFM_REVISION" \
+            --chronos-revision "$CHRONOS_REVISION" \
+            --device cpu \
+            --context 256 \
+            --horizon 6 \
+            --stride 6 \
+            --batch-size 16 \
+            --inference-latency-seconds 120
+      - name: Verify foundation artifacts and non-activation gate
+        run: |
+          python scripts/verify_phase2c_foundation.py \
+            artifacts/phase2c-foundation \
+            --baseline-root "$BASELINE_ROOT"
+      - name: Build deterministic evidence archive
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p artifacts/distribution
+          if [ -d artifacts/phase2c-foundation ]; then
+            tar --sort=name --mtime='UTC 1970-01-01' \
+              --owner=0 --group=0 --numeric-owner \
+              -czf artifacts/distribution/phase2c-foundation-${GITHUB_SHA}.tar.gz \
+              -C artifacts phase2c-foundation
+          fi
+          find artifacts -type f -not -path 'artifacts/distribution/SHA256SUMS' -print0 \
+            | sort -z | xargs -0 sha256sum > artifacts/distribution/SHA256SUMS || true
+      - name: Upload foundation benchmark evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2c-foundation-benchmark-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 90
