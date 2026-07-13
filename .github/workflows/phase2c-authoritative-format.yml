@@ -1,0 +1,51 @@
+name: phase2c-authoritative-format
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - "scripts/verify_phase2c_artifacts_strict.py"
+      - "scripts/verify_phase2c_macro_gate.py"
+      - "scripts/run_phase2c_foundation.py"
+      - "scripts/verify_phase2c_foundation.py"
+      - "src/hybrid_trader/forecasting/batched.py"
+      - "tests/test_batched_forecasting.py"
+      - ".github/workflows/phase2c-authoritative-format.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  normalize-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase-2c-real-data-benchmark
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install development dependencies
+        run: python -m pip install -e '.[dev]'
+      - name: Normalize all Python files
+        run: ruff format .
+      - name: Lint
+        run: ruff check .
+      - name: Strict type check
+        run: mypy --python-version 3.12 src
+      - name: Full tests
+        run: pytest --cov=hybrid_trader --cov-report=term-missing
+      - name: Commit formatting-only changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "Repository already matches the formatter."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "format authoritative Phase 2C sources"
+          git push origin HEAD:agent/phase-2c-real-data-benchmark
