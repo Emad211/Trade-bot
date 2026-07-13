@@ -196,4 +196,4 @@ index 0000000..d7848c2
 +        "models": sorted(metrics["model"].unique().tolist()),
 +        "folds": int(metrics["fold"].nunique()),
 +        "report_sha256": actual_report_hash,
-+        
++       
