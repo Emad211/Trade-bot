@@ -1,0 +1,136 @@
+name: phase2c-status-reporter
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/phase2c-status-reporter.yml"
+
+permissions:
+  actions: read
+  pull-requests: write
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: "4"
+    steps:
+      - name: Wait for authoritative chain and write report
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          import time
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+
+          repo = os.environ["GITHUB_REPOSITORY"]
+          branch = "agent/phase-2c-real-data-benchmark"
+          names = [
+              "phase2c-real-benchmark-authoritative",
+              "phase2c-foundation-final",
+          ]
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {os.environ['GH_TOKEN']}",
+              "User-Agent": "hybrid-trader-status-reporter/1.0",
+          }
+
+          def get(url):
+              request = urllib.request.Request(url, headers=headers)
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  return json.load(response)
+
+          def latest_runs():
+              query = urllib.parse.urlencode({"branch": branch, "per_page": 100})
+              runs = get(
+                  f"https://api.github.com/repos/{repo}/actions/runs?{query}"
+              )["workflow_runs"]
+              result = {}
+              for run in runs:
+                  if run["name"] in names and run["name"] not in result:
+                      result[run["name"]] = run
+              return result
+
+          selected = {}
+          for _ in range(700):
+              selected = latest_runs()
+              baseline = selected.get(names[0])
+              foundation = selected.get(names[1])
+              if baseline and baseline["status"] == "completed":
+                  if baseline["conclusion"] != "success":
+                      break
+                  if foundation and foundation["status"] == "completed":
+                      break
+              time.sleep(30)
+
+          lines = [
+              "## Authoritative Phase 2C workflow report",
+              "",
+              "This comment is generated from GitHub Actions API data.",
+              "",
+              "| Workflow | Status | Conclusion | Run | Head |",
+              "|---|---|---|---|---|",
+          ]
+          for name in names:
+              run = selected.get(name)
+              if not run:
+                  lines.append(f"| {name} | not found |  |  |  |")
+                  continue
+              lines.append(
+                  f"| {name} | {run['status']} | {run['conclusion']} | "
+                  f"[#{run['run_number']}]({run['html_url']}) | "
+                  f"`{run['head_sha'][:12]}` |"
+              )
+              jobs = get(
+                  f"https://api.github.com/repos/{repo}/actions/runs/{run['id']}/jobs?per_page=100"
+              )["jobs"]
+              failed = []
+              for job in jobs:
+                  for step in job.get("steps", []):
+                      if step.get("conclusion") == "failure":
+                          failed.append(f"{job['name']}: {step['name']}")
+              if failed:
+                  lines.append("")
+                  lines.append(f"Failed steps for `{name}`:")
+                  lines.extend(f"- {item}" for item in failed)
+              artifacts = get(
+                  f"https://api.github.com/repos/{repo}/actions/runs/{run['id']}/artifacts?per_page=100"
+              )["artifacts"]
+              if artifacts:
+                  lines.append("")
+                  lines.append(f"Artifacts for `{name}`:")
+                  lines.extend(
+                      f"- `{item['name']}` — {item['size_in_bytes']} bytes — "
+                      f"`{item.get('digest')}`"
+                      for item in artifacts
+                  )
+          lines += [
+              "",
+              "A successful historical result remains non-activated and requires human review.",
+          ]
+          report = Path("phase2c-status.md")
+          report.write_text("\n".join(lines) + "\n", encoding="utf-8")
+          subprocess.run(
+              [
+                  "gh",
+                  "pr",
+                  "comment",
+                  os.environ["PR_NUMBER"],
+                  "--repo",
+                  repo,
+                  "--body-file",
+                  str(report),
+              ],
+              check=True,
+          )
+          PY
