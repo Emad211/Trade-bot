@@ -1,0 +1,54 @@
+name: phase2c-real-benchmark
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - "src/**"
+      - "configs/phase2c_*.yaml"
+      - "scripts/verify_phase2c_artifacts.py"
+      - ".github/workflows/phase2c-real-benchmark.yml"
+      - "pyproject.toml"
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install public-data and ML dependencies
+        run: python -m pip install -e '.[exchange,ml]'
+      - name: Execute fixed-cutoff Phase 2C benchmark
+        run: |
+          python -m hybrid_trader.phase2c \
+            --spec configs/phase2c_sources.yaml \
+            --config configs/phase2c_btc_4h.yaml \
+            --output artifacts/phase2c
+      - name: Verify artifacts and scientific gates
+        run: python scripts/verify_phase2c_artifacts.py artifacts/phase2c
+      - name: Build deterministic archive and checksum inventory
+        if: always()
+        run: |
+          mkdir -p artifacts/distribution
+          if [ -d artifacts/phase2c ]; then
+            tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner \
+              -czf artifacts/distribution/phase2c-${GITHUB_SHA}.tar.gz -C artifacts phase2c
+          fi
+          find artifacts -type f -not -path 'artifacts/distribution/SHA256SUMS' -print0 \
+            | sort -z | xargs -0 sha256sum > artifacts/distribution/SHA256SUMS || true
+      - name: Upload real-data benchmark evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2c-real-benchmark-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 90
