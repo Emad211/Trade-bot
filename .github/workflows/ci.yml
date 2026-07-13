@@ -79,12 +79,3 @@ jobs:
           print(hybrid_trader.__version__, type(app).__name__)
           PY
           /tmp/hybrid-trader-package-smoke/bin/python -m pip check
-      - name: Archive checked-out source
-        run: |
-          tar --exclude=.git --exclude='*.pyc' --exclude='__pycache__' -czf /tmp/hybrid-trader-source.tar.gz .
-      - name: Upload source archive
-        uses: actions/upload-artifact@v4
-        with:
-          name: hybrid-trader-source
-          path: /tmp/hybrid-trader-source.tar.gz
-          retention-days: 1
