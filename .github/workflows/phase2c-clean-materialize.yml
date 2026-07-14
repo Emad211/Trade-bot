@@ -1,6 +1,7 @@
 name: phase2c-clean-materialize
 
 # One-time, SHA-256-verified materializer for the clean Phase 2C overlay.
+# PR #6 exists; this revision explicitly triggers the branch materialization run.
 on:
   push:
     branches: ["agent/phase-2c-clean"]
