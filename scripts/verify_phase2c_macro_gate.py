@@ -8,12 +8,6 @@ import pandas as pd
 
 from hybrid_trader.phase2c import load_phase2c_spec
 
-REQUIRED_SERIES = {
-    "NASDAQCOM": "nasdaq_composite",
-    "DTWEXBGS": "usd_broad_index",
-    "GOLDAMGBD228NLBM": "gold_usd_am",
-}
-
 
 def verify_macro_gate(root: Path, spec_path: Path) -> dict[str, object]:
     spec = load_phase2c_spec(spec_path)
@@ -21,30 +15,42 @@ def verify_macro_gate(root: Path, spec_path: Path) -> dict[str, object]:
     quality = json.loads((root / "quality_report.json").read_text("utf-8"))
     missingness = quality["combined_missingness"]
     start, end = pd.Timestamp(spec.start), pd.Timestamp(spec.end)
-    accepted = []
+    required = [
+        ("fred", item.series_id, item.feature_name)
+        for item in spec.fred_series
+        if item.required
+    ] + [
+        ("stooq", item.symbol, item.feature_name)
+        for item in spec.stooq_series
+        if item.required
+    ]
+    if not required:
+        raise ValueError("At least one required market-context series is needed")
     successful = {
-        item["instrument"]: item
+        (item["provider"], item["instrument"]): item
         for item in registry["attempts"]
         if item["source_type"] == "market_context" and item["status"] == "success"
     }
-    for series_id, feature_name in REQUIRED_SERIES.items():
-        item = successful.get(series_id)
+    accepted = []
+    for provider, instrument, feature_name in required:
+        item = successful.get((provider, instrument))
         if item is None:
-            raise ValueError(f"Required market-context series failed: {series_id}")
+            raise ValueError(f"Required market-context source failed: {provider}:{instrument}")
         event_start = pd.Timestamp(item["event_start"])
         event_end = pd.Timestamp(item["event_end"])
         if event_start > start + pd.Timedelta(days=14):
-            raise ValueError(f"{series_id} starts too late")
+            raise ValueError(f"{provider}:{instrument} starts too late")
         if event_end < end - pd.Timedelta(days=14):
-            raise ValueError(f"{series_id} is stale at the fixed endpoint")
+            raise ValueError(f"{provider}:{instrument} is stale at the fixed endpoint")
         if item["row_count"] < 500:
-            raise ValueError(f"{series_id} has insufficient daily observations")
+            raise ValueError(f"{provider}:{instrument} has insufficient daily observations")
         ratio = float(missingness.get(feature_name, 1.0))
         if ratio > 0.05:
             raise ValueError(f"{feature_name} missingness exceeds 5%: {ratio:.4f}")
         accepted.append(
             {
-                "series_id": series_id,
+                "provider": provider,
+                "instrument": instrument,
                 "feature_name": feature_name,
                 "row_count": item["row_count"],
                 "event_start": item["event_start"],
