@@ -10,11 +10,13 @@ import pandas as pd
 from hybrid_trader.config import load_config
 from hybrid_trader.data.fred_source import FredFetchResult
 from hybrid_trader.data.point_in_time import add_bar_availability
+from hybrid_trader.data.stooq_source import StooqFetchResult
 from hybrid_trader.phase2c import (
     DerivativeVenueSpec,
     FredSeriesSpec,
     Phase2CSpec,
     SpotVenueSpec,
+    StooqSeriesSpec,
     run_phase2c,
 )
 
@@ -88,6 +90,29 @@ class FakeFred:
         )
 
 
+class FakeStooq:
+    def __init__(self, spec: StooqSeriesSpec) -> None:
+        self.spec = spec
+
+    def fetch(self, *, start, end, as_of) -> StooqFetchResult:
+        event = pd.date_range(start.normalize(), end.normalize(), freq="D", tz="UTC")
+        frame = pd.DataFrame(
+            {
+                "event_time": event,
+                "available_at": event + pd.Timedelta(days=1),
+                self.spec.feature_name: np.linspace(1800, 2100, len(event)),
+            }
+        )
+        frame = frame.loc[frame.available_at <= as_of]
+        return StooqFetchResult(
+            frame=frame,
+            url="https://example.invalid/stooq",
+            payload_sha256="2" * 64,
+            retrieved_at=datetime(2026, 1, 1, tzinfo=UTC),
+            revision_policy="market_price_latest_vintage",
+        )
+
+
 def test_phase2c_injected_end_to_end(tmp_path: Path) -> None:
     first, second = _bars(), _bars(5.0)
     frames = {"a": first, "b": second}
@@ -101,6 +126,7 @@ def test_phase2c_injected_end_to_end(tmp_path: Path) -> None:
         derivative_sources=(DerivativeVenueSpec(exchange_id="d", symbol="BTC/USDT:USDT"),),
         minimum_derivative_features=1,
         fred_series=(FredSeriesSpec(series_id="TEST", feature_name="macro_test"),),
+        stooq_series=(StooqSeriesSpec(symbol="xauusd", feature_name="gold_usd"),),
         max_pages=2,
     )
     result = run_phase2c(
@@ -110,9 +136,11 @@ def test_phase2c_injected_end_to_end(tmp_path: Path) -> None:
         spot_factory=lambda venue: FakeSpot(frames[venue.exchange_id]),
         derivative_factory=lambda venue: FakeDerivatives(),
         fred_factory=lambda item: FakeFred(item),
+        stooq_factory=lambda item: FakeStooq(item),
     )
     assert len(result.successful_spot_sources) == 2
     assert result.successful_derivative_features == ("funding",)
+    assert {"macro_test", "gold_usd"}.issubset(result.successful_macro_features)
     metrics = pd.read_csv(tmp_path / "run/benchmark/all_features/fold_metrics.csv")
     assert {"trend", "prior", "ridge_logistic"}.issubset(set(metrics.model))
     registry = json.loads((tmp_path / "run/source_registry.json").read_text())
