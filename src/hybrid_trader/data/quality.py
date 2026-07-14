@@ -76,9 +76,7 @@ def bar_quality(
         missing_bar_count=missing,
         missing_bar_ratio=missing / len(expected) if len(expected) else 0,
         irregular_gap_count=int((differences != interval).sum()),
-        maximum_gap_seconds=(
-            float(differences.max().total_seconds()) if len(differences) else 0
-        ),
+        maximum_gap_seconds=(float(differences.max().total_seconds()) if len(differences) else 0),
         zero_volume_ratio=float((frame.volume == 0).mean()),
         event_start=index[0].to_pydatetime(),
         event_end=index[-1].to_pydatetime(),
@@ -94,8 +92,10 @@ def cross_venue_quality(
     primary_source_id: str,
     secondary_source_id: str,
 ) -> CrossVenueQualityReport:
-    joined = primary[["close"]].rename(columns={"close": "a"}).join(
-        secondary[["close"]].rename(columns={"close": "b"}), how="inner"
+    joined = (
+        primary[["close"]]
+        .rename(columns={"close": "a"})
+        .join(secondary[["close"]].rename(columns={"close": "b"}), how="inner")
     )
     overlap = len(joined)
     denominator = max(1, min(len(primary), len(secondary)))
@@ -105,9 +105,7 @@ def cross_venue_quality(
         raw_corr = np.log(joined.a).diff().corr(np.log(joined.b).diff())
         corr = float(raw_corr) if np.isfinite(raw_corr) else None
         spread = (joined.a / joined.b - 1).abs() * 10_000
-        median, p95, maximum = map(
-            float, (spread.median(), spread.quantile(0.95), spread.max())
-        )
+        median, p95, maximum = map(float, (spread.median(), spread.quantile(0.95), spread.max()))
     return CrossVenueQualityReport(
         primary_source_id=primary_source_id,
         secondary_source_id=secondary_source_id,
@@ -126,8 +124,4 @@ def column_missingness(frame: pd.DataFrame) -> dict[str, float]:
 
 def _utc(value: pd.Timestamp) -> pd.Timestamp:
     timestamp = pd.Timestamp(value)
-    return (
-        timestamp.tz_localize("UTC")
-        if timestamp.tzinfo is None
-        else timestamp.tz_convert("UTC")
-    )
+    return timestamp.tz_localize("UTC") if timestamp.tzinfo is None else timestamp.tz_convert("UTC")

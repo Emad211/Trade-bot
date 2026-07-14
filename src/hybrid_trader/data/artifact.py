@@ -76,32 +76,21 @@ def write_tabular_artifact(
     notes: str = "",
 ) -> TabularArtifactManifest:
     if frame.empty or not {"event_time", "available_at"}.issubset(frame):
-        raise ValueError(
-            "Artifact requires non-empty event_time and available_at columns"
-        )
+        raise ValueError("Artifact requires non-empty event_time and available_at columns")
     data = frame.copy()
     data["event_time"] = pd.to_datetime(data.event_time, utc=True, errors="raise")
-    data["available_at"] = pd.to_datetime(
-        data.available_at, utc=True, errors="raise"
-    )
+    data["available_at"] = pd.to_datetime(data.available_at, utc=True, errors="raise")
     data = data.sort_values(["event_time", "available_at"]).reset_index(drop=True)
-    if data.event_time.duplicated().any() or (
-        data.available_at < data.event_time
-    ).any():
+    if data.event_time.duplicated().any() or (data.available_at < data.event_time).any():
         raise ValueError("Invalid event-time/availability contract")
     stamp = (
-        created_at.replace(tzinfo=UTC)
-        if created_at.tzinfo is None
-        else created_at.astimezone(UTC)
+        created_at.replace(tzinfo=UTC) if created_at.tzinfo is None else created_at.astimezone(UTC)
     )
     if pd.Timestamp(data.available_at.iloc[-1]).to_pydatetime() > stamp:
         raise ValueError("Artifact contains information unavailable at created_at")
     payload = _canonical(data)
     digest = hashlib.sha256(payload).hexdigest()
-    artifact_id = (
-        source_id.replace("/", "-").replace(":", "-").lower()
-        + f"-{digest[:12]}"
-    )
+    artifact_id = source_id.replace("/", "-").replace(":", "-").lower() + f"-{digest[:12]}"
     manifest = TabularArtifactManifest(
         artifact_id=artifact_id,
         content_sha256=digest,
@@ -131,8 +120,7 @@ def write_tabular_artifact(
         raise FileExistsError(f"Conflicting artifact {existing.artifact_id}")
     data_path.write_bytes(_gzip(payload))
     manifest_path.write_text(
-        json.dumps(manifest.model_dump(mode="json"), sort_keys=True, indent=2)
-        + "\n",
+        json.dumps(manifest.model_dump(mode="json"), sort_keys=True, indent=2) + "\n",
         encoding="utf-8",
     )
     return manifest
@@ -142,9 +130,7 @@ def read_tabular_artifact(
     directory: str | Path,
 ) -> tuple[pd.DataFrame, TabularArtifactManifest]:
     root = Path(directory)
-    manifest = TabularArtifactManifest.model_validate_json(
-        (root / "manifest.json").read_text()
-    )
+    manifest = TabularArtifactManifest.model_validate_json((root / "manifest.json").read_text())
     payload = gzip.decompress((root / "data.csv.gz").read_bytes())
     if hashlib.sha256(payload).hexdigest() != manifest.content_sha256:
         raise ValueError("Artifact hash mismatch")
