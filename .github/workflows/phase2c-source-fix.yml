@@ -1,5 +1,6 @@
 name: phase2c-source-fix
 
+# One-time, content-addressed materializer for the normalized Phase 2C source patch.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
