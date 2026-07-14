@@ -95,8 +95,6 @@ def test_fetch_stops_on_repeated_page_without_progress(monkeypatch: pytest.Monke
     exchange = Repeating()
     source = CCXTOHLCVSource("fake")
     monkeypatch.setattr(source, "_build_exchange", lambda: exchange)
-    result = source.fetch(
-        "BTC/USD", "4h", page_limit=200, max_pages=100, drop_incomplete=False
-    )
+    result = source.fetch("BTC/USD", "4h", page_limit=200, max_pages=100, drop_incomplete=False)
     assert len(result) == 1
     assert exchange.calls == 2

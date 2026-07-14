@@ -15,19 +15,11 @@ def verify_macro_gate(root: Path, spec_path: Path) -> dict[str, object]:
     quality = json.loads((root / "quality_report.json").read_text("utf-8"))
     missingness = quality["combined_missingness"]
     start, end = pd.Timestamp(spec.start), pd.Timestamp(spec.end)
-    required = [
-        ("fred", item.series_id, item.feature_name)
-        for item in spec.fred_series
-        if item.required
-    ] + [
-        ("stooq", item.symbol, item.feature_name)
-        for item in spec.stooq_series
-        if item.required
-    ] + [
-        ("yahoo", item.symbol, item.feature_name)
-        for item in spec.yahoo_series
-        if item.required
-    ]
+    required = (
+        [("fred", item.series_id, item.feature_name) for item in spec.fred_series if item.required]
+        + [("stooq", item.symbol, item.feature_name) for item in spec.stooq_series if item.required]
+        + [("yahoo", item.symbol, item.feature_name) for item in spec.yahoo_series if item.required]
+    )
     if not required:
         raise ValueError("At least one required market-context series is needed")
     successful = {

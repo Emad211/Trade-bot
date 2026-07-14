@@ -32,12 +32,14 @@ from hybrid_trader.data.quality import (
 )
 from hybrid_trader.data.snapshot import SnapshotManifest, canonical_json_sha256, write_snapshot
 from hybrid_trader.data.stooq_source import StooqCsvSource, StooqFetchResult
+from hybrid_trader.data.yahoo_source import YahooChartSource, YahooFetchResult
 from hybrid_trader.phase2c_contracts import (
     Phase2CRegistry,
     Phase2CResult,
     Phase2CSpec,
     SourceAttempt,
     StooqSeriesSpec,
+    YahooSeriesSpec,
     load_phase2c_spec,
 )
 from hybrid_trader.phase2c_reporting import _concentration, _conditional, _report
@@ -59,10 +61,20 @@ from hybrid_trader.phase2c_sources import (
 )
 
 StooqFactory = Callable[[StooqSeriesSpec], StooqCsvSource]
+YahooFactory = Callable[[YahooSeriesSpec], YahooChartSource]
 
 
 def _stooq_factory(spec: StooqSeriesSpec) -> StooqCsvSource:
     return StooqCsvSource(
+        spec.symbol,
+        spec.feature_name,
+        release_lag=timedelta(hours=spec.release_lag_hours),
+        source_latency=timedelta(seconds=spec.source_latency_seconds),
+    )
+
+
+def _yahoo_factory(spec: YahooSeriesSpec) -> YahooChartSource:
+    return YahooChartSource(
         spec.symbol,
         spec.feature_name,
         release_lag=timedelta(hours=spec.release_lag_hours),
@@ -79,6 +91,7 @@ def run_phase2c(
     derivative_factory: DerivativeFactory = _derivative_factory,
     fred_factory: FredFactory = _fred_factory,
     stooq_factory: StooqFactory = _stooq_factory,
+    yahoo_factory: YahooFactory = _yahoo_factory,
     feature_caches: tuple[Path, ...] = (),
 ) -> Phase2CResult:
     root = Path(output_dir)
@@ -334,6 +347,65 @@ def run_phase2c(
                 )
             )
             if stooq_item.required:
+                raise
+
+    for yahoo_item in spec.yahoo_series:
+        source_id = f"yahoo:{yahoo_item.symbol}"
+        try:
+            yahoo_result: YahooFetchResult = yahoo_factory(yahoo_item).fetch(
+                start=start, end=end, as_of=as_of
+            )
+            macro_manifest = write_tabular_artifact(
+                yahoo_result.frame,
+                root / "sources" / "yahoo" / _safe(yahoo_item.symbol),
+                source_id=source_id,
+                source_type="market_context",
+                instrument=yahoo_item.symbol,
+                availability_policy=(f"event_plus_{yahoo_item.release_lag_hours:g}h_plus_latency"),
+                revision_policy=yahoo_result.revision_policy,
+                created_at=spec.as_of,
+                notes=yahoo_result.url,
+            )
+            combined = merge_asof_features(
+                combined,
+                yahoo_result.frame,
+                feature_columns=[yahoo_item.feature_name],
+                provenance_column=f"{yahoo_item.feature_name}__available_at",
+                tolerance=pd.Timedelta(days=yahoo_item.tolerance_days),
+            )
+            extra.append(yahoo_item.feature_name)
+            macro_successes.append(yahoo_item.feature_name)
+            attempts.append(
+                _attempt_artifact(
+                    source_id,
+                    "market_context",
+                    "yahoo",
+                    yahoo_item.symbol,
+                    yahoo_item.required,
+                    spec,
+                    macro_manifest,
+                    yahoo_item.source_latency_seconds,
+                    yahoo_result.retrieved_at,
+                    yahoo_result.payload_sha256,
+                )
+            )
+        except Exception as exc:
+            attempts.append(
+                _attempt_failure(
+                    source_id,
+                    "market_context",
+                    "yahoo",
+                    yahoo_item.symbol,
+                    yahoo_item.required,
+                    spec,
+                    "event_plus_release_lag",
+                    yahoo_item.revision_policy,
+                    yahoo_item.source_latency_seconds,
+                    retrieved,
+                    exc,
+                )
+            )
+            if yahoo_item.required:
                 raise
 
     successful_ids = [item.source_id for item in attempts if item.status == "success"]
