@@ -37,6 +37,16 @@ class FredSeriesSpec(StrictModel):
     revision_policy: Literal["market_price_latest_vintage"] = "market_price_latest_vintage"
 
 
+class StooqSeriesSpec(StrictModel):
+    symbol: str
+    feature_name: str
+    required: bool = False
+    release_lag_hours: float = Field(default=24, ge=0)
+    source_latency_seconds: float = Field(default=300, ge=0)
+    tolerance_days: float = Field(default=10, gt=0)
+    revision_policy: Literal["market_price_latest_vintage"] = "market_price_latest_vintage"
+
+
 class Phase2CSpec(StrictModel):
     schema_version: str = "1.0"
     timeframe: str = "4h"
@@ -48,6 +58,7 @@ class Phase2CSpec(StrictModel):
     derivative_sources: tuple[DerivativeVenueSpec, ...] = ()
     minimum_derivative_features: int = Field(default=1, ge=0, le=3)
     fred_series: tuple[FredSeriesSpec, ...] = ()
+    stooq_series: tuple[StooqSeriesSpec, ...] = ()
     source_latency_seconds: float = Field(default=30, ge=0)
     derivative_latency_seconds: float = Field(default=60, ge=0)
     page_limit: int = Field(default=1000, ge=50, le=2000)
