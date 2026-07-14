@@ -1,31 +1,38 @@
 # Reference architecture
 
-Phase 1 deliberately implements only the shaded research path: validated OHLCV,
-features, a conservative baseline, realistic one-way costs, and chronological
-evaluation. Live execution is not enabled.
+Phase 2B implements the research path only. Live execution remains outside the
+package until the release gates are satisfied.
 
 ```mermaid
 flowchart LR
-    A[Point-in-time market data] --> B[Validation and canonical schema]
-    B --> C[Feature pipeline]
-    C --> D[Trend baseline]
-    C --> E[ML classifier - Phase 2]
-    C --> F[TimesFM / Chronos - challenger]
-    G[Timestamped news and on-chain events] --> H[LLM/RAG event encoder - Phase 3]
-    D --> I[Calibrated meta-model]
-    E --> I
-    F --> I
-    H --> I
-    I --> J[Deterministic risk engine]
-    J --> K[Dry-run adapter]
-    K --> L[Production execution adapter]
-    L --> M[Reconciliation, metrics, alerts, kill switch]
+    A[Point-in-time market data] --> B[Validation + immutable snapshot]
+    B --> C[Market feature pipeline]
+    D[Funding / OI / basis / local premium] --> E[Availability-time as-of join]
+    E --> C
+    C --> F[Trend baseline]
+    C --> G[Prior / Ridge / LightGBM / CatBoost]
+    C --> H[TimesFM / Chronos feature cache]
+    I[Timestamped news and on-chain events] --> J[LLM/RAG event encoder - future]
+    F --> K[Sealed benchmark]
+    G --> K
+    H --> K
+    J --> K
+    K --> L[Probability calibration]
+    L --> M[Validation-only threshold]
+    M --> N[Deterministic risk sizing]
+    N --> O[Prospective paper ledger]
+    O --> P[Dry-run adapter - future]
+    P --> Q[Production execution - future]
 ```
 
 ## Non-negotiable boundaries
 
-1. A close-derived signal is shifted one full bar before earning returns.
-2. LLM output is constrained data, never a direct order.
-3. Forecasting models cannot override position and drawdown limits.
-4. Exchange adapters are replaceable; strategy logic never imports a specific venue SDK.
-5. Research, dry-run and live use the same signal contract, but live activation requires a separate release gate.
+1. Every source defines event time and availability time.
+2. A label is used only after its outcome was observable.
+3. Calibration and threshold selection have separate chronological partitions.
+4. Final test cannot influence a feature, model, prompt, threshold, or cost assumption.
+5. Foundation models are feature generators, never order generators.
+6. LLM output is constrained event data and cannot override risk limits.
+7. Exchange adapters are replaceable and do not leak into research logic.
+8. Every test fold is liquidated and charged before the next fold starts.
+9. A historical result cannot pass the prospective-evidence gate by itself.

@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from hybrid_trader.data.ccxt_source import CCXTOHLCVSource
+from hybrid_trader.forecasting.chronos_adapter import Chronos2Forecaster
 from hybrid_trader.forecasting.timesfm_adapter import TimesFMForecaster
 
 
@@ -30,5 +31,13 @@ def test_timesfm_adapter_has_actionable_optional_dependency_error(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _block_import(monkeypatch, "timesfm")
-    with pytest.raises(RuntimeError, match="forecast"):
+    with pytest.raises(RuntimeError, match="TimesFM"):
         TimesFMForecaster().predict(np.array([0.0, 0.1], dtype=float), horizon=2)
+
+
+def test_chronos_adapter_has_actionable_optional_dependency_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _block_import(monkeypatch, "chronos")
+    with pytest.raises(RuntimeError, match="Chronos"):
+        Chronos2Forecaster().predict(np.array([0.0, 0.1], dtype=float), horizon=2)

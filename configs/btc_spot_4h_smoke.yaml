@@ -1,0 +1,49 @@
+market:
+  symbol: BTC/USD
+  timeframe: 4h
+  periods_per_year: 2190
+data:
+  source_latency_seconds: 30.0
+  require_regular_bars: true
+  drop_incomplete_last_bar: true
+strategy:
+  ema_fast: 10
+  ema_slow: 40
+  donchian_entry: 20
+  donchian_exit: 10
+  atr_window: 10
+  volatility_window: 20
+  max_annualized_volatility: 1.20
+features:
+  return_windows: [1, 2, 6, 12]
+  volatility_windows: [6, 12, 24]
+  volume_window: 20
+labels:
+  execution_delay_bars: 1
+  holding_period_bars: 1
+  positive_threshold_bps: 0.0
+evaluation:
+  initial_train: 120
+  calibration_size: 30
+  validation_size: 30
+  test_size: 30
+  step_size: 30
+  embargo: 1
+  thresholds: [0.50, 0.55, 0.60]
+  min_entries: 0
+  drawdown_penalty: 0.5
+  cost_multipliers: [1.0, 1.5, 2.0]
+ml:
+  models: [prior, ridge_logistic]
+  random_seed: 42
+  ridge_c: 1.0
+risk:
+  target_annualized_volatility: 0.35
+  max_exposure: 0.35
+  min_exposure: 0.05
+costs:
+  fee_bps: 15.0
+  slippage_bps: 10.0
+backtest:
+  initial_cash: 10000.0
+  min_history_bars: 60

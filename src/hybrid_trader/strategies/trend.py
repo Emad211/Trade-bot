@@ -11,17 +11,14 @@ def generate_trend_exposure(data: pd.DataFrame, config: AppConfig) -> pd.DataFra
     """Return features plus desired end-of-bar exposure.
 
     Exposure is a decision made at the current close and must be shifted by the
-    execution/backtest layer before it earns the next bar return.
+    execution/backtest layer before it earns a return.
     """
 
     frame = compute_features(data, config)
     entry = (
         (frame["close"] > frame["donchian_entry_high"])
         & (frame["ema_fast"] > frame["ema_slow"])
-        & (
-            frame["realized_volatility"]
-            <= config.strategy.max_annualized_volatility
-        )
+        & (frame["realized_volatility"] <= config.strategy.max_annualized_volatility)
     )
     exit_signal = (frame["close"] < frame["donchian_exit_low"]) | (
         frame["ema_fast"] < frame["ema_slow"]
@@ -39,9 +36,9 @@ def generate_trend_exposure(data: pd.DataFrame, config: AppConfig) -> pd.DataFra
         regime[idx] = 1.0 if active else 0.0
 
     volatility = frame["realized_volatility"].replace(0, np.nan)
-    sized_exposure = (
-        config.risk.target_annualized_volatility / volatility
-    ).clip(upper=config.risk.max_exposure)
+    sized_exposure = (config.risk.target_annualized_volatility / volatility).clip(
+        upper=config.risk.max_exposure
+    )
     sized_exposure = sized_exposure.where(
         sized_exposure >= config.risk.min_exposure,
         0.0,
@@ -50,7 +47,5 @@ def generate_trend_exposure(data: pd.DataFrame, config: AppConfig) -> pd.DataFra
     frame["entry_signal"] = entry.astype(bool)
     frame["exit_signal"] = exit_signal.astype(bool)
     frame["trend_regime"] = regime
-    frame["desired_exposure"] = (
-        pd.Series(regime, index=frame.index) * sized_exposure
-    ).fillna(0.0)
+    frame["desired_exposure"] = (pd.Series(regime, index=frame.index) * sized_exposure).fillna(0.0)
     return frame

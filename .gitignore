@@ -12,9 +12,11 @@ htmlcov/
 build/
 dist/
 artifacts/
-models/
+/models/
 data/*.csv
 data/*.parquet
+data/snapshots/
+data/features/
 !data/.gitkeep
 .DS_Store
 .idea/
