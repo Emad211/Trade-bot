@@ -1,0 +1,40 @@
+name: report-phase2c-clean-materializer
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/report-phase2c-clean-materializer.yml"
+
+permissions:
+  actions: read
+  pull-requests: write
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Report latest clean materializer run
+        shell: bash
+        run: |
+          set -euo pipefail
+          sleep 5
+          run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-2c-real-data-benchmark&per_page=100" \
+            --jq '[.workflow_runs[] | select(.name == "materialize-phase2c-clean-branch")][0]')
+          run_id=$(jq -r .id <<<"$run")
+          jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
+          {
+            echo '## Clean Phase 2C materializer status'
+            echo
+            echo "- run: $(jq -r .html_url <<<"$run")"
+            echo "- status: $(jq -r .status <<<"$run")"
+            echo "- conclusion: $(jq -r .conclusion <<<"$run")"
+            echo "- head: \`$(jq -r .head_sha <<<"$run")\`"
+            echo
+            echo '### Steps'
+            jq -r '.jobs[] as $job | $job.steps[]? | "- \($job.name) / \(.name): \(.status) / \(.conclusion)"' <<<"$jobs"
+          } > /tmp/materializer-status.md
+          gh pr comment 6 --repo "$GITHUB_REPOSITORY" --body-file /tmp/materializer-status.md
