@@ -12,6 +12,7 @@ from hybrid_trader.phase2c_contracts import (
     Phase2CSpec,
     SourceAttempt,
     SpotVenueSpec,
+    StooqSeriesSpec,
     load_phase2c_spec,
 )
 from hybrid_trader.phase2c_runner import main, run_phase2c
@@ -24,6 +25,7 @@ __all__ = [
     "Phase2CSpec",
     "SourceAttempt",
     "SpotVenueSpec",
+    "StooqSeriesSpec",
     "load_phase2c_spec",
     "main",
     "run_phase2c",
