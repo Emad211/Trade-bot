@@ -1,6 +1,5 @@
 name: ci
 
-# Final clean Phase 2C CI trigger; workflow logic is unchanged from Phase 2B.
 on:
   push:
     branches: [main, "agent/**"]
