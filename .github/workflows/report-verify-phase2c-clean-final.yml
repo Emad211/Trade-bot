@@ -1,5 +1,6 @@
 name: report-verify-phase2c-clean-final
 
+# Trigger revision after workflow registration.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
