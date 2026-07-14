@@ -1,0 +1,56 @@
+name: phase2c-source-fix
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".phase2c-format-fix.b64"
+      - ".github/workflows/phase2c-source-fix.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase-2c-real-data-benchmark
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Decode and verify source patch bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 --decode .phase2c-format-fix.b64 > /tmp/phase2c-format-fix.tar.gz
+          echo "e39b485312f91a20ed5bf1872d9ee00ad3e0e537846a1d3f9fa2ba8c98cc72a8  /tmp/phase2c-format-fix.tar.gz" | sha256sum -c -
+          tar -tzf /tmp/phase2c-format-fix.tar.gz > /tmp/phase2c-files.txt
+          if grep -Eq '(^/|(^|/)\.\.(/|$)|(^|/)(\.git|\.github)(/|$))' /tmp/phase2c-files.txt; then
+            echo "Unsafe archive path detected" >&2
+            exit 1
+          fi
+      - name: Materialize normalized sources
+        run: tar -xzf /tmp/phase2c-format-fix.tar.gz
+      - name: Remove one-time bootstrap files
+        run: rm -f .phase2c-format-fix.b64 .github/workflows/phase2c-source-fix.yml
+      - name: Install and validate
+        run: |
+          python -m pip install -e '.[dev,ml]'
+          ruff format --check .
+          ruff check .
+          mypy --python-version 3.12 src
+          pytest -m 'not optional_ml' --cov=hybrid_trader --cov-report=term-missing
+          pytest -m optional_ml -q
+          python -m pip check
+      - name: Commit normalized Phase 2C source tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "normalize and type-check Phase 2C sources"
+          git push origin HEAD:agent/phase-2c-real-data-benchmark
