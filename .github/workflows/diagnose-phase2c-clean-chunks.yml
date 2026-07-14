@@ -1,5 +1,6 @@
 name: diagnose-phase2c-clean-chunks
 
+# Trigger revision after workflow registration.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
