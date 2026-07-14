@@ -1,5 +1,6 @@
 name: phase2c-historical
 
+# Final fixed-cutoff evidence run for the cleaned Phase 2C branch.
 on:
   workflow_dispatch:
   push:
