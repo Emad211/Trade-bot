@@ -1,3 +1,4 @@
+# Fixed-cutoff authoritative Phase 2C specification; reruns preserve this identity.
 schema_version: "1.0"
 timeframe: 4h
 start: 2023-01-01T00:00:00Z
