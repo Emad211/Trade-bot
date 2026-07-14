@@ -29,11 +29,7 @@ def verify_strict(root: Path, spec_path: Path) -> dict[str, object]:
         event_start = pd.Timestamp(attempt["event_start"])
         event_end = pd.Timestamp(attempt["event_end"])
         coverage = attempt["row_count"] / expected
-        if (
-            event_start <= start + interval
-            and event_end >= end - interval
-            and coverage >= 0.95
-        ):
+        if event_start <= start + interval and event_end >= end - interval and coverage >= 0.95:
             covered_spot.append(
                 {
                     "source_id": attempt["source_id"],
@@ -44,25 +40,17 @@ def verify_strict(root: Path, spec_path: Path) -> dict[str, object]:
                 }
             )
     if len(covered_spot) < spec.spot_required_count:
-        raise ValueError(
-            f"Only {len(covered_spot)} spot sources cover >=95% of the fixed window"
-        )
+        raise ValueError(f"Only {len(covered_spot)} spot sources cover >=95% of the fixed window")
     if combined.row_count / expected < 0.95:
         raise ValueError("Combined snapshot covers less than 95% of the fixed window")
 
     acceptable_pairs = []
     for item in quality.get("cross_venue", []):
         correlation = item.get("return_correlation")
-        if (
-            item.get("overlap_ratio", 0) >= 0.95
-            and correlation is not None
-            and correlation >= 0.95
-        ):
+        if item.get("overlap_ratio", 0) >= 0.95 and correlation is not None and correlation >= 0.95:
             acceptable_pairs.append(item)
     if not acceptable_pairs:
-        raise ValueError(
-            "No cross-venue pair has >=95% overlap and >=0.95 return correlation"
-        )
+        raise ValueError("No cross-venue pair has >=95% overlap and >=0.95 return correlation")
 
     derivative = []
     for attempt in registry["attempts"]:
@@ -84,13 +72,8 @@ def verify_strict(root: Path, spec_path: Path) -> dict[str, object]:
                     "stale_days": stale_days,
                 }
             )
-    if (
-        len({item["source_type"] for item in derivative})
-        < spec.minimum_derivative_features
-    ):
-        raise ValueError(
-            "Derivative history is too short or stale for the fixed benchmark"
-        )
+    if len({item["source_type"] for item in derivative}) < spec.minimum_derivative_features:
+        raise ValueError("Derivative history is too short or stale for the fixed benchmark")
 
     metrics = pd.read_csv(root / "benchmark/all_features/fold_metrics.csv")
     expected_models = {"trend", "prior", "ridge_logistic", "lightgbm", "catboost"}
@@ -99,9 +82,7 @@ def verify_strict(root: Path, spec_path: Path) -> dict[str, object]:
     stress = pd.read_csv(root / "benchmark/all_features/cost_stress.csv")
     if not {1.0, 1.5, 2.0}.issubset(set(stress.cost_multiplier.astype(float))):
         raise ValueError("Strict cost matrix is incomplete")
-    freeze = json.loads(
-        (root / "prospective/freeze_candidate.json").read_text("utf-8")
-    )
+    freeze = json.loads((root / "prospective/freeze_candidate.json").read_text("utf-8"))
     if freeze["status"] != "candidate_not_activated":
         raise ValueError("Historical run activated a candidate")
     if (root / "prospective/decisions.jsonl").read_text("utf-8").strip():

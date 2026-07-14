@@ -12,12 +12,8 @@ from hybrid_trader.data.artifact import (
 def test_tabular_artifact_round_trip_and_tamper(tmp_path) -> None:
     frame = pd.DataFrame(
         {
-            "event_time": pd.date_range(
-                "2026-01-01", periods=3, freq="D", tz="UTC"
-            ),
-            "available_at": pd.date_range(
-                "2026-01-02", periods=3, freq="D", tz="UTC"
-            ),
+            "event_time": pd.date_range("2026-01-01", periods=3, freq="D", tz="UTC"),
+            "available_at": pd.date_range("2026-01-02", periods=3, freq="D", tz="UTC"),
             "value": [1.0, 2.0, 3.0],
         }
     )

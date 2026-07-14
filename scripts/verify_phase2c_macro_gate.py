@@ -41,9 +41,7 @@ def verify_macro_gate(root: Path, spec_path: Path) -> dict[str, object]:
             raise ValueError(f"{series_id} has insufficient daily observations")
         ratio = float(missingness.get(feature_name, 1.0))
         if ratio > 0.05:
-            raise ValueError(
-                f"{feature_name} missingness exceeds 5%: {ratio:.4f}"
-            )
+            raise ValueError(f"{feature_name} missingness exceeds 5%: {ratio:.4f}")
         accepted.append(
             {
                 "series_id": series_id,
@@ -70,11 +68,7 @@ def main() -> None:
     parser.add_argument("root", type=Path)
     parser.add_argument("--spec", type=Path, required=True)
     args = parser.parse_args()
-    print(
-        json.dumps(
-            verify_macro_gate(args.root, args.spec), sort_keys=True, indent=2
-        )
-    )
+    print(json.dumps(verify_macro_gate(args.root, args.spec), sort_keys=True, indent=2))
 
 
 if __name__ == "__main__":

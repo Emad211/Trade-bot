@@ -16,9 +16,7 @@ from hybrid_trader.forecasting.timesfm_adapter import TimesFMForecaster, TimesFM
 class BatchForecaster(Protocol):
     """A forecaster that evaluates independent one-dimensional histories in a batch."""
 
-    def predict_batch(
-        self, histories: list[FloatArray], horizon: int
-    ) -> list[ForecastOutput]: ...
+    def predict_batch(self, histories: list[FloatArray], horizon: int) -> list[ForecastOutput]: ...
 
 
 @dataclass(frozen=True)
@@ -51,18 +49,13 @@ class BatchRollingSpec:
 class NaiveBatchForecaster:
     """Zero-return batch baseline with the same contract as foundation models."""
 
-    def predict_batch(
-        self, histories: list[FloatArray], horizon: int
-    ) -> list[ForecastOutput]:
+    def predict_batch(self, histories: list[FloatArray], horizon: int) -> list[ForecastOutput]:
         if horizon <= 0 or not histories:
             raise ValueError("positive horizon and at least one history are required")
         for history in histories:
             if history.ndim != 1 or history.size == 0:
                 raise ValueError("histories must be non-empty one-dimensional arrays")
-        return [
-            ForecastOutput(point=np.zeros(horizon, dtype=np.float64))
-            for _ in histories
-        ]
+        return [ForecastOutput(point=np.zeros(horizon, dtype=np.float64)) for _ in histories]
 
 
 class TimesFMBatchForecaster:
@@ -72,9 +65,7 @@ class TimesFMBatchForecaster:
         self.settings = settings
         self._adapter = TimesFMForecaster(settings)
 
-    def predict_batch(
-        self, histories: list[FloatArray], horizon: int
-    ) -> list[ForecastOutput]:
+    def predict_batch(self, histories: list[FloatArray], horizon: int) -> list[ForecastOutput]:
         if not histories:
             raise ValueError("At least one history is required")
         if not 0 < horizon <= self.settings.max_horizon:
@@ -105,9 +96,7 @@ class TimesFMBatchForecaster:
                 float(round(level, 1)): matrix[batch_index, :, column]
                 for column, level in enumerate(np.arange(0.1, 1.0, 0.1), start=1)
             }
-            results.append(
-                ForecastOutput(point=point_array[batch_index], quantiles=quantiles)
-            )
+            results.append(ForecastOutput(point=point_array[batch_index], quantiles=quantiles))
         return results
 
 
@@ -118,9 +107,7 @@ class Chronos2BatchForecaster:
         self.settings = settings
         self._adapter = Chronos2Forecaster(settings)
 
-    def predict_batch(
-        self, histories: list[FloatArray], horizon: int
-    ) -> list[ForecastOutput]:
+    def predict_batch(self, histories: list[FloatArray], horizon: int) -> list[ForecastOutput]:
         if not histories or horizon <= 0:
             raise ValueError("positive horizon and at least one history are required")
         inputs: list[np.ndarray] = []
@@ -207,8 +194,7 @@ def rolling_batched_features(
                 for level, values_at_level in forecast.quantiles.items()
             }
             if any(
-                values_at_level.shape != (spec.horizon,)
-                or not np.isfinite(values_at_level).all()
+                values_at_level.shape != (spec.horizon,) or not np.isfinite(values_at_level).all()
                 for values_at_level in quantiles.values()
             ):
                 raise RuntimeError("Invalid batch quantile forecast")
@@ -225,9 +211,7 @@ def rolling_batched_features(
                 for level, values_at_level in sorted(quantiles.items()):
                     label = str(level).replace(".", "p")
                     row[f"{spec.prefix}_q{label}_1"] = float(values_at_level[offset])
-                    row[f"{spec.prefix}_q{label}_sum"] = float(
-                        values_at_level[offset:].sum()
-                    )
+                    row[f"{spec.prefix}_q{label}_sum"] = float(values_at_level[offset:].sum())
                 rows.append(row)
     if not rows:
         raise ValueError("No batched rolling forecasts were generated")

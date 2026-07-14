@@ -26,12 +26,8 @@ def assess(root: Path) -> dict[str, Any]:
     results: list[dict[str, Any]] = []
     for scenario in ("timesfm", "chronos", "timesfm_chronos"):
         for model in sorted(comparison.model.astype(str).unique()):
-            row = comparison.loc[
-                (comparison.scenario == scenario) & (comparison.model == model)
-            ]
-            fold_rows = folds.loc[
-                (folds.scenario == scenario) & (folds.model == model)
-            ]
+            row = comparison.loc[(comparison.scenario == scenario) & (comparison.model == model)]
+            fold_rows = folds.loc[(folds.scenario == scenario) & (folds.model == model)]
             stress_2x = stress.loc[
                 (stress.scenario == scenario)
                 & (stress.model == model)
@@ -43,9 +39,7 @@ def assess(root: Path) -> dict[str, Any]:
             positive_fold_ratio = (
                 float((fold_rows.net_return > 0).mean()) if not fold_rows.empty else None
             )
-            stressed_net = (
-                float(stress_2x.net_return.mean()) if not stress_2x.empty else None
-            )
+            stressed_net = float(stress_2x.net_return.mean()) if not stress_2x.empty else None
             flags = {
                 "net_return_above_baseline": delta_net is not None and delta_net > 0,
                 "sharpe_above_baseline": delta_sharpe is not None and delta_sharpe > 0,
@@ -71,13 +65,10 @@ def assess(root: Path) -> dict[str, Any]:
 
     contributions: list[dict[str, Any]] = []
     for model in sorted(ablation.model.astype(str).unique()):
-        all_row = ablation.loc[
-            (ablation.ablation == "all_features") & (ablation.model == model)
-        ]
+        all_row = ablation.loc[(ablation.ablation == "all_features") & (ablation.model == model)]
         for feature_model in ("timesfm", "chronos"):
             without = ablation.loc[
-                (ablation.ablation == f"without_{feature_model}")
-                & (ablation.model == model)
+                (ablation.ablation == f"without_{feature_model}") & (ablation.model == model)
             ]
             all_net = _scalar(all_row, "mean_net_return")
             without_net = _scalar(without, "mean_net_return")
@@ -117,9 +108,7 @@ def assess(root: Path) -> dict[str, Any]:
     pd.DataFrame(results).drop(columns="flags").to_csv(
         root / "foundation_screening.csv", index=False
     )
-    pd.DataFrame(contributions).to_csv(
-        root / "foundation_ablation_contributions.csv", index=False
-    )
+    pd.DataFrame(contributions).to_csv(root / "foundation_ablation_contributions.csv", index=False)
     return assessment
 
 

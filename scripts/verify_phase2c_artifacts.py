@@ -78,9 +78,7 @@ def verify(root: Path) -> dict[str, object]:
         "models": sorted(models),
         "report_sha256": expected_sha,
     }
-    (root / "verification.json").write_text(
-        json.dumps(result, sort_keys=True, indent=2) + "\n"
-    )
+    (root / "verification.json").write_text(json.dumps(result, sort_keys=True, indent=2) + "\n")
     return result
 
 

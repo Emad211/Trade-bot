@@ -21,7 +21,5 @@ def test_fred_source_applies_release_lag_and_cutoff() -> None:
         retrieved_at=datetime(2026, 1, 3, tzinfo=UTC),
     )
     assert result.frame["nasdaq"].tolist() == [100.0]
-    assert result.frame["available_at"].iloc[0] == pd.Timestamp(
-        "2026-01-02T00:05:00Z"
-    )
+    assert result.frame["available_at"].iloc[0] == pd.Timestamp("2026-01-02T00:05:00Z")
     assert len(result.payload_sha256) == 64

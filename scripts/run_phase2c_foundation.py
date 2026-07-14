@@ -62,9 +62,7 @@ def _generate_cache(
     revision: str | None,
 ) -> dict[str, Any]:
     started = time.perf_counter()
-    features = rolling_batched_features(
-        series, forecaster, spec, availability=availability
-    )
+    features = rolling_batched_features(series, forecaster, spec, availability=availability)
     feature_sha = cache_rolling_features(
         features,
         output,
@@ -73,9 +71,7 @@ def _generate_cache(
         model_revision=revision,
         spec=_cache_spec(spec),
     )
-    _, manifest = read_cached_rolling_features(
-        output, expected_dataset_sha256=dataset_sha256
-    )
+    _, manifest = read_cached_rolling_features(output, expected_dataset_sha256=dataset_sha256)
     return {
         "model_id": model_id,
         "revision": revision,
@@ -95,10 +91,7 @@ def _base_groups(root: Path) -> dict[str, list[str]]:
     value = json.loads(path.read_text("utf-8"))
     if not isinstance(value, dict) or not all(isinstance(v, list) for v in value.values()):
         raise ValueError("Baseline feature_groups.json has an invalid shape")
-    return {
-        str(key): [str(column) for column in columns]
-        for key, columns in value.items()
-    }
+    return {str(key): [str(column) for column in columns] for key, columns in value.items()}
 
 
 def _baseline_extras(groups: dict[str, list[str]]) -> list[str]:
@@ -122,9 +115,7 @@ def _scenario_comparison(
         if column in baseline.columns
     ]
     baseline = baseline[["model", *metrics]].copy()
-    baseline = baseline.rename(
-        columns={metric: f"baseline_{metric}" for metric in metrics}
-    )
+    baseline = baseline.rename(columns={metric: f"baseline_{metric}" for metric in metrics})
     combined = pd.concat(scenario_summaries, ignore_index=True)
     merged = combined.merge(baseline, on="model", how="left")
     for metric in metrics:
@@ -250,9 +241,7 @@ def run(args: argparse.Namespace) -> None:
     chronos_columns = [column for column in all_columns if column.startswith("chronos_")]
     external_foundation = set(timesfm_columns + chronos_columns)
     ablation_groups: dict[str, list[str]] = {
-        "base_features": [
-            column for column in all_columns if column not in external_foundation
-        ],
+        "base_features": [column for column in all_columns if column not in external_foundation],
         "timesfm": timesfm_columns,
         "chronos": chronos_columns,
     }
@@ -270,9 +259,7 @@ def run(args: argparse.Namespace) -> None:
         ablation_metrics.append(metrics)
     combined_ablation = pd.concat(ablation_metrics, ignore_index=True)
     combined_ablation.to_csv(output / "ablation_fold_metrics.csv", index=False)
-    summarize_ablation(combined_ablation).to_csv(
-        output / "ablation_summary.csv", index=False
-    )
+    summarize_ablation(combined_ablation).to_csv(output / "ablation_summary.csv", index=False)
 
     combined_experiment = json.loads(
         (output / "benchmark/timesfm_chronos/experiment.json").read_text("utf-8")
@@ -302,9 +289,7 @@ def main() -> None:
     parser.add_argument("--baseline-root", type=Path, required=True)
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument(
-        "--timesfm-model", default="google/timesfm-2.5-200m-pytorch"
-    )
+    parser.add_argument("--timesfm-model", default="google/timesfm-2.5-200m-pytorch")
     parser.add_argument("--timesfm-revision", required=True)
     parser.add_argument("--chronos-model", default="amazon/chronos-2")
     parser.add_argument("--chronos-revision", required=True)

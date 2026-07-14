@@ -34,9 +34,7 @@ def _bars(offset: float = 0.0, rows: int = 600) -> pd.DataFrame:
             "volume": 100 + 10 * np.cos(steps / 7),
         }
     )
-    return add_bar_availability(
-        raw, timeframe="4h", source_latency=timedelta(seconds=30)
-    )
+    return add_bar_availability(raw, timeframe="4h", source_latency=timedelta(seconds=30))
 
 
 class FakeSpot:
@@ -100,9 +98,7 @@ def test_phase2c_injected_end_to_end(tmp_path: Path) -> None:
         as_of=(first["available_at"].iloc[-1] + pd.Timedelta(hours=1)).to_pydatetime(),
         spot_required_count=2,
         spot_sources=(SpotVenueSpec(exchange_id="a"), SpotVenueSpec(exchange_id="b")),
-        derivative_sources=(
-            DerivativeVenueSpec(exchange_id="d", symbol="BTC/USDT:USDT"),
-        ),
+        derivative_sources=(DerivativeVenueSpec(exchange_id="d", symbol="BTC/USDT:USDT"),),
         minimum_derivative_features=1,
         fred_series=(FredSeriesSpec(series_id="TEST", feature_name="macro_test"),),
         max_pages=2,

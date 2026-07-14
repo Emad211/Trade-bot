@@ -50,6 +50,4 @@ def test_batched_rolling_uses_correct_horizon_step() -> None:
     assert features.loc[index[4], "fake_point_1"] == 5
     assert features.loc[index[5], "fake_point_1"] == 6
     assert features.loc[index[5], "fake_forecast_age_bars"] == 2
-    assert features.loc[index[3], "available_at"] == index[3] + pd.Timedelta(
-        hours=4, seconds=10
-    )
+    assert features.loc[index[3], "available_at"] == index[3] + pd.Timedelta(hours=4, seconds=10)
