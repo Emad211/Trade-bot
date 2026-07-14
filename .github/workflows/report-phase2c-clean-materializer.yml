@@ -1,6 +1,6 @@
 name: report-phase2c-clean-materializer
 
-# Trigger revision after workflow registration.
+# Generation 2: report the source-only publication run.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
