@@ -1,0 +1,39 @@
+name: capture-foundation-error
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/capture-foundation-error.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase-2c-real-data-benchmark
+      - name: Capture failed foundation log
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .status
+          gh run view 29320203780 --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/foundation-failed.log
+          {
+            echo '=== traceback and errors ==='
+            grep -nE 'Traceback|Error|Exception|RuntimeError|ValueError|TypeError|AttributeError|ImportError|ModuleNotFoundError|Killed|No space|out of memory|OOM' /tmp/foundation-failed.log || true
+            echo
+            echo '=== final 240 lines ==='
+            tail -n 240 /tmp/foundation-failed.log
+          } > .status/foundation-error.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .status/foundation-error.txt
+          git commit -m "capture foundation benchmark failure" || true
+          git push origin HEAD:agent/phase-2c-real-data-benchmark
