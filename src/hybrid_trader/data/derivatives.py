@@ -87,8 +87,6 @@ class CCXTDerivativesSource:
             if cursor is not None and next_cursor <= cursor:
                 break
             cursor = next_cursor
-            if len(batch) < limit:
-                break
         return rows
 
     def fetch_funding_history(
@@ -229,12 +227,13 @@ class CCXTDerivativesSource:
                 if not batch:
                     break
                 rows.extend(batch)
-                newest = int(batch[-1][0])
+                newest = max(int(row[0]) for row in batch)
                 if until_ms is not None and newest >= until_ms:
                     break
-                cursor = newest + 1
-                if len(batch) < limit:
+                next_cursor = newest + 1
+                if cursor is not None and next_cursor <= cursor:
                     break
+                cursor = next_cursor
             data = pd.DataFrame(
                 rows, columns=["timestamp", "open", "high", "low", "close", "volume"]
             )
