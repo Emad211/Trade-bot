@@ -1,6 +1,6 @@
 name: materialize-phase2c-clean-branch
 
-# Reconstruct chunk 012 from four independently transferred segments.
+# Transfer hashes are verified; run the complete validation and publication chain.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
