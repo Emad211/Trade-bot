@@ -1,6 +1,6 @@
 name: materialize-phase2c-clean-branch
 
-# Trigger revision after workflow registration on the established Phase 2C branch.
+# Reconstruct chunk 012 from four independently transferred segments.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -37,6 +37,15 @@ jobs:
             [ -e "$encoded" ] || continue
             base64 --decode "$encoded" > "${encoded%.b64}"
           done
+          for encoded in "$ROOT"/phase2c-chunk-012-part-[0-9][0-9].b64.b64; do
+            [ -e "$encoded" ] || continue
+            base64 --decode "$encoded" > "${encoded%.b64}"
+          done
+          segment_parts=("$ROOT"/phase2c-chunk-012-part-[0-9][0-9].b64)
+          [ "${#segment_parts[@]}" -eq 4 ] || { echo "Expected four chunk-012 segments" >&2; exit 1; }
+          cat "${segment_parts[@]}" > "$ROOT/phase2c-chunk-012.b64"
+          echo "b06a1cda3c198ab033e4430de97bc7635fe52470a958e392089c9657664f8b11  $ROOT/phase2c-chunk-012.b64" | sha256sum -c -
+          [ "$(wc -c < "$ROOT/phase2c-chunk-012.b64")" -eq 2116 ]
           parts=()
           for index in $(seq -w 0 12); do
             part="$ROOT/phase2c-chunk-0${index}.b64"
@@ -63,7 +72,7 @@ jobs:
         if: ${{ steps.reconstruct.outcome != 'success' }}
         run: |
           gh pr comment 6 --repo "$GITHUB_REPOSITORY" --body \
-            "Clean Phase 2C materialization failed during SHA-256 reconstruction. No source commit was created. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            "Clean Phase 2C materialization failed during hash-verified reconstruction. No source commit was created. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           exit 1
       - name: Install and validate materialized tree
         run: |
@@ -99,4 +108,4 @@ jobs:
       - name: Report success
         run: |
           gh pr comment 6 --repo "$GITHUB_REPOSITORY" --body \
-            "Clean Phase 2C overlay passed SHA-256 verification, Ruff, strict Mypy, core tests, optional ML tests and clean-wheel smoke testing. The bootstrap removed itself before the source commit. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            "Clean Phase 2C overlay passed chunk and archive SHA-256 verification, Ruff, strict Mypy, core tests, optional ML tests and clean-wheel smoke testing. Bootstrap files were removed before the source commit. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
