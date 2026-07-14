@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 import traceback
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, cast
@@ -30,11 +31,13 @@ from hybrid_trader.data.quality import (
     cross_venue_quality,
 )
 from hybrid_trader.data.snapshot import SnapshotManifest, canonical_json_sha256, write_snapshot
+from hybrid_trader.data.stooq_source import StooqCsvSource, StooqFetchResult
 from hybrid_trader.phase2c_contracts import (
     Phase2CRegistry,
     Phase2CResult,
     Phase2CSpec,
     SourceAttempt,
+    StooqSeriesSpec,
     load_phase2c_spec,
 )
 from hybrid_trader.phase2c_reporting import _concentration, _conditional, _report
@@ -55,6 +58,17 @@ from hybrid_trader.phase2c_sources import (
     _utc,
 )
 
+StooqFactory = Callable[[StooqSeriesSpec], StooqCsvSource]
+
+
+def _stooq_factory(spec: StooqSeriesSpec) -> StooqCsvSource:
+    return StooqCsvSource(
+        spec.symbol,
+        spec.feature_name,
+        release_lag=timedelta(hours=spec.release_lag_hours),
+        source_latency=timedelta(seconds=spec.source_latency_seconds),
+    )
+
 
 def run_phase2c(
     *,
@@ -64,6 +78,7 @@ def run_phase2c(
     spot_factory: SpotFactory = _spot_factory,
     derivative_factory: DerivativeFactory = _derivative_factory,
     fred_factory: FredFactory = _fred_factory,
+    stooq_factory: StooqFactory = _stooq_factory,
     feature_caches: tuple[Path, ...] = (),
 ) -> Phase2CResult:
     root = Path(output_dir)
@@ -203,42 +218,44 @@ def run_phase2c(
         raise RuntimeError("Insufficient derivative feature families")
 
     macro_successes: list[str] = []
-    for item in spec.fred_series:
-        source_id = f"fred:{item.series_id}"
+    for fred_item in spec.fred_series:
+        source_id = f"fred:{fred_item.series_id}"
         try:
-            result: FredFetchResult = fred_factory(item).fetch(start=start, end=end, as_of=as_of)
+            fred_result: FredFetchResult = fred_factory(fred_item).fetch(
+                start=start, end=end, as_of=as_of
+            )
             macro_manifest = write_tabular_artifact(
-                result.frame,
-                root / "sources" / "fred" / _safe(item.series_id),
+                fred_result.frame,
+                root / "sources" / "fred" / _safe(fred_item.series_id),
                 source_id=source_id,
                 source_type="market_context",
-                instrument=item.series_id,
-                availability_policy=(f"event_plus_{item.release_lag_hours:g}h_plus_latency"),
-                revision_policy=result.revision_policy,
+                instrument=fred_item.series_id,
+                availability_policy=(f"event_plus_{fred_item.release_lag_hours:g}h_plus_latency"),
+                revision_policy=fred_result.revision_policy,
                 created_at=spec.as_of,
-                notes=result.url,
+                notes=fred_result.url,
             )
             combined = merge_asof_features(
                 combined,
-                result.frame,
-                feature_columns=[item.feature_name],
-                provenance_column=f"{item.feature_name}__available_at",
-                tolerance=pd.Timedelta(days=item.tolerance_days),
+                fred_result.frame,
+                feature_columns=[fred_item.feature_name],
+                provenance_column=f"{fred_item.feature_name}__available_at",
+                tolerance=pd.Timedelta(days=fred_item.tolerance_days),
             )
-            extra.append(item.feature_name)
-            macro_successes.append(item.feature_name)
+            extra.append(fred_item.feature_name)
+            macro_successes.append(fred_item.feature_name)
             attempts.append(
                 _attempt_artifact(
                     source_id,
                     "market_context",
                     "fred",
-                    item.series_id,
-                    item.required,
+                    fred_item.series_id,
+                    fred_item.required,
                     spec,
                     macro_manifest,
-                    item.source_latency_seconds,
-                    result.retrieved_at,
-                    result.payload_sha256,
+                    fred_item.source_latency_seconds,
+                    fred_result.retrieved_at,
+                    fred_result.payload_sha256,
                 )
             )
         except Exception as exc:
@@ -247,17 +264,76 @@ def run_phase2c(
                     source_id,
                     "market_context",
                     "fred",
-                    item.series_id,
-                    item.required,
+                    fred_item.series_id,
+                    fred_item.required,
                     spec,
                     "event_plus_release_lag",
-                    item.revision_policy,
-                    item.source_latency_seconds,
+                    fred_item.revision_policy,
+                    fred_item.source_latency_seconds,
                     retrieved,
                     exc,
                 )
             )
-            if item.required:
+            if fred_item.required:
+                raise
+
+    for stooq_item in spec.stooq_series:
+        source_id = f"stooq:{stooq_item.symbol}"
+        try:
+            stooq_result: StooqFetchResult = stooq_factory(stooq_item).fetch(
+                start=start, end=end, as_of=as_of
+            )
+            macro_manifest = write_tabular_artifact(
+                stooq_result.frame,
+                root / "sources" / "stooq" / _safe(stooq_item.symbol),
+                source_id=source_id,
+                source_type="market_context",
+                instrument=stooq_item.symbol,
+                availability_policy=(f"event_plus_{stooq_item.release_lag_hours:g}h_plus_latency"),
+                revision_policy=stooq_result.revision_policy,
+                created_at=spec.as_of,
+                notes=stooq_result.url,
+            )
+            combined = merge_asof_features(
+                combined,
+                stooq_result.frame,
+                feature_columns=[stooq_item.feature_name],
+                provenance_column=f"{stooq_item.feature_name}__available_at",
+                tolerance=pd.Timedelta(days=stooq_item.tolerance_days),
+            )
+            extra.append(stooq_item.feature_name)
+            macro_successes.append(stooq_item.feature_name)
+            attempts.append(
+                _attempt_artifact(
+                    source_id,
+                    "market_context",
+                    "stooq",
+                    stooq_item.symbol,
+                    stooq_item.required,
+                    spec,
+                    macro_manifest,
+                    stooq_item.source_latency_seconds,
+                    stooq_result.retrieved_at,
+                    stooq_result.payload_sha256,
+                )
+            )
+        except Exception as exc:
+            attempts.append(
+                _attempt_failure(
+                    source_id,
+                    "market_context",
+                    "stooq",
+                    stooq_item.symbol,
+                    stooq_item.required,
+                    spec,
+                    "event_plus_release_lag",
+                    stooq_item.revision_policy,
+                    stooq_item.source_latency_seconds,
+                    retrieved,
+                    exc,
+                )
+            )
+            if stooq_item.required:
                 raise
 
     successful_ids = [item.source_id for item in attempts if item.status == "success"]
