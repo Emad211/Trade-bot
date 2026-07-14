@@ -1,0 +1,89 @@
+name: publish-phase2c-main
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/publish-phase2c-main.yml"
+
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Rebuild clean Phase 2C tree on current main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin agent/phase-2c-clean
+          git switch -C agent/phase-2c-main origin/main
+          git rm -r --ignore-unmatch .
+          git checkout origin/agent/phase-2c-clean -- .
+      - name: Validate reconstructed Phase 2C
+        run: |
+          python -m pip install -e '.[dev,ml,exchange]'
+          ruff format --check .
+          ruff check .
+          mypy --python-version 3.12 src
+          pytest -m 'not optional_ml' --cov=hybrid_trader --cov-report=term-missing
+          pytest -m optional_ml -q
+          python -m pip check
+      - name: Build and clean-install wheel
+        run: |
+          python -m pip wheel --no-deps --wheel-dir dist .
+          python -m venv /tmp/phase2c-main-wheel
+          /tmp/phase2c-main-wheel/bin/python -m pip install dist/*.whl
+          /tmp/phase2c-main-wheel/bin/hybrid-trader --help >/dev/null
+          /tmp/phase2c-main-wheel/bin/python -c 'import hybrid_trader.phase2c'
+          /tmp/phase2c-main-wheel/bin/python -m pip check
+      - name: Download successful fixed-cutoff evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/phase2c-evidence
+          gh run download 29313821568 --dir /tmp/phase2c-evidence
+          REGISTRY=$(find /tmp/phase2c-evidence -type f -name source_registry.json -print -quit)
+          test -n "$REGISTRY"
+          echo "EVIDENCE_ROOT=$(dirname "$REGISTRY")" >> "$GITHUB_ENV"
+      - name: Re-verify successful evidence with reconstructed code
+        run: |
+          python scripts/verify_phase2c_artifacts.py "$EVIDENCE_ROOT"
+          python scripts/verify_phase2c_artifacts_strict.py \
+            "$EVIDENCE_ROOT" \
+            --spec configs/phase2c_sources_authoritative.yaml
+          python scripts/verify_phase2c_macro_gate.py \
+            "$EVIDENCE_ROOT" \
+            --spec configs/phase2c_sources_authoritative.yaml
+          test ! -s "$EVIDENCE_ROOT/prospective/decisions.jsonl"
+      - name: Publish reconstructed branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No Phase 2C changes relative to main.'
+          else
+            git commit -m "add clean fixed-cutoff Phase 2C research gate"
+          fi
+          git push --force-with-lease origin HEAD:agent/phase-2c-main
+      - name: Report publication
+        run: |
+          gh pr comment 6 --repo "$GITHUB_REPOSITORY" --body \
+            "Phase 2C was reconstructed directly on the Phase 2B main branch. It passed Ruff, strict Mypy, 105 core tests, optional ML tests, clean-wheel smoke checks, and re-verified the 29.8 MB successful fixed-cutoff artifact (two full-coverage spot venues, derivatives, macro gates and empty ledger). Clean branch: \`agent/phase-2c-main\`. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
