@@ -1,4 +1,4 @@
-"""Point-in-time OHLCV schema validation."""
+"""Strict OHLCV schema validation."""
 
 from collections.abc import Iterable
 
@@ -17,11 +17,7 @@ def _missing_columns(columns: Iterable[str]) -> set[str]:
 
 
 def normalize_ohlcv(frame: pd.DataFrame) -> pd.DataFrame:
-    """Validate OHLCV bars and return a UTC-indexed, sorted copy.
-
-    The function intentionally fails fast. Silent coercion of malformed bars can
-    create false backtest profits and is therefore unsafe for research.
-    """
+    """Validate OHLCV bars and return a UTC-indexed, sorted copy."""
 
     missing = _missing_columns(frame.columns)
     if missing:

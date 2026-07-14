@@ -13,4 +13,6 @@ class NaiveReturnForecaster:
             raise ValueError("history must be a non-empty one-dimensional array")
         if horizon <= 0:
             raise ValueError("horizon must be positive")
+        if not np.isfinite(history).all():
+            raise ValueError("history must be finite")
         return ForecastOutput(point=np.zeros(horizon, dtype=np.float64))

@@ -1,4 +1,4 @@
-"""Small, auditable close-to-close backtester for Phase 1."""
+"""Small, auditable close-to-close backtester for the trend baseline."""
 
 from dataclasses import dataclass
 
@@ -72,21 +72,14 @@ def run_backtest(signal_frame: pd.DataFrame, config: AppConfig) -> BacktestResul
 
     frame = signal_frame.copy()
     frame["asset_return"] = frame["close"].pct_change().fillna(0.0)
-    # Critical anti-leakage rule: a close-derived signal can only hold exposure next bar.
     frame["executed_exposure"] = frame["desired_exposure"].shift(1).fillna(0.0)
-    frame["gross_strategy_return"] = (
-        frame["executed_exposure"] * frame["asset_return"]
-    )
-    frame["turnover"] = frame["executed_exposure"].diff().abs().fillna(
-        frame["executed_exposure"].abs()
+    frame["gross_strategy_return"] = frame["executed_exposure"] * frame["asset_return"]
+    frame["turnover"] = (
+        frame["executed_exposure"].diff().abs().fillna(frame["executed_exposure"].abs())
     )
     frame["trading_cost"] = frame["turnover"] * config.costs.one_way_rate
-    frame["net_strategy_return"] = (
-        frame["gross_strategy_return"] - frame["trading_cost"]
-    )
-    frame["equity"] = config.backtest.initial_cash * (
-        1.0 + frame["net_strategy_return"]
-    ).cumprod()
+    frame["net_strategy_return"] = frame["gross_strategy_return"] - frame["trading_cost"]
+    frame["equity"] = config.backtest.initial_cash * (1.0 + frame["net_strategy_return"]).cumprod()
 
     metrics = calculate_metrics(
         frame["net_strategy_return"],

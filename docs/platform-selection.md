@@ -1,35 +1,29 @@
 # Platform selection (July 2026)
 
-## Recommended stack
-
-| Layer | Primary choice | Why | Not used as the Phase-1 core |
+| Layer | Primary choice | Reason | Why not the core yet |
 |---|---|---|---|
-| Research harness | This repository + pandas/NumPy | Auditable, lightweight, venue-neutral | Full platforms add assumptions before the signal contract is stable |
-| Public crypto data | CCXT | MIT, broad exchange abstraction | Venue support does not imply legal availability or safe custody |
-| Crypto dry-run | Freqtrade | Mature backtest, dry-run, FreqAI, lookahead analysis | Crypto-only and GPL-3.0; kept outside the core package |
-| Multi-asset production | NautilusTrader | Same event-driven architecture for simulation/live; forex + crypto | More operational complexity; introduce after signal validation |
-| Market making | Hummingbot | Strong CEX/DEX connector and order-book focus | Wrong fit for 4h long/flat directional Phase 1 |
-| Institutional multi-market alternative | QuantConnect LEAN | Apache-2.0, event-driven, forex and crypto | Heavier C#-centric engine and data/broker integration burden |
-| ML research | Qlib | Rich supervised/RL research workflows | Primarily equity-shaped data assumptions; requires adaptation for 24/7 crypto |
-| RL experiments | FinRL-X / FinRL-Meta | Ready environments and DRL baselines | RL is intentionally postponed until the simulator is validated |
-| Time-series FM | TimesFM 2.5, Chronos-2 | Quantile/covariate forecasts and strong zero-shot baselines | Must prove incremental net value over naive and tree baselines |
+| Research | This repository + pandas/NumPy | Auditable and venue-neutral | Full platforms impose assumptions before signal validation |
+| Public crypto data | CCXT | Broad unified API, MIT | Connector support is not jurisdictional eligibility |
+| Crypto dry-run | Freqtrade | Mature backtest, dry-run and diagnostics | Crypto-oriented and GPL; keep behind an adapter |
+| Multi-asset production | NautilusTrader | Event-driven simulation/live architecture | Introduce only after prospective validation |
+| Market making | Hummingbot | Strong CEX/DEX and order-book tooling | Wrong fit for 4h directional Long/Flat |
+| Multi-market alternative | QuantConnect LEAN | Event-driven forex and crypto support | Heavier ecosystem and C# orientation |
+| ML research | Qlib | Rich supervised and portfolio workflows | Equity-shaped assumptions need 24/7 adaptation |
+| RL research | FinRL | Ready DRL environments | Postponed until simulator fidelity is proven |
+| Time-series FM | TimesFM 2.5 + Chronos-2 | Strong zero-shot challengers | Must beat naive/tree baselines after costs |
 
-## Decision
+The project remains framework-light through Phase 2B. Freqtrade is the likely first
+dry-run adapter. NautilusTrader is the preferred later runtime for multi-venue,
+multi-asset event-driven execution.
 
-Phase 1 is intentionally framework-light and Apache-2.0 licensed. Freqtrade will be
-added as a separate dry-run adapter after the baseline and data contracts pass
-walk-forward tests. NautilusTrader is the preferred production runtime because it
-supports multi-asset, multi-venue event-driven execution while keeping Python as the
-strategy control plane.
+Official projects:
 
-## Official projects
-
-- Freqtrade: https://github.com/freqtrade/freqtrade
-- NautilusTrader: https://github.com/nautechsystems/nautilus_trader
-- CCXT: https://github.com/ccxt/ccxt
-- TimesFM: https://github.com/google-research/timesfm
-- Chronos: https://github.com/amazon-science/chronos-forecasting
-- Hummingbot: https://github.com/hummingbot/hummingbot
-- LEAN: https://github.com/QuantConnect/Lean
-- Qlib: https://github.com/microsoft/qlib
-- FinRL: https://github.com/AI4Finance-Foundation/FinRL
+- https://github.com/ccxt/ccxt
+- https://github.com/freqtrade/freqtrade
+- https://github.com/nautechsystems/nautilus_trader
+- https://github.com/google-research/timesfm
+- https://github.com/amazon-science/chronos-forecasting
+- https://github.com/hummingbot/hummingbot
+- https://github.com/QuantConnect/Lean
+- https://github.com/microsoft/qlib
+- https://github.com/AI4Finance-Foundation/FinRL
