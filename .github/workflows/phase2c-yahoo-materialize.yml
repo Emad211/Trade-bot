@@ -1,5 +1,6 @@
 name: phase2c-yahoo-materialize
 
+# One-time validated materializer for Yahoo market-context runner support.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
