@@ -1,0 +1,52 @@
+name: report-verify-phase2c-clean-final
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/report-verify-phase2c-clean-final.yml"
+
+permissions:
+  actions: read
+  pull-requests: write
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Wait for final verifier and report
+        shell: bash
+        run: |
+          set -euo pipefail
+          run=""
+          for attempt in $(seq 1 480); do
+            run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-2c-real-data-benchmark&per_page=100" \
+              --jq '[.workflow_runs[] | select(.name == "verify-phase2c-clean-final")][0]')
+            if [ "$(jq -r '.status // empty' <<<"$run")" = "completed" ]; then
+              break
+            fi
+            sleep 15
+          done
+          test -n "$run"
+          run_id=$(jq -r .id <<<"$run")
+          jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
+          artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts?per_page=100")
+          {
+            echo '## Final clean Phase 2C verifier status'
+            echo
+            echo "- run: $(jq -r .html_url <<<"$run")"
+            echo "- status: $(jq -r .status <<<"$run")"
+            echo "- conclusion: $(jq -r .conclusion <<<"$run")"
+            echo "- runner head: \`$(jq -r .head_sha <<<"$run")\`"
+            echo
+            echo '### Steps'
+            jq -r '.jobs[] as $job | $job.steps[]? | "- \($job.name) / \(.name): \(.status) / \(.conclusion)"' <<<"$jobs"
+            echo
+            echo '### Artifacts'
+            jq -r '.artifacts[] | "- `\(.name)` — \(.size_in_bytes) bytes — `\(.digest)`"' <<<"$artifacts"
+          } > /tmp/final-verifier-report.md
+          gh pr comment 6 --repo "$GITHUB_REPOSITORY" --body-file /tmp/final-verifier-report.md
