@@ -109,3 +109,32 @@ def test_negative_source_latency_is_rejected(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setattr(source, "_build_exchange", lambda: FakeDerivativesExchange())
     with pytest.raises(ValueError, match="negative"):
         source.fetch_funding_history("BTC/USDT:USDT", source_latency=timedelta(seconds=-1))
+
+
+def test_derivative_pagination_continues_under_server_side_cap(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    base = 1_700_000_000_000
+    step = 8 * 60 * 60 * 1000
+
+    class CappedFunding(FakeDerivativesExchange):
+        def fetch_funding_rate_history(self, symbol, since, limit, params):
+            del symbol, limit, params
+            start = 0 if since is None else max(0, int((since - base + step - 1) // step))
+            if start >= 6:
+                return []
+            return [
+                {"timestamp": base + index * step, "fundingRate": 0.0001 * (index + 1)}
+                for index in range(start, min(start + 2, 6))
+            ]
+
+    source = CCXTDerivativesSource("fake")
+    monkeypatch.setattr(source, "_build_exchange", lambda: CappedFunding())
+    result = source.fetch_funding_history(
+        "BTC/USDT:USDT",
+        since_ms=base,
+        until_ms=base + 5 * step,
+        limit=200,
+        max_pages=10,
+    )
+    assert len(result) == 6

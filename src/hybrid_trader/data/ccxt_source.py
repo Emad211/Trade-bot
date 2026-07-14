@@ -63,15 +63,14 @@ class CCXTOHLCVSource:
             if not batch:
                 break
             rows.extend(batch)
-            newest = int(batch[-1][0])
+            timestamps = [int(row[0]) for row in batch]
+            newest = max(timestamps)
             if until_ms is not None and newest >= until_ms:
                 break
             next_cursor = newest + 1
             if cursor is not None and next_cursor <= cursor:
                 break
             cursor = next_cursor
-            if len(batch) < page_limit:
-                break
 
         columns = ["timestamp", "open", "high", "low", "close", "volume"]
         frame = pd.DataFrame(rows, columns=columns)
