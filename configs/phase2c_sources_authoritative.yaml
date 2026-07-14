@@ -44,8 +44,9 @@ fred_series:
     release_lag_hours: 24
     source_latency_seconds: 300
     tolerance_days: 10
-  - series_id: GOLDAMGBD228NLBM
-    feature_name: gold_usd_am
+stooq_series:
+  - symbol: xauusd
+    feature_name: gold_usd
     required: true
     release_lag_hours: 24
     source_latency_seconds: 300
