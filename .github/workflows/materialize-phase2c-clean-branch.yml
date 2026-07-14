@@ -1,5 +1,6 @@
 name: materialize-phase2c-clean-branch
 
+# Trigger revision after workflow registration on the established Phase 2C branch.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
