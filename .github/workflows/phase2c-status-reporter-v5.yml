@@ -1,0 +1,58 @@
+name: phase2c-status-reporter-v5
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/phase2c-status-reporter-v5.yml"
+
+permissions:
+  actions: read
+  pull-requests: write
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGET_HEAD: "ba8a62af48c0a4155c17d72ea8d7a1a8e584e80b"
+    steps:
+      - name: Wait for Yahoo fixed-cutoff run and report evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_json=""
+          for attempt in $(seq 1 360); do
+            run_json="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-2c-real-data-benchmark&per_page=100" --jq '.workflow_runs[] | select(.name == "phase2c-real-benchmark-authoritative" and .head_sha == env.TARGET_HEAD) | @json' | head -n1 || true)"
+            if [ -n "$run_json" ] && [ "$(jq -r .status <<<"$run_json")" = "completed" ]; then
+              break
+            fi
+            sleep 30
+          done
+          if [ -z "$run_json" ]; then
+            echo "Target authoritative run was not found" >&2
+            exit 1
+          fi
+          run_id="$(jq -r .id <<<"$run_json")"
+          conclusion="$(jq -r .conclusion <<<"$run_json")"
+          html_url="$(jq -r .html_url <<<"$run_json")"
+          jobs="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")"
+          artifacts="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts?per_page=100")"
+          {
+            echo "## Fixed-cutoff Phase 2C evidence — Yahoo gold revision"
+            echo
+            echo "- Head: \`${TARGET_HEAD}\`"
+            echo "- Conclusion: **${conclusion}**"
+            echo "- Run: ${html_url}"
+            echo
+            echo "### Failed steps"
+            jq -r '.jobs[] as $job | $job.steps[]? | select(.conclusion == "failure") | "- \($job.name): \(.name)"' <<<"$jobs"
+            echo
+            echo "### Artifacts"
+            jq -r '.artifacts[] | "- `\(.name)` — \(.size_in_bytes) bytes — `\(.digest)`"' <<<"$artifacts"
+            echo
+            echo "Historical output remains non-activated and requires artifact inspection."
+          } > /tmp/report.md
+          gh pr comment 5 --repo "$GITHUB_REPOSITORY" --body-file /tmp/report.md
