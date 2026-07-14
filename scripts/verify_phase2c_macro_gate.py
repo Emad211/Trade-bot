@@ -23,6 +23,10 @@ def verify_macro_gate(root: Path, spec_path: Path) -> dict[str, object]:
         ("stooq", item.symbol, item.feature_name)
         for item in spec.stooq_series
         if item.required
+    ] + [
+        ("yahoo", item.symbol, item.feature_name)
+        for item in spec.yahoo_series
+        if item.required
     ]
     if not required:
         raise ValueError("At least one required market-context series is needed")
