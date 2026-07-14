@@ -1,0 +1,47 @@
+=== traceback and errors ===
+27:foundation	Execute pinned challenger matrix	2026-07-14T09:04:04.8795483Z Traceback (most recent call last):
+39:foundation	Execute pinned challenger matrix	2026-07-14T09:04:04.8815266Z     raise ValueError("Forecast features cannot be available before their origin")
+40:foundation	Execute pinned challenger matrix	2026-07-14T09:04:04.8815940Z ValueError: Forecast features cannot be available before their origin
+
+=== final 240 lines ===
+foundation	Execute pinned challenger matrix	﻿2026-07-14T09:04:02.6999946Z ##[group]Run python scripts/run_phase2c_foundation.py \
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7000444Z ^[[36;1mpython scripts/run_phase2c_foundation.py \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7000809Z ^[[36;1m  --baseline-root "$BASELINE_ROOT" \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7001162Z ^[[36;1m  --config configs/phase2c_btc_4h.yaml \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7001514Z ^[[36;1m  --output artifacts/phase2c-foundation \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7001863Z ^[[36;1m  --timesfm-revision "$TIMESFM_REVISION" \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7002206Z ^[[36;1m  --chronos-revision "$CHRONOS_REVISION" \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7002526Z ^[[36;1m  --device cpu \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7002789Z ^[[36;1m  --context 256 \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7003033Z ^[[36;1m  --horizon 6 \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7003608Z ^[[36;1m  --stride 6 \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7003847Z ^[[36;1m  --batch-size 16 \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7004118Z ^[[36;1m  --inference-latency-seconds 120^[[0m
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7036770Z shell: /usr/bin/bash -e {0}
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7037028Z env:
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7039914Z   GH_TOKEN: ***
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7040230Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7040720Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7041201Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7041631Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7042053Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7042482Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7043872Z   BASELINE_ROOT: baseline-download/phase2c-historical-3873ad260e4b0ca9ae2a07834a8abc414b08babb/phase2c-historical
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7044612Z   TIMESFM_REVISION: 1d952420fba87f3c6dee4f240de0f1a0fbc790e3
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7045044Z   CHRONOS_REVISION: 29ec3766d36d6f73f0696f85560a422f50e8498c
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:02.7045411Z ##[endgroup]
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:04.8795483Z Traceback (most recent call last):
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:04.8806069Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/run_phase2c_foundation.py", line 306, in <module>
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:04.8807050Z     main()
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:04.8807868Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/run_phase2c_foundation.py", line 302, in main
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:04.8808805Z     run(parser.parse_args())
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:04.8809662Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/run_phase2c_foundation.py", line 152, in run
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:04.8810554Z     evidence["naive"] = _generate_cache(
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:04.8811041Z                         ^^^^^^^^^^^^^^^^
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:04.8811992Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/run_phase2c_foundation.py", line 66, in _generate_cache
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:04.8812962Z     feature_sha = cache_rolling_features(
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:04.8813516Z                   ^^^^^^^^^^^^^^^^^^^^^^^
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:04.8814281Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/forecasting/rolling.py", line 164, in cache_rolling_features
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:04.8815266Z     raise ValueError("Forecast features cannot be available before their origin")
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:04.8815940Z ValueError: Forecast features cannot be available before their origin
+foundation	Execute pinned challenger matrix	2026-07-14T09:04:05.0756002Z ##[error]Process completed with exit code 1.
