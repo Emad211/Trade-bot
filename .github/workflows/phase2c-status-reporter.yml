@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 360
     env:
       GH_TOKEN: ${{ github.token }}
-      PR_NUMBER: "4"
+      PR_NUMBER: "5"
     steps:
       - name: Wait for authoritative chain and write report
         shell: bash
