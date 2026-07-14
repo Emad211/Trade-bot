@@ -1,0 +1,66 @@
+name: diagnose-phase2c-clean-chunks
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/diagnose-phase2c-clean-chunks.yml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase-2c-clean
+      - name: Compare transferred chunk hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=.bootstrap/phase2c-clean
+          for encoded in "$ROOT"/phase2c-chunk-[0-9][0-9][0-9].b64.b64; do
+            [ -e "$encoded" ] || continue
+            base64 --decode "$encoded" > "${encoded%.b64}"
+          done
+          cat > /tmp/expected <<'EOF'
+          000 d222cdbf7de389ef3f71dfbed945c87dbc185f62d29f7cc88a0d151473e2346a 4096
+          001 5dd2456fb1aaf1da3e4edd8c6643d789e3e57f4e1ed0fde4805eb2ce1026bd66 4096
+          002 66d5b67a3c8ed36372b28ece0978cfa0393a7b1b8d8859e86b9374e63df00908 4096
+          003 c1d569505f378ad4229fc8991223e82eac13a2530f1aee9530280c050c01b4b9 4096
+          004 ed98a5b0b9a944da1296265f907eb1d17c86c09278953befe6a21e0d2ca62457 4096
+          005 f0a4194694afc616120a1a980224cbcb492448af832b55d463bad927132fc3ff 4096
+          006 b17a43003603f25dea51188a5a014abb59384b21c602fbfbc3e713a1fc5eb618 4096
+          007 961ee9c90d47419364c3817ef22d4b7f29f9ca2e92478ec70b7ca03632428a94 4096
+          008 918ae23a39b6479148a10694627c56932b0738ce3c0ee3d05643e009e61d8f72 4096
+          009 4b7e2afb5a31c9b0cc9746112ecaf7845f497c2283dd26cac394751290c69092 4096
+          010 95db14e871d7a06c17f75e0984bc5ef60d3c8f5590e1ad357b8026f43aea71b4 4096
+          011 c3ac3d28550444af050faa01d5fbe67c6b9bbfa5ec10e8d215cef6037f6f2c7d 4096
+          012 b06a1cda3c198ab033e4430de97bc7635fe52470a958e392089c9657664f8b11 2116
+          EOF
+          echo '## Phase 2C clean chunk diagnostics' > /tmp/report.md
+          echo >> /tmp/report.md
+          mismatch=0
+          while read -r index expected_hash expected_size; do
+            file="$ROOT/phase2c-chunk-${index}.b64"
+            if [ ! -f "$file" ]; then
+              echo "- chunk ${index}: missing" >> /tmp/report.md
+              mismatch=1
+              continue
+            fi
+            actual_hash=$(sha256sum "$file" | cut -d' ' -f1)
+            actual_size=$(wc -c < "$file")
+            if [ "$actual_hash" != "$expected_hash" ] || [ "$actual_size" != "$expected_size" ]; then
+              echo "- chunk ${index}: expected ${expected_hash}/${expected_size}, got ${actual_hash}/${actual_size}" >> /tmp/report.md
+              mismatch=1
+            fi
+          done < /tmp/expected
+          if [ "$mismatch" -eq 0 ]; then
+            echo '- all 13 chunks match expected hashes and sizes' >> /tmp/report.md
+          fi
+          gh pr comment 6 --repo "$GITHUB_REPOSITORY" --body-file /tmp/report.md
