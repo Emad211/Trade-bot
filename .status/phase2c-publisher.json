@@ -26,7 +26,7 @@
     "check_suite_id": 79347670662,
     "check_suite_node_id": "CS_kwDOSjXKWc8AAAASeX1ehg",
     "check_suite_url": "https://api.github.com/repos/Emad211/Trade-bot/check-suites/79347670662",
-    "conclusion": null,
+    "conclusion": "failure",
     "created_at": "2026-07-14T08:50:32Z",
     "display_title": "trigger Phase 2C main reconstruction",
     "event": "push",
@@ -196,7 +196,7 @@
     "run_attempt": 1,
     "run_number": 2,
     "run_started_at": "2026-07-14T08:50:32Z",
-    "status": "in_progress",
+    "status": "completed",
     "triggering_actor": {
       "avatar_url": "https://avatars.githubusercontent.com/u/82148680?v=4",
       "events_url": "https://api.github.com/users/Emad211/events{/privacy}",
@@ -218,7 +218,7 @@
       "url": "https://api.github.com/users/Emad211",
       "user_view_type": "public"
     },
-    "updated_at": "2026-07-14T08:50:36Z",
+    "updated_at": "2026-07-14T08:52:58Z",
     "url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29319480518",
     "workflow_id": 312868815,
     "workflow_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/workflows/312868815"
@@ -235,11 +235,11 @@
       "head_sha": "388fc1f93e8558378752124f9f285d1f736cbb11",
       "url": "https://api.github.com/repos/Emad211/Trade-bot/actions/jobs/87041111023",
       "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29319480518/job/87041111023",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "failure",
       "created_at": "2026-07-14T08:50:33Z",
       "started_at": "2026-07-14T08:50:35Z",
-      "completed_at": null,
+      "completed_at": "2026-07-14T08:52:57Z",
       "name": "publish",
       "steps": [
         {
@@ -292,51 +292,59 @@
         },
         {
           "name": "Download successful fixed-cutoff evidence",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "number": 7,
           "started_at": "2026-07-14T08:52:45Z",
-          "completed_at": null
+          "completed_at": "2026-07-14T08:52:48Z"
         },
         {
           "name": "Re-verify successful evidence with reconstructed code",
-          "status": "pending",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "number": 8,
-          "started_at": null,
-          "completed_at": null
+          "started_at": "2026-07-14T08:52:48Z",
+          "completed_at": "2026-07-14T08:52:53Z"
         },
         {
           "name": "Publish reconstructed branch",
-          "status": "pending",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "failure",
           "number": 9,
-          "started_at": null,
-          "completed_at": null
+          "started_at": "2026-07-14T08:52:53Z",
+          "completed_at": "2026-07-14T08:52:54Z"
         },
         {
           "name": "Report publication",
-          "status": "pending",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "skipped",
           "number": 10,
-          "started_at": null,
-          "completed_at": null
+          "started_at": "2026-07-14T08:52:54Z",
+          "completed_at": "2026-07-14T08:52:54Z"
         },
         {
           "name": "Post Run actions/setup-python@v5",
-          "status": "pending",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "skipped",
           "number": 19,
-          "started_at": null,
-          "completed_at": null
+          "started_at": "2026-07-14T08:52:54Z",
+          "completed_at": "2026-07-14T08:52:54Z"
         },
         {
           "name": "Post Run actions/checkout@v4",
-          "status": "pending",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "number": 20,
-          "started_at": null,
-          "completed_at": null
+          "started_at": "2026-07-14T08:52:54Z",
+          "completed_at": "2026-07-14T08:52:54Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21,
+          "started_at": "2026-07-14T08:52:54Z",
+          "completed_at": "2026-07-14T08:52:54Z"
         }
       ],
       "check_run_url": "https://api.github.com/repos/Emad211/Trade-bot/check-runs/87041111023",
