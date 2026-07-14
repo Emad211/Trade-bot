@@ -1,0 +1,22 @@
+market:
+  symbol: BTC/USD
+  timeframe: 4h
+  periods_per_year: 2190
+strategy:
+  ema_fast: 20
+  ema_slow: 100
+  donchian_entry: 40
+  donchian_exit: 20
+  atr_window: 14
+  volatility_window: 30
+  max_annualized_volatility: 1.20
+risk:
+  target_annualized_volatility: 0.35
+  max_exposure: 0.35
+  min_exposure: 0.05
+costs:
+  fee_bps: 15.0
+  slippage_bps: 10.0
+backtest:
+  initial_cash: 10000.0
+  min_history_bars: 150
