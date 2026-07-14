@@ -1,0 +1,33 @@
+name: capture-main-phase2c-chain
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/capture-main-phase2c-chain.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase-2c-real-data-benchmark
+      - name: Capture latest main workflow chain
+        shell: bash
+        run: |
+          set -euo pipefail
+          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=main&per_page=100")
+          mkdir -p .status
+          jq '{captured_at: now | todate, workflows: ([.workflow_runs[] | select(.name == "ci" or .name == "phase2c-historical" or .name == "phase2c-foundation")] | group_by(.name) | map(.[0]) | map({name,status,conclusion,id,html_url,head_sha,run_number,created_at,updated_at}))}' <<<"$runs" > .status/main-phase2c-chain.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .status/main-phase2c-chain.json
+          git commit -m "capture main Phase 2C workflow chain" || true
+          git push origin HEAD:agent/phase-2c-real-data-benchmark
