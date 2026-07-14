@@ -1,0 +1,53 @@
+# Fixed-cutoff authoritative Phase 2C specification; reruns preserve the time window.
+schema_version: "1.0"
+timeframe: 4h
+start: 2023-01-01T00:00:00Z
+end: 2026-07-12T20:00:00Z
+as_of: 2026-07-13T00:15:00Z
+spot_required_count: 2
+source_latency_seconds: 30.0
+derivative_latency_seconds: 60.0
+page_limit: 200
+max_pages: 100
+cross_venue_tolerance_hours: 8.0
+spot_sources:
+  - exchange_id: coinbase
+    symbol: BTC/USD
+  - exchange_id: bitstamp
+    symbol: BTC/USD
+  - exchange_id: okx
+    symbol: BTC/USDT
+  - exchange_id: bybit
+    symbol: BTC/USDT
+  - exchange_id: gemini
+    symbol: BTC/USD
+derivative_sources:
+  - exchange_id: okx
+    symbol: BTC/USDT:USDT
+  - exchange_id: bybit
+    symbol: BTC/USDT:USDT
+  - exchange_id: deribit
+    symbol: BTC/USD:BTC
+  - exchange_id: binanceusdm
+    symbol: BTC/USDT:USDT
+minimum_derivative_features: 1
+fred_series:
+  - series_id: NASDAQCOM
+    feature_name: nasdaq_composite
+    required: true
+    release_lag_hours: 24
+    source_latency_seconds: 300
+    tolerance_days: 10
+  - series_id: DTWEXBGS
+    feature_name: usd_broad_index
+    required: true
+    release_lag_hours: 24
+    source_latency_seconds: 300
+    tolerance_days: 10
+yahoo_series:
+  - symbol: GC=F
+    feature_name: gold_futures_usd
+    required: true
+    release_lag_hours: 24
+    source_latency_seconds: 300
+    tolerance_days: 10

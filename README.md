@@ -5,13 +5,13 @@ Long/Flat** strategy. The repository deliberately separates point-in-time data,
 model research, risk, and eventual execution so every added component must prove
 incremental out-of-sample value after realistic costs.
 
-> **Status: Phase 2B research foundation.** No live orders, exchange credentials,
+> **Status: Phase 2C fixed-cutoff research candidate.** No live orders, exchange credentials,
 > leverage, shorting, or withdrawal permissions are implemented. Nothing in this
 > repository is financial advice.
 
 ## فارسی
 
-این مخزن زیرساخت پژوهشی مرحله دوم بات هیبریدی BTC Spot است. داده‌ها به‌صورت
+این مخزن زیرساخت پژوهشی Phase 2C بات هیبریدی BTC Spot است. داده‌ها به‌صورت
 point-in-time و دارای زمان واقعی دسترس‌پذیری ذخیره می‌شوند؛ مدل‌ها در ساختار
 Train / Calibration / Validation / Test جداگانه ارزیابی می‌شوند؛ هزینه، اسلیپیج،
 خروج اجباری پایان هر fold و دفتر forward-test ثبت می‌شوند. TimesFM و Chronos فقط
@@ -191,6 +191,24 @@ hybrid-trader forward-verify \
   --ledger artifacts/forward/decisions.jsonl
 ```
 
+## Fixed-cutoff Phase 2C
+
+The authoritative historical workflow uses `configs/phase2c_sources_authoritative.yaml`
+and keeps the 2023-01-01 through 2026-07-12 20:00 UTC window fixed. It requires
+two independent spot histories, derivative coverage, Nasdaq, a broad USD index,
+and gold futures, then runs sealed tree-model benchmarks, cost stress and ablation.
+
+```bash
+python -m hybrid_trader.phase2c   --spec configs/phase2c_sources_authoritative.yaml   --config configs/phase2c_btc_4h.yaml   --output artifacts/phase2c-historical
+
+python scripts/verify_phase2c_artifacts.py artifacts/phase2c-historical
+python scripts/verify_phase2c_artifacts_strict.py   artifacts/phase2c-historical   --spec configs/phase2c_sources_authoritative.yaml
+python scripts/verify_phase2c_macro_gate.py   artifacts/phase2c-historical   --spec configs/phase2c_sources_authoritative.yaml
+```
+
+Historical success never activates a strategy. The foundation-model workflow remains
+a pinned, non-activating challenger assessment requiring independent human review.
+
 ## Safety boundary
 
 The repository currently cannot:
@@ -215,3 +233,10 @@ execution.
 - [Forward-test ledger](docs/forward-test.md)
 - [Platform selection](docs/platform-selection.md)
 - [Release gates](docs/release-gates.md)
+
+
+Phase 2C details:
+
+- [Fixed-cutoff historical benchmark](docs/phase-2c-real-benchmark.md)
+- [Foundation challenger benchmark](docs/phase-2c-foundation-benchmark.md)
+- [Authority and non-activation rules](docs/phase-2c-authority.md)
