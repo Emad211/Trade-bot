@@ -1,6 +1,6 @@
 name: materialize-phase2c-clean-branch
 
-# Transfer hashes are verified; run the complete validation and publication chain.
+# Publish validated source files only; workflow changes are applied by the GitHub connector.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -45,7 +45,6 @@ jobs:
           [ "${#segment_parts[@]}" -eq 4 ] || { echo "Expected four chunk-012 segments" >&2; exit 1; }
           cat "${segment_parts[@]}" > "$ROOT/phase2c-chunk-012.b64"
           echo "b06a1cda3c198ab033e4430de97bc7635fe52470a958e392089c9657664f8b11  $ROOT/phase2c-chunk-012.b64" | sha256sum -c -
-          [ "$(wc -c < "$ROOT/phase2c-chunk-012.b64")" -eq 2116 ]
           parts=()
           for index in $(seq -w 0 12); do
             part="$ROOT/phase2c-chunk-0${index}.b64"
@@ -65,9 +64,7 @@ jobs:
             exit 1
           fi
           tar -xzf /tmp/phase2c-overlay.tar.gz
-          rm -rf .bootstrap/phase2c-clean .github/workflows/phase2c-clean-materialize.yml
-          git fetch --depth=1 origin agent/phase-2-point-in-time-benchmarks
-          git show FETCH_HEAD:.github/workflows/ci.yml > .github/workflows/ci.yml
+          rm -rf .bootstrap/phase2c-clean
       - name: Report reconstruction failure
         if: ${{ steps.reconstruct.outcome != 'success' }}
         run: |
@@ -96,16 +93,17 @@ jobs:
           print(hybrid_trader.__version__)
           PY
           /tmp/phase2c-clean-wheel/bin/python -m pip check
-      - name: Commit validated clean tree
+      - name: Commit validated source files
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
+          git add README.md configs docs scripts src tests
+          git add -A .bootstrap/phase2c-clean
           git commit -m "add clean Phase 2C public-data research gate"
           git push origin HEAD:agent/phase-2c-clean
       - name: Report success
         run: |
           gh pr comment 6 --repo "$GITHUB_REPOSITORY" --body \
-            "Clean Phase 2C overlay passed chunk and archive SHA-256 verification, Ruff, strict Mypy, core tests, optional ML tests and clean-wheel smoke testing. Bootstrap files were removed before the source commit. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            "Clean Phase 2C source files passed archive SHA-256 verification, Ruff, strict Mypy, core tests, optional ML tests and clean-wheel smoke testing. Source commit published; workflow cleanup is handled separately by the GitHub connector. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
