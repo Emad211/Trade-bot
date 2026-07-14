@@ -1,5 +1,6 @@
 name: phase2c-status-reporter-v5
 
+# Generation 2: report the Yahoo/GC=F fixed-cutoff run for head ba8a62af.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
