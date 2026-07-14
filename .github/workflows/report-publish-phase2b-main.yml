@@ -1,0 +1,46 @@
+name: report-publish-phase2b-main
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/report-publish-phase2b-main.yml"
+
+permissions:
+  actions: read
+  pull-requests: write
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Wait for Phase 2B publisher and report
+        shell: bash
+        run: |
+          set -euo pipefail
+          run=""
+          for attempt in $(seq 1 240); do
+            run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-2c-real-data-benchmark&per_page=100" \
+              --jq '[.workflow_runs[] | select(.name == "publish-phase2b-main")][0]')
+            if [ "$(jq -r '.status // empty' <<<"$run")" = "completed" ]; then
+              break
+            fi
+            sleep 15
+          done
+          test -n "$run"
+          run_id=$(jq -r .id <<<"$run")
+          jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
+          {
+            echo '## Phase 2B clean-main publication status'
+            echo
+            echo "- run: $(jq -r .html_url <<<"$run")"
+            echo "- status: $(jq -r .status <<<"$run")"
+            echo "- conclusion: $(jq -r .conclusion <<<"$run")"
+            echo
+            jq -r '.jobs[] as $job | $job.steps[]? | "- \($job.name) / \(.name): \(.status) / \(.conclusion)"' <<<"$jobs"
+          } > /tmp/phase2b-status.md
+          gh pr comment 2 --repo "$GITHUB_REPOSITORY" --body-file /tmp/phase2b-status.md
