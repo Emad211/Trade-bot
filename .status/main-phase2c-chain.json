@@ -1,0 +1,27 @@
+{
+  "captured_at": "2026-07-14T09:00:33Z",
+  "workflows": [
+    {
+      "name": "ci",
+      "status": "completed",
+      "conclusion": "success",
+      "id": 29319905250,
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29319905250",
+      "head_sha": "3873ad260e4b0ca9ae2a07834a8abc414b08babb",
+      "run_number": 261,
+      "created_at": "2026-07-14T08:57:23Z",
+      "updated_at": "2026-07-14T08:58:41Z"
+    },
+    {
+      "name": "phase2c-historical",
+      "status": "in_progress",
+      "conclusion": null,
+      "id": 29319905230,
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29319905230",
+      "head_sha": "3873ad260e4b0ca9ae2a07834a8abc414b08babb",
+      "run_number": 3,
+      "created_at": "2026-07-14T08:57:23Z",
+      "updated_at": "2026-07-14T08:57:26Z"
+    }
+  ]
+}
