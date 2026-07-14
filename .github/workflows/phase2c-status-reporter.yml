@@ -1,5 +1,6 @@
 name: phase2c-status-reporter
 
+# Generation 2: report the latest expanded-source authoritative chain on PR 5.
 on:
   workflow_dispatch:
   push:
