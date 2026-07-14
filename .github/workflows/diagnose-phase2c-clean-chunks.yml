@@ -1,6 +1,6 @@
 name: diagnose-phase2c-clean-chunks
 
-# Trigger revision after workflow registration.
+# Verify segmented chunk 012 and the reconstructed overlay archive.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: agent/phase-2c-clean
-      - name: Compare transferred chunk hashes
+      - name: Verify transferred chunks and archive
         shell: bash
         run: |
           set -euo pipefail
@@ -29,6 +29,12 @@ jobs:
             [ -e "$encoded" ] || continue
             base64 --decode "$encoded" > "${encoded%.b64}"
           done
+          for encoded in "$ROOT"/phase2c-chunk-012-part-[0-9][0-9].b64.b64; do
+            [ -e "$encoded" ] || continue
+            base64 --decode "$encoded" > "${encoded%.b64}"
+          done
+          segment_parts=("$ROOT"/phase2c-chunk-012-part-[0-9][0-9].b64)
+          cat "${segment_parts[@]}" > "$ROOT/phase2c-chunk-012.b64"
           cat > /tmp/expected <<'EOF'
           000 d222cdbf7de389ef3f71dfbed945c87dbc185f62d29f7cc88a0d151473e2346a 4096
           001 5dd2456fb1aaf1da3e4edd8c6643d789e3e57f4e1ed0fde4805eb2ce1026bd66 4096
@@ -44,16 +50,13 @@ jobs:
           011 c3ac3d28550444af050faa01d5fbe67c6b9bbfa5ec10e8d215cef6037f6f2c7d 4096
           012 b06a1cda3c198ab033e4430de97bc7635fe52470a958e392089c9657664f8b11 2116
           EOF
-          echo '## Phase 2C clean chunk diagnostics' > /tmp/report.md
+          echo '## Phase 2C clean transfer diagnostics' > /tmp/report.md
           echo >> /tmp/report.md
           mismatch=0
+          parts=()
           while read -r index expected_hash expected_size; do
             file="$ROOT/phase2c-chunk-${index}.b64"
-            if [ ! -f "$file" ]; then
-              echo "- chunk ${index}: missing" >> /tmp/report.md
-              mismatch=1
-              continue
-            fi
+            parts+=("$file")
             actual_hash=$(sha256sum "$file" | cut -d' ' -f1)
             actual_size=$(wc -c < "$file")
             if [ "$actual_hash" != "$expected_hash" ] || [ "$actual_size" != "$expected_size" ]; then
@@ -62,6 +65,15 @@ jobs:
             fi
           done < /tmp/expected
           if [ "$mismatch" -eq 0 ]; then
-            echo '- all 13 chunks match expected hashes and sizes' >> /tmp/report.md
+            cat "${parts[@]}" > /tmp/phase2c-overlay.b64
+            base64 --decode /tmp/phase2c-overlay.b64 > /tmp/phase2c-overlay.tar.gz
+            archive_hash=$(sha256sum /tmp/phase2c-overlay.tar.gz | cut -d' ' -f1)
+            echo "- all 13 chunks match expected hashes and sizes" >> /tmp/report.md
+            echo "- archive SHA-256: \`${archive_hash}\`" >> /tmp/report.md
+            if [ "$archive_hash" != "08a899bcccd33c49fd512ea72433e8b786b8f2e7dfef17b66a55d86b794afc46" ]; then
+              echo '- archive hash does not match the declared overlay' >> /tmp/report.md
+            else
+              echo '- archive hash matches the declared overlay' >> /tmp/report.md
+            fi
           fi
           gh pr comment 6 --repo "$GITHUB_REPOSITORY" --body-file /tmp/report.md
