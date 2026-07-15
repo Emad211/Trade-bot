@@ -1,6 +1,6 @@
 name: dispatch-foundation-after-timing-fix
 
-# Trigger revision after workflow registration.
+# Re-dispatch after Chronos per-series output normalization merged to main.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -18,19 +18,19 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Verify timing fix is on main
+      - name: Verify Chronos fix is on main
         shell: bash
         run: |
           set -euo pipefail
           main_sha=$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)
-          test "$main_sha" = "760c3af59944031ffe4970ef0645a217479b6909"
+          test "$main_sha" = "494e5af03b7957cac6e3f654ea92fbfda4ac1b8f"
       - name: Dispatch pinned foundation workflow
         run: |
           gh workflow run phase2c-foundation.yml \
             --repo "$GITHUB_REPOSITORY" \
             --ref main \
-            -f baseline_run_id=29319905230
+            -f baseline_run_id=29410075114
       - name: Report dispatch
         run: |
           gh issue comment 3 --repo "$GITHUB_REPOSITORY" --body \
-            "Re-dispatched the pinned TimesFM/Chronos foundation workflow from fixed main commit \`760c3af59944031ffe4970ef0645a217479b6909\`, using successful historical run \`29319905230\`. Dispatch run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            "Re-dispatched the pinned TimesFM/Chronos workflow from main commit \`494e5af03b7957cac6e3f654ea92fbfda4ac1b8f\`, using successful historical run \`29410075114\`. Dispatch run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
