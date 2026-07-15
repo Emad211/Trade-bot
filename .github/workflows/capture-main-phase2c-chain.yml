@@ -1,6 +1,6 @@
 name: capture-main-phase2c-chain
 
-# Generation 3: capture CI and foundation rerun after forecast-timing fix.
+# Generation 5: capture foundation rerun after Chronos output fix.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
