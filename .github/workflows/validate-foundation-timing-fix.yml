@@ -1,0 +1,45 @@
+name: validate-foundation-timing-fix
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/validate-foundation-timing-fix.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/fix-foundation-forecast-timing
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install development and optional ML dependencies
+        run: python -m pip install -e '.[dev,ml]'
+      - name: Source quality and tests
+        run: |
+          ruff format --check .
+          ruff check .
+          mypy --python-version 3.12 src
+          pytest -m 'not optional_ml' --cov=hybrid_trader --cov-report=term-missing
+          pytest -m optional_ml -q
+          python -m pip check
+      - name: Clean-wheel smoke test
+        run: |
+          python -m pip wheel --no-deps --wheel-dir dist .
+          python -m venv /tmp/foundation-timing-final
+          /tmp/foundation-timing-final/bin/python -m pip install dist/*.whl
+          /tmp/foundation-timing-final/bin/hybrid-trader --help >/dev/null
+          /tmp/foundation-timing-final/bin/python - <<'PY'
+          import hybrid_trader.data.artifact
+          import hybrid_trader.forecasting.batched
+          import hybrid_trader.forecasting.rolling
+          PY
+          /tmp/foundation-timing-final/bin/python -m pip check
