@@ -61,9 +61,7 @@ def normalize_chronos_quantile_output(
 
     if quantiles_are_sequence:
         if len(quantile_output) != batch_size or len(mean_output) != batch_size:
-            raise RuntimeError(
-                "Chronos returned the wrong number of per-series forecast outputs"
-            )
+            raise RuntimeError("Chronos returned the wrong number of per-series forecast outputs")
         quantile_items: list[np.ndarray] = []
         mean_items: list[np.ndarray] = []
         for index, (quantile_item, mean_item) in enumerate(
@@ -75,8 +73,7 @@ def normalize_chronos_quantile_output(
                 quantile_array = quantile_array[0]
             elif quantile_array.shape != (horizon, quantile_count):
                 raise RuntimeError(
-                    f"Unexpected Chronos quantile shape for item {index}: "
-                    f"{quantile_array.shape}"
+                    f"Unexpected Chronos quantile shape for item {index}: {quantile_array.shape}"
                 )
             if mean_array.shape == (1, horizon):
                 mean_array = mean_array[0]
