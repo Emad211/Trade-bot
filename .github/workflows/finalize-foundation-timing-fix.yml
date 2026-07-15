@@ -1,6 +1,6 @@
 name: finalize-foundation-timing-fix
 
-# Trigger revision after workflow registration.
+# Generation 2: validate official Chronos-2 list-output support on the clean branch.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: agent/fix-foundation-forecast-timing
+          ref: agent/fix-foundation-timing-clean
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
@@ -26,7 +26,10 @@ jobs:
       - name: Install dependencies and format changed files
         run: |
           python -m pip install -e '.[dev,ml]'
-          ruff format src/hybrid_trader/data/artifact.py tests/test_tabular_artifact.py
+          ruff format \
+            src/hybrid_trader/forecasting/chronos_adapter.py \
+            src/hybrid_trader/forecasting/batched.py \
+            tests/test_chronos_output_contract.py
       - name: Validate complete fix tree
         run: |
           ruff format --check .
@@ -44,6 +47,7 @@ jobs:
           /tmp/foundation-timing-final/bin/python - <<'PY'
           import hybrid_trader.data.artifact
           import hybrid_trader.forecasting.batched
+          import hybrid_trader.forecasting.chronos_adapter
           import hybrid_trader.forecasting.rolling
           PY
           /tmp/foundation-timing-final/bin/python -m pip check
@@ -53,8 +57,11 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/hybrid_trader/data/artifact.py tests/test_tabular_artifact.py
+          git add \
+            src/hybrid_trader/forecasting/chronos_adapter.py \
+            src/hybrid_trader/forecasting/batched.py \
+            tests/test_chronos_output_contract.py
           if ! git diff --cached --quiet; then
-            git commit -m "format tabular artifact timing guards"
-            git push origin HEAD:agent/fix-foundation-forecast-timing
+            git commit -m "format Chronos-2 output contract support"
+            git push origin HEAD:agent/fix-foundation-timing-clean
           fi
