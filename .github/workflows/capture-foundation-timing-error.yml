@@ -1,6 +1,6 @@
 name: capture-foundation-timing-error
 
-# Generation 2: capture the Mypy-safe rerun failure.
+# Generation 3: capture Chronos adapter validation failure.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -25,7 +25,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p .status
-          gh run view 29392436131 --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/timing-failed.log
+          gh run view 29395468818 --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/timing-failed.log
           {
             echo '=== errors ==='
             grep -nE 'error:|Error|FAILED|Traceback|AssertionError|mypy|ruff|coverage' /tmp/timing-failed.log || true
@@ -36,5 +36,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .status/foundation-timing-error.txt
-          git commit -m "capture foundation timing validation failure" || true
+          git commit -m "capture Chronos adapter validation failure" || true
           git push origin HEAD:agent/phase-2c-real-data-benchmark
