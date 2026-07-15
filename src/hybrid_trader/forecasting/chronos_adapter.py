@@ -38,6 +38,39 @@ def _to_numpy(value: Any) -> np.ndarray:
     return np.asarray(value, dtype=np.float64)
 
 
+def _to_numpy_batch(
+    value: Any,
+    *,
+    batch_size: int,
+    item_shape: tuple[int, ...],
+    label: str,
+) -> np.ndarray:
+    """Normalize Chronos tensor or per-series list output to one strict batch array."""
+
+    expected = (batch_size, *item_shape)
+    if isinstance(value, (list, tuple)):
+        if len(value) != batch_size:
+            raise RuntimeError(
+                f"Chronos {label} batch length {len(value)} does not match {batch_size}"
+            )
+        items: list[np.ndarray] = []
+        for index, item in enumerate(value):
+            array = _to_numpy(item)
+            if array.shape == (1, *item_shape):
+                array = array[0]
+            if array.shape != item_shape:
+                raise RuntimeError(f"Unexpected Chronos {label} item {index} shape: {array.shape}")
+            items.append(array)
+        return np.stack(items, axis=0)
+
+    array = _to_numpy(value)
+    if batch_size == 1 and array.shape == item_shape:
+        array = array[np.newaxis, ...]
+    if array.shape != expected:
+        raise RuntimeError(f"Unexpected Chronos {label} shape: {array.shape}")
+    return array
+
+
 class Chronos2Forecaster:
     def __init__(self, settings: ChronosSettings | None = None) -> None:
         self.settings = settings or ChronosSettings()
@@ -70,12 +103,18 @@ class Chronos2Forecaster:
             quantile_levels=list(self.settings.quantile_levels),
             context_length=self.settings.context_length,
         )
-        quantile_array = _to_numpy(quantile_tensor)
-        mean_array = _to_numpy(mean_tensor)
-        if quantile_array.shape != (1, horizon, len(self.settings.quantile_levels)):
-            raise RuntimeError(f"Unexpected Chronos quantile shape: {quantile_array.shape}")
-        if mean_array.shape != (1, horizon):
-            raise RuntimeError(f"Unexpected Chronos mean shape: {mean_array.shape}")
+        quantile_array = _to_numpy_batch(
+            quantile_tensor,
+            batch_size=1,
+            item_shape=(horizon, len(self.settings.quantile_levels)),
+            label="quantile",
+        )
+        mean_array = _to_numpy_batch(
+            mean_tensor,
+            batch_size=1,
+            item_shape=(horizon,),
+            label="mean",
+        )
         if not np.isfinite(quantile_array).all() or not np.isfinite(mean_array).all():
             raise RuntimeError("Chronos returned non-finite forecasts")
         quantiles = {

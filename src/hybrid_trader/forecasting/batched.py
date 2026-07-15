@@ -9,7 +9,11 @@ import numpy as np
 import pandas as pd
 
 from hybrid_trader.forecasting.base import FloatArray, ForecastOutput
-from hybrid_trader.forecasting.chronos_adapter import Chronos2Forecaster, ChronosSettings
+from hybrid_trader.forecasting.chronos_adapter import (
+    Chronos2Forecaster,
+    ChronosSettings,
+    _to_numpy_batch,
+)
 from hybrid_trader.forecasting.timesfm_adapter import TimesFMForecaster, TimesFMSettings
 
 
@@ -125,13 +129,18 @@ class Chronos2BatchForecaster:
             quantile_levels=list(self.settings.quantile_levels),
             context_length=self.settings.context_length,
         )
-        quantile_array = np.asarray(quantile_tensor.detach().cpu(), dtype=np.float64)
-        mean_array = np.asarray(mean_tensor.detach().cpu(), dtype=np.float64)
-        expected_quantiles = (len(inputs), horizon, len(self.settings.quantile_levels))
-        if quantile_array.shape != expected_quantiles:
-            raise RuntimeError(f"Unexpected Chronos quantile shape: {quantile_array.shape}")
-        if mean_array.shape != (len(inputs), horizon):
-            raise RuntimeError(f"Unexpected Chronos mean shape: {mean_array.shape}")
+        quantile_array = _to_numpy_batch(
+            quantile_tensor,
+            batch_size=len(inputs),
+            item_shape=(horizon, len(self.settings.quantile_levels)),
+            label="quantile",
+        )
+        mean_array = _to_numpy_batch(
+            mean_tensor,
+            batch_size=len(inputs),
+            item_shape=(horizon,),
+            label="mean",
+        )
         if not np.isfinite(quantile_array).all() or not np.isfinite(mean_array).all():
             raise RuntimeError("Chronos returned non-finite forecasts")
         return [
