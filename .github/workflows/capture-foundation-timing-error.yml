@@ -1,0 +1,39 @@
+name: capture-foundation-timing-error
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/capture-foundation-timing-error.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase-2c-real-data-benchmark
+      - name: Capture failed validation log
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .status
+          gh run view 29392270256 --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/timing-failed.log
+          {
+            echo '=== errors ==='
+            grep -nE 'error:|Error|FAILED|Traceback|AssertionError|mypy|ruff|coverage' /tmp/timing-failed.log || true
+            echo
+            echo '=== final 180 lines ==='
+            tail -n 180 /tmp/timing-failed.log
+          } > .status/foundation-timing-error.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .status/foundation-timing-error.txt
+          git commit -m "capture foundation timing validation failure" || true
+          git push origin HEAD:agent/phase-2c-real-data-benchmark
