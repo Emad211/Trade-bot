@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "verdict": "no_candidate_passed",
+  "action": "retain_as_research_only",
+  "promotion_allowed": false,
+  "prospective_ledger_allowed": false,
+  "repository_commit": "494e5af03b7957cac6e3f654ea92fbfda4ac1b8f",
+  "workflow_run_id": 29412736808,
+  "artifact_digest": "sha256:0e01fc2c0179000c83c7cb2d56665356fb8e42dd7f4a1d2711ce1d80b6766335",
+  "dataset_window": {
+    "start": "2023-01-01T00:00:00Z",
+    "end": "2026-07-12T20:00:00Z",
+    "observation_cutoff": "2026-07-13T00:15:00Z"
+  },
+  "models": {
+    "timesfm": {
+      "model_id": "google/timesfm-2.5-200m-pytorch",
+      "revision": "1d952420fba87f3c6dee4f240de0f1a0fbc790e3"
+    },
+    "chronos": {
+      "model_id": "amazon/chronos-2",
+      "revision": "29ec3766d36d6f73f0696f85560a422f50e8498c"
+    }
+  },
+  "inference_contract": {
+    "context": 256,
+    "horizon": 6,
+    "stride": 6,
+    "batch_size": 16,
+    "inference_latency_seconds": 120
+  },
+  "screening_rules": [
+    "net_return_above_baseline",
+    "sharpe_above_baseline",
+    "brier_not_worse",
+    "majority_positive_folds",
+    "positive_after_2x_cost"
+  ],
+  "candidate_count": 15,
+  "candidates_passing_all_rules": 0,
+  "notable_partial_results": [
+    {
+      "scenario": "timesfm_chronos",
+      "model": "lightgbm",
+      "delta_net_return": 0.010799,
+      "delta_sharpe": 0.951846,
+      "delta_brier": 0.001665488,
+      "positive_fold_ratio": 0.25,
+      "mean_net_return_at_2x_cost": -0.055565
+    },
+    {
+      "scenario": "chronos",
+      "model": "catboost",
+      "delta_net_return": 0.006628664,
+      "delta_sharpe": 1.381694,
+      "delta_brier": 0.0001800406,
+      "positive_fold_ratio": 0.0,
+      "mean_net_return_at_2x_cost": -0.061219
+    },
+    {
+      "scenario": "timesfm",
+      "model": "catboost",
+      "delta_net_return": 0.003442136,
+      "delta_sharpe": -0.4771391,
+      "delta_brier": 0.000004276704,
+      "positive_fold_ratio": 0.0833333333,
+      "mean_net_return_at_2x_cost": -0.071706
+    }
+  ],
+  "next_step": "Design a new predeclared experiment around derivatives regimes, volatility/liquidity targets, stronger classical baselines and multiple-comparison controls."
+}
