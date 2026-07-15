@@ -1,5 +1,6 @@
 name: materialize-foundation-timing-fix
 
+# Trigger revision after workflow registration.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -61,5 +62,5 @@ jobs:
           git push origin HEAD:agent/fix-foundation-forecast-timing
       - name: Report success
         run: |
-          gh pr comment 3 --repo "$GITHUB_REPOSITORY" --body \
+          gh issue comment 3 --repo "$GITHUB_REPOSITORY" --body \
             "Foundation timing fix passed Ruff, strict Mypy, core tests, optional ML tests and clean-wheel smoke testing. The fix adds explicit forecast origin, origin availability and forecast-step metadata while preserving fail-closed future-origin checks. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
