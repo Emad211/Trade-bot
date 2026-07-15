@@ -198,12 +198,17 @@ def rolling_batched_features(
                 for values_at_level in quantiles.values()
             ):
                 raise RuntimeError("Invalid batch quantile forecast")
-            origin_available = pd.Timestamp(observed.iloc[origin]) + latency
+            origin_at = pd.Timestamp(series.index[origin])
+            origin_available_at = pd.Timestamp(observed.iloc[origin])
+            forecast_available_at = origin_available_at + latency
             coverage = min(spec.stride, spec.horizon, len(series) - origin)
             for offset in range(coverage):
                 row: dict[str, float | pd.Timestamp] = {
                     "timestamp": pd.Timestamp(series.index[origin + offset]),
-                    "available_at": origin_available,
+                    "forecast_origin_at": origin_at,
+                    "forecast_origin_available_at": origin_available_at,
+                    "available_at": forecast_available_at,
+                    "forecast_step": float(offset + 1),
                     f"{spec.prefix}_point_1": float(point[offset]),
                     f"{spec.prefix}_point_sum": float(point[offset:].sum()),
                     f"{spec.prefix}_forecast_age_bars": float(offset),

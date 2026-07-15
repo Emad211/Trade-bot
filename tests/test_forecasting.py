@@ -125,6 +125,9 @@ def test_rolling_features_use_history_ending_at_origin() -> None:
     assert result.index.tolist() == [index[2], index[4], index[6]]
     assert result["fake_point_1"].iloc[0] == 3
     assert result["fake_point_sum"].iloc[0] == 7
+    assert result["forecast_origin_at"].iloc[0] == index[2]
+    assert result["forecast_origin_available_at"].iloc[0] == index[2] + pd.Timedelta(hours=4)
+    assert result["forecast_step"].iloc[0] == 1
     assert result["available_at"].iloc[0] == index[2] + pd.Timedelta(hours=4, seconds=5)
 
 
@@ -132,7 +135,10 @@ def test_feature_cache_round_trip_and_dataset_binding(tmp_path: Path) -> None:
     index = pd.date_range("2024-01-01", periods=3, freq="4h", tz="UTC")
     frame = pd.DataFrame(
         {
+            "forecast_origin_at": index,
+            "forecast_origin_available_at": index + pd.Timedelta(hours=4),
             "available_at": index + pd.Timedelta(hours=4),
+            "forecast_step": [1.0, 1.0, 1.0],
             "fake_point_1": [1.0, 2.0, 3.0],
         },
         index=index,
@@ -174,3 +180,61 @@ def test_feature_cache_detects_tampering(tmp_path: Path) -> None:
     (tmp_path / "cache" / "features.csv.gz").write_bytes(payload)
     with pytest.raises((OSError, EOFError, ValueError)):
         read_cached_rolling_features(tmp_path / "cache")
+
+
+def test_feature_cache_accepts_carried_forecast_with_explicit_origin(tmp_path: Path) -> None:
+    index = pd.date_range("2024-01-01", periods=3, freq="4h", tz="UTC")
+    frame = pd.DataFrame(
+        {
+            "forecast_origin_at": [index[0], index[0], index[0]],
+            "forecast_origin_available_at": [index[0] + pd.Timedelta(hours=4)] * 3,
+            "available_at": [index[0] + pd.Timedelta(hours=4, seconds=10)] * 3,
+            "forecast_step": [1.0, 2.0, 3.0],
+            "fake_point_1": [0.1, 0.2, 0.3],
+        },
+        index=index,
+    )
+    frame.index.name = "timestamp"
+    spec = RollingForecastSpec(
+        context_length=4,
+        min_history=2,
+        horizon=3,
+        stride=3,
+        prefix="fake",
+        inference_latency_seconds=10,
+    )
+    cache_rolling_features(
+        frame,
+        tmp_path / "cache",
+        dataset_sha256="a" * 64,
+        model_id="fake/model",
+        model_revision="rev-1",
+        spec=spec,
+    )
+    loaded, manifest = read_cached_rolling_features(tmp_path / "cache")
+    assert manifest.schema_version == "1.3"
+    pd.testing.assert_frame_equal(loaded, frame, check_freq=False)
+
+
+def test_feature_cache_rejects_future_forecast_origin(tmp_path: Path) -> None:
+    index = pd.date_range("2024-01-01", periods=2, freq="4h", tz="UTC")
+    frame = pd.DataFrame(
+        {
+            "forecast_origin_at": [index[0], index[1] + pd.Timedelta(hours=4)],
+            "forecast_origin_available_at": [index[0] + pd.Timedelta(hours=4)] * 2,
+            "available_at": [index[0] + pd.Timedelta(hours=4, seconds=10)] * 2,
+            "forecast_step": [1.0, 2.0],
+            "fake_point_1": [0.1, 0.2],
+        },
+        index=index,
+    )
+    spec = RollingForecastSpec(context_length=4, min_history=2, horizon=2, stride=2, prefix="fake")
+    with pytest.raises(ValueError, match="origin cannot be after"):
+        cache_rolling_features(
+            frame,
+            tmp_path / "cache",
+            dataset_sha256="a" * 64,
+            model_id="fake/model",
+            model_revision="rev-1",
+            spec=spec,
+        )

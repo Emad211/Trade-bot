@@ -44,7 +44,7 @@ class RollingForecastSpec:
 class RollingFeatureManifest(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    schema_version: str = "1.2"
+    schema_version: str = "1.3"
     cache_id: str = Field(pattern=r"^[0-9a-f]{64}$")
     dataset_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     model_id: str
@@ -86,14 +86,19 @@ def rolling_forecast_features(
         point = np.asarray(forecast.point, dtype=float)
         if point.shape != (spec.horizon,):
             raise RuntimeError(f"Unexpected point forecast shape {point.shape}")
+        origin_at = pd.Timestamp(series.index[origin])
         row: dict[str, float | pd.Timestamp] = {
-            "timestamp": pd.Timestamp(series.index[origin]),
+            "timestamp": origin_at,
             f"{spec.prefix}_point_1": float(point[0]),
             f"{spec.prefix}_point_last": float(point[-1]),
             f"{spec.prefix}_point_sum": float(point.sum()),
         }
         if observed_availability is not None:
-            row["available_at"] = pd.Timestamp(observed_availability.iloc[origin]) + latency
+            origin_available_at = pd.Timestamp(observed_availability.iloc[origin])
+            row["forecast_origin_at"] = origin_at
+            row["forecast_origin_available_at"] = origin_available_at
+            row["available_at"] = origin_available_at + latency
+            row["forecast_step"] = 1.0
         for level, values_at_level in sorted(forecast.quantiles.items()):
             quantile = np.asarray(values_at_level, dtype=float)
             if quantile.shape != (spec.horizon,):
@@ -127,9 +132,10 @@ def _cache_identity_payload(
     feature_sha256: str,
     row_count: int,
     columns: tuple[str, ...],
+    schema_version: str = "1.3",
 ) -> dict[str, object]:
     return {
-        "schema_version": "1.2",
+        "schema_version": schema_version,
         "dataset_sha256": dataset_sha256,
         "model_id": model_id,
         "model_revision": model_revision,
@@ -138,6 +144,59 @@ def _cache_identity_payload(
         "row_count": row_count,
         "columns": columns,
     }
+
+
+FORECAST_TIMESTAMP_COLUMNS = (
+    "available_at",
+    "forecast_origin_at",
+    "forecast_origin_available_at",
+)
+FORECAST_METADATA_COLUMNS = (*FORECAST_TIMESTAMP_COLUMNS, "forecast_step")
+
+
+def _validate_forecast_timing(frame: pd.DataFrame, *, horizon: int | None = None) -> pd.DataFrame:
+    """Validate forecast provenance while distinguishing rows from origins."""
+
+    result = frame.copy()
+    present = set(FORECAST_TIMESTAMP_COLUMNS).intersection(result.columns)
+    if not present:
+        return result
+    missing = set(FORECAST_TIMESTAMP_COLUMNS).difference(result.columns)
+    if missing:
+        raise ValueError(f"Feature cache missing forecast timing columns: {sorted(missing)}")
+    if "forecast_step" not in result.columns:
+        raise ValueError("Feature cache missing forecast_step")
+
+    row_times = pd.DatetimeIndex(pd.to_datetime(result.index, utc=True, errors="coerce"))
+    if np.asarray(row_times.isna(), dtype=bool).any():
+        raise ValueError("Feature cache index contains invalid timestamps")
+    for column in FORECAST_TIMESTAMP_COLUMNS:
+        values = pd.to_datetime(result[column], utc=True, errors="coerce")
+        if values.isna().any():
+            raise ValueError(f"Feature cache contains invalid {column} timestamps")
+        result[column] = values
+
+    origin_at = pd.DatetimeIndex(result["forecast_origin_at"])
+    origin_available = pd.DatetimeIndex(result["forecast_origin_available_at"])
+    available = pd.DatetimeIndex(result["available_at"])
+    if np.asarray(origin_at > row_times, dtype=bool).any():
+        raise ValueError("Forecast origin cannot be after its decision row")
+    if np.asarray(origin_available < origin_at, dtype=bool).any():
+        raise ValueError("Forecast origin cannot be available before its origin timestamp")
+    if np.asarray(available < origin_available, dtype=bool).any():
+        raise ValueError("Forecast output cannot be available before origin inputs")
+
+    steps = pd.to_numeric(result["forecast_step"], errors="coerce").to_numpy(dtype=float)
+    if (
+        not np.isfinite(steps).all()
+        or (steps < 1).any()
+        or not np.equal(steps, np.floor(steps)).all()
+    ):
+        raise ValueError("forecast_step must contain positive integers")
+    if horizon is not None and (steps > horizon).any():
+        raise ValueError("forecast_step cannot exceed the configured horizon")
+    result["forecast_step"] = steps
+    return result
 
 
 def cache_rolling_features(
@@ -155,13 +214,7 @@ def cache_rolling_features(
         raise ValueError("Feature cache index must be unique and sorted")
     if frame.columns.duplicated().any():
         raise ValueError("Feature cache columns must be unique")
-    if "available_at" in frame:
-        available = pd.to_datetime(frame["available_at"], utc=True, errors="coerce")
-        origins = pd.to_datetime(frame.index, utc=True, errors="coerce")
-        if available.isna().any() or np.asarray(pd.isna(origins), dtype=bool).any():
-            raise ValueError("Feature cache contains invalid timestamps")
-        if (available.to_numpy() < origins.to_numpy()).any():
-            raise ValueError("Forecast features cannot be available before their origin")
+    frame = _validate_forecast_timing(frame, horizon=spec.horizon)
 
     root = Path(output_dir)
     root.mkdir(parents=True, exist_ok=True)
@@ -224,10 +277,11 @@ def read_cached_rolling_features(
         raise ValueError("Feature cache hash does not match its manifest")
     frame = pd.read_csv(io.BytesIO(payload), index_col=0, parse_dates=True)
     frame.index = pd.to_datetime(frame.index, utc=True)
-    if "available_at" in frame:
-        frame["available_at"] = pd.to_datetime(frame["available_at"], utc=True)
+    for column in FORECAST_TIMESTAMP_COLUMNS:
+        if column in frame:
+            frame[column] = pd.to_datetime(frame[column], utc=True, errors="raise")
     for column in frame.columns:
-        if column != "available_at":
+        if column not in FORECAST_TIMESTAMP_COLUMNS:
             frame[column] = pd.to_numeric(frame[column], errors="raise").astype(float)
     if not frame.index.is_monotonic_increasing or frame.index.has_duplicates:
         raise ValueError("Feature cache index must be unique and sorted")
@@ -244,15 +298,23 @@ def read_cached_rolling_features(
         feature_sha256=manifest.feature_sha256,
         row_count=manifest.row_count,
         columns=manifest.columns,
+        schema_version=manifest.schema_version,
     )
     if canonical_json_sha256(identity_payload) != manifest.cache_id:
         raise ValueError("Feature cache identity does not match its manifest")
-    if (
-        "available_at" in frame
-        and (
-            pd.to_datetime(frame["available_at"], utc=True).to_numpy()
-            < pd.to_datetime(frame.index, utc=True).to_numpy()
-        ).any()
-    ):
-        raise ValueError("Feature cache contains availability before forecast origin")
+    if manifest.schema_version == "1.2":
+        if (
+            "available_at" in frame
+            and (
+                pd.to_datetime(frame["available_at"], utc=True).to_numpy()
+                < pd.to_datetime(frame.index, utc=True).to_numpy()
+            ).any()
+        ):
+            raise ValueError("Legacy feature cache contains availability before forecast origin")
+    elif manifest.schema_version == "1.3":
+        horizon_value = manifest.spec.get("horizon")
+        horizon = horizon_value if isinstance(horizon_value, int) and horizon_value > 0 else None
+        frame = _validate_forecast_timing(frame, horizon=horizon)
+    else:
+        raise ValueError(f"Unsupported rolling feature schema: {manifest.schema_version}")
     return frame, manifest
