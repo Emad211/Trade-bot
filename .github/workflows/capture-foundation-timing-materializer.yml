@@ -1,6 +1,6 @@
 name: capture-foundation-timing-materializer
 
-# Generation 5: capture the latest Chronos adapter finalizer run.
+# Generation 6: capture the lint-corrected Chronos finalizer run.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
