@@ -39,13 +39,9 @@ def test_tabular_artifact_round_trip_and_tamper(tmp_path) -> None:
 def test_tabular_artifact_checks_global_maximum_availability(tmp_path) -> None:
     frame = pd.DataFrame(
         {
-            "event_time": pd.to_datetime(
-                ["2026-01-01T00:00:00Z", "2026-01-02T00:00:00Z"]
-            ),
+            "event_time": pd.to_datetime(["2026-01-01T00:00:00Z", "2026-01-02T00:00:00Z"]),
             # The last event is observable, but an earlier event is not.
-            "available_at": pd.to_datetime(
-                ["2026-01-10T00:00:00Z", "2026-01-03T00:00:00Z"]
-            ),
+            "available_at": pd.to_datetime(["2026-01-10T00:00:00Z", "2026-01-03T00:00:00Z"]),
             "value": [1.0, 2.0],
         }
     )
@@ -65,12 +61,8 @@ def test_tabular_artifact_checks_global_maximum_availability(tmp_path) -> None:
 def test_tabular_manifest_records_minimum_and_maximum_availability(tmp_path) -> None:
     frame = pd.DataFrame(
         {
-            "event_time": pd.to_datetime(
-                ["2026-01-01T00:00:00Z", "2026-01-02T00:00:00Z"]
-            ),
-            "available_at": pd.to_datetime(
-                ["2026-01-05T00:00:00Z", "2026-01-03T00:00:00Z"]
-            ),
+            "event_time": pd.to_datetime(["2026-01-01T00:00:00Z", "2026-01-02T00:00:00Z"]),
+            "available_at": pd.to_datetime(["2026-01-05T00:00:00Z", "2026-01-03T00:00:00Z"]),
             "value": [1.0, 2.0],
         }
     )

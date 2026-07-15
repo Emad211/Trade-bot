@@ -144,8 +144,7 @@ def read_tabular_artifact(
     availability_start = pd.Timestamp(data["available_at"].min())
     availability_end = pd.Timestamp(data["available_at"].max())
     checks = {
-        "event_start": pd.Timestamp(manifest.event_start)
-        == pd.Timestamp(data["event_time"].min()),
+        "event_start": pd.Timestamp(manifest.event_start) == pd.Timestamp(data["event_time"].min()),
         "event_end": pd.Timestamp(manifest.event_end) == pd.Timestamp(data["event_time"].max()),
         "availability_start": pd.Timestamp(manifest.availability_start) == availability_start,
         "availability_end": pd.Timestamp(manifest.availability_end) == availability_end,
