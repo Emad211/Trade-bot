@@ -1,6 +1,6 @@
 name: capture-main-phase2c-chain
 
-# Generation 2: capture historical completion and foundation start.
+# Generation 3: capture CI and foundation rerun after forecast-timing fix.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -26,7 +26,7 @@ jobs:
           set -euo pipefail
           runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=main&per_page=100")
           mkdir -p .status
-          jq '{captured_at: now | todate, workflows: ([.workflow_runs[] | select(.name == "ci" or .name == "phase2c-historical" or .name == "phase2c-foundation")] | group_by(.name) | map(.[0]) | map({name,status,conclusion,id,html_url,head_sha,run_number,created_at,updated_at}))}' <<<"$runs" > .status/main-phase2c-chain.json
+          jq '{captured_at: now | todate, workflows: ([.workflow_runs[] | select(.name == "ci" or .name == "phase2c-historical" or .name == "phase2c-foundation")] | group_by(.name) | map(.[0]) | map({name,status,conclusion,id,html_url,head_sha,event,run_number,created_at,updated_at}))}' <<<"$runs" > .status/main-phase2c-chain.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .status/main-phase2c-chain.json
