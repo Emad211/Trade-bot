@@ -1,6 +1,6 @@
 name: materialize-foundation-timing-fix
 
-# Trigger revision after workflow registration.
+# Generation 2: apply Mypy-safe forecast timing guards before full validation.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -28,6 +28,47 @@ jobs:
           cache: pip
       - name: Materialize forecast-origin timing contract
         run: python scripts/materialize_foundation_timing_core.py
+      - name: Apply Mypy-safe timing guards
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/hybrid_trader/forecasting/rolling.py")
+          text = path.read_text("utf-8")
+          replacements = {
+              "if (origin_at > row_times).any():": (
+                  "if np.asarray(origin_at > row_times, dtype=bool).any():"
+              ),
+              "if (origin_available < origin_at).any():": (
+                  "if np.asarray(origin_available < origin_at, dtype=bool).any():"
+              ),
+              "if (available < origin_available).any():": (
+                  "if np.asarray(available < origin_available, dtype=bool).any():"
+              ),
+              '''    elif manifest.schema_version == "1.3":
+                  frame = _validate_forecast_timing(
+                      frame,
+                      horizon=int(manifest.spec.get("horizon", 0)) or None,
+                  )
+          ''': '''    elif manifest.schema_version == "1.3":
+                  horizon_value = manifest.spec.get("horizon")
+                  horizon = (
+                      horizon_value
+                      if isinstance(horizon_value, int) and horizon_value > 0
+                      else None
+                  )
+                  frame = _validate_forecast_timing(frame, horizon=horizon)
+          ''',
+          }
+          for before, after in replacements.items():
+              if text.count(before) != 1:
+                  raise RuntimeError(
+                      f"Expected one typing anchor, found {text.count(before)}: {before[:80]}"
+                  )
+              text = text.replace(before, after, 1)
+          path.write_text(text, encoding="utf-8")
+          PY
       - name: Remove one-time materializer
         run: rm -f scripts/materialize_foundation_timing_core.py
       - name: Install and format
