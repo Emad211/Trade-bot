@@ -1,6 +1,6 @@
 name: verify-foundation-timing-matrix
 
-# Trigger revision after workflow registration.
+# Generation 2: rerun after validated Chronos-2 list-output support.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
