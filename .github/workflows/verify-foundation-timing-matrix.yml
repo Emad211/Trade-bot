@@ -1,0 +1,149 @@
+name: verify-foundation-timing-matrix
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/verify-foundation-timing-matrix.yml"
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BASELINE_RUN_ID: "29319905230"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/fix-foundation-timing-clean
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Download verified historical evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p baseline-download
+          gh run download "$BASELINE_RUN_ID" --dir baseline-download
+          REGISTRY=$(find baseline-download -type f -name source_registry.json -print -quit)
+          test -n "$REGISTRY"
+          echo "BASELINE_ROOT=$(dirname "$REGISTRY")" >> "$GITHUB_ENV"
+      - name: Install baseline verification dependencies
+        run: python -m pip install -e .
+      - name: Re-verify historical gates
+        run: |
+          python scripts/verify_phase2c_artifacts.py "$BASELINE_ROOT"
+          python scripts/verify_phase2c_artifacts_strict.py \
+            "$BASELINE_ROOT" \
+            --spec configs/phase2c_sources_authoritative.yaml
+          python scripts/verify_phase2c_macro_gate.py \
+            "$BASELINE_ROOT" \
+            --spec configs/phase2c_sources_authoritative.yaml
+      - name: Resolve immutable model revisions
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          models = {
+              "TIMESFM_REVISION": "google/timesfm-2.5-200m-pytorch",
+              "CHRONOS_REVISION": "amazon/chronos-2",
+          }
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as output:
+              for variable, model in models.items():
+                  request = urllib.request.Request(
+                      f"https://huggingface.co/api/models/{model}",
+                      headers={"User-Agent": "hybrid-trader-foundation-fix/1.0"},
+                  )
+                  with urllib.request.urlopen(request, timeout=60) as response:
+                      revision = json.load(response).get("sha")
+                  if not revision or len(revision) != 40:
+                      raise RuntimeError(f"Unresolved model revision: {model}")
+                  output.write(f"{variable}={revision}\n")
+          PY
+      - name: Install pinned foundation runtimes
+        run: python -m pip install -e '.[forecast,ml]'
+      - name: Execute pinned challenger matrix
+        id: matrix
+        continue-on-error: true
+        run: |
+          python scripts/run_phase2c_foundation.py \
+            --baseline-root "$BASELINE_ROOT" \
+            --config configs/phase2c_btc_4h.yaml \
+            --output artifacts/phase2c-foundation \
+            --timesfm-revision "$TIMESFM_REVISION" \
+            --chronos-revision "$CHRONOS_REVISION" \
+            --device cpu \
+            --context 256 \
+            --horizon 6 \
+            --stride 6 \
+            --batch-size 16 \
+            --inference-latency-seconds 120
+      - name: Verify foundation evidence
+        id: verify
+        if: ${{ steps.matrix.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          python scripts/verify_phase2c_foundation.py \
+            artifacts/phase2c-foundation \
+            --baseline-root "$BASELINE_ROOT"
+          python scripts/assess_phase2c_foundation.py artifacts/phase2c-foundation
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("artifacts/phase2c-foundation")
+          assessment = json.loads((root / "foundation_assessment.json").read_text())
+          if assessment["status"] != "human_review_required":
+              raise RuntimeError("Foundation assessment attempted automatic promotion")
+          if (root / "prospective_decisions.jsonl").read_text().strip():
+              raise RuntimeError("Historical run populated prospective decisions")
+          PY
+      - name: Record verification state
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p artifacts/phase2c-foundation
+          cat > artifacts/phase2c-foundation/workflow_state.json <<EOF
+          {
+            "source_branch": "agent/fix-foundation-timing-clean",
+            "source_sha": "$(git rev-parse HEAD)",
+            "historical_run_id": "$BASELINE_RUN_ID",
+            "matrix_outcome": "${{ steps.matrix.outcome }}",
+            "verification_outcome": "${{ steps.verify.outcome }}",
+            "timesfm_revision": "$TIMESFM_REVISION",
+            "chronos_revision": "$CHRONOS_REVISION"
+          }
+          EOF
+      - name: Build deterministic archive and checksums
+        if: always()
+        run: |
+          mkdir -p artifacts/distribution
+          tar --sort=name --mtime='UTC 1970-01-01' \
+            --owner=0 --group=0 --numeric-owner \
+            -czf artifacts/distribution/foundation-timing-fix-${GITHUB_SHA}.tar.gz \
+            -C artifacts phase2c-foundation
+          find artifacts -type f -not -path 'artifacts/distribution/SHA256SUMS' -print0 \
+            | sort -z | xargs -0 sha256sum > artifacts/distribution/SHA256SUMS
+      - name: Upload foundation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: foundation-timing-fix-${{ github.run_id }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 90
+      - name: Enforce successful scientific gate
+        if: always()
+        shell: bash
+        run: |
+          test "${{ steps.matrix.outcome }}" = "success"
+          test "${{ steps.verify.outcome }}" = "success"
