@@ -1,6 +1,6 @@
 name: finalize-foundation-timing-fix
 
-# Generation 2: validate official Chronos-2 list-output support on the clean branch.
+# Generation 3: rerun after the focused Chronos contract lint fix.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
