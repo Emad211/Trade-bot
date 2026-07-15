@@ -15,10 +15,10 @@ class FakeTensor:
     def __init__(self, values: np.ndarray) -> None:
         self.values = values
 
-    def detach(self) -> "FakeTensor":
+    def detach(self) -> FakeTensor:
         return self
 
-    def cpu(self) -> "FakeTensor":
+    def cpu(self) -> FakeTensor:
         return self
 
     def __array__(self, dtype=None):
