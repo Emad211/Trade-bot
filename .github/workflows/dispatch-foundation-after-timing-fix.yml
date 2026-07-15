@@ -1,0 +1,35 @@
+name: dispatch-foundation-after-timing-fix
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/dispatch-foundation-after-timing-fix.yml"
+
+permissions:
+  actions: write
+  contents: read
+  issues: write
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Verify timing fix is on main
+        shell: bash
+        run: |
+          set -euo pipefail
+          main_sha=$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)
+          test "$main_sha" = "760c3af59944031ffe4970ef0645a217479b6909"
+      - name: Dispatch pinned foundation workflow
+        run: |
+          gh workflow run phase2c-foundation.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref main \
+            -f baseline_run_id=29319905230
+      - name: Report dispatch
+        run: |
+          gh issue comment 3 --repo "$GITHUB_REPOSITORY" --body \
+            "Re-dispatched the pinned TimesFM/Chronos foundation workflow from fixed main commit \`760c3af59944031ffe4970ef0645a217479b6909\`, using successful historical run \`29319905230\`. Dispatch run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
