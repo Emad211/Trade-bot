@@ -86,7 +86,9 @@ def write_tabular_artifact(
     stamp = (
         created_at.replace(tzinfo=UTC) if created_at.tzinfo is None else created_at.astimezone(UTC)
     )
-    if pd.Timestamp(data.available_at.iloc[-1]).to_pydatetime() > stamp:
+    availability_start = pd.Timestamp(data["available_at"].min())
+    availability_end = pd.Timestamp(data["available_at"].max())
+    if availability_end.to_pydatetime() > stamp:
         raise ValueError("Artifact contains information unavailable at created_at")
     payload = _canonical(data)
     digest = hashlib.sha256(payload).hexdigest()
@@ -100,8 +102,8 @@ def write_tabular_artifact(
         row_count=len(data),
         event_start=pd.Timestamp(data.event_time.iloc[0]).to_pydatetime(),
         event_end=pd.Timestamp(data.event_time.iloc[-1]).to_pydatetime(),
-        availability_start=pd.Timestamp(data.available_at.iloc[0]).to_pydatetime(),
-        availability_end=pd.Timestamp(data.available_at.iloc[-1]).to_pydatetime(),
+        availability_start=availability_start.to_pydatetime(),
+        availability_end=availability_end.to_pydatetime(),
         availability_policy=availability_policy,
         revision_policy=revision_policy,
         created_at=stamp,
@@ -139,4 +141,17 @@ def read_tabular_artifact(
     data["available_at"] = pd.to_datetime(data.available_at, utc=True)
     if len(data) != manifest.row_count or tuple(data.columns) != manifest.columns:
         raise ValueError("Artifact shape mismatch")
+    availability_start = pd.Timestamp(data["available_at"].min())
+    availability_end = pd.Timestamp(data["available_at"].max())
+    checks = {
+        "event_start": pd.Timestamp(manifest.event_start)
+        == pd.Timestamp(data["event_time"].min()),
+        "event_end": pd.Timestamp(manifest.event_end) == pd.Timestamp(data["event_time"].max()),
+        "availability_start": pd.Timestamp(manifest.availability_start) == availability_start,
+        "availability_end": pd.Timestamp(manifest.availability_end) == availability_end,
+        "created_at": pd.Timestamp(manifest.created_at) >= availability_end,
+    }
+    failed = sorted(name for name, valid in checks.items() if not valid)
+    if failed:
+        raise ValueError(f"Artifact manifest does not match data: {failed}")
     return data, manifest
