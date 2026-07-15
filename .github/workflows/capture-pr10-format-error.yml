@@ -1,6 +1,6 @@
 name: capture-pr10-format-error
 
-# Generation 2: capture post-format validation failure.
+# Generation 3: capture remaining format failure after canonical Chronos formatting.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -20,21 +20,21 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: agent/phase-2c-real-data-benchmark
-      - name: Capture post-format validation failure
+      - name: Capture remaining format failure
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p .status
-          gh run view 29411775940 --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/pr10.log
+          gh run view 29412364701 --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/pr10.log
           {
-            echo '=== errors ==='
-            grep -nE 'error:|Error|Traceback|FAILED|failed|would be reformatted|Found [0-9]+ error|mypy|pytest' /tmp/pr10.log || true
+            echo '=== formatting diagnostics ==='
+            grep -nE 'Would reformat|would be reformatted|reformatted|Formatting' /tmp/pr10.log || true
             echo
-            echo '=== final 220 lines ==='
-            tail -n 220 /tmp/pr10.log
+            echo '=== final 100 lines ==='
+            tail -n 100 /tmp/pr10.log
           } > .status/pr10-format-error.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .status/pr10-format-error.txt
-          git commit -m "capture PR 10 post-format failure" || true
+          git commit -m "capture remaining PR 10 format failure" || true
           git push origin HEAD:agent/phase-2c-real-data-benchmark
