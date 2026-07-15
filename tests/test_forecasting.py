@@ -228,9 +228,7 @@ def test_feature_cache_rejects_future_forecast_origin(tmp_path: Path) -> None:
         },
         index=index,
     )
-    spec = RollingForecastSpec(
-        context_length=4, min_history=2, horizon=2, stride=2, prefix="fake"
-    )
+    spec = RollingForecastSpec(context_length=4, min_history=2, horizon=2, stride=2, prefix="fake")
     with pytest.raises(ValueError, match="origin cannot be after"):
         cache_rolling_features(
             frame,

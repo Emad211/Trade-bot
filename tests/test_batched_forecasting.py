@@ -62,9 +62,7 @@ def test_batched_rolling_uses_correct_horizon_step() -> None:
         hours=4
     )
     assert features.loc[index[5], "forecast_step"] == 3
-    assert features.loc[index[3], "available_at"] == index[3] + pd.Timedelta(
-        hours=4, seconds=10
-    )
+    assert features.loc[index[3], "available_at"] == index[3] + pd.Timedelta(hours=4, seconds=10)
 
 
 def test_batched_features_round_trip_with_stride_greater_than_one(
