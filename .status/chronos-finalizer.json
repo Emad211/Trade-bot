@@ -21,14 +21,14 @@
       "url": "https://api.github.com/users/Emad211",
       "user_view_type": "public"
     },
-    "artifacts_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29395468818/artifacts",
-    "cancel_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29395468818/cancel",
-    "check_suite_id": 79569180752,
-    "check_suite_node_id": "CS_kwDOSjXKWc8AAAAShrFYUA",
-    "check_suite_url": "https://api.github.com/repos/Emad211/Trade-bot/check-suites/79569180752",
-    "conclusion": "failure",
-    "created_at": "2026-07-15T06:51:51Z",
-    "display_title": "validate official Chronos-2 list output support",
+    "artifacts_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29395797386/artifacts",
+    "cancel_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29395797386/cancel",
+    "check_suite_id": 79570079731,
+    "check_suite_node_id": "CS_kwDOSjXKWc8AAAAShr8P8w",
+    "check_suite_url": "https://api.github.com/repos/Emad211/Trade-bot/check-suites/79570079731",
+    "conclusion": "success",
+    "created_at": "2026-07-15T06:58:03Z",
+    "display_title": "rerun Chronos output-contract validation",
     "event": "push",
     "head_branch": "agent/phase-2c-real-data-benchmark",
     "head_commit": {
@@ -40,10 +40,10 @@
         "email": "82148680+Emad211@users.noreply.github.com",
         "name": "Emad Karimi"
       },
-      "id": "00c1a21570c7b639e71264bf97377e1d88c0e031",
-      "message": "validate official Chronos-2 list output support",
-      "timestamp": "2026-07-15T06:51:49Z",
-      "tree_id": "d49bbe11dd0be9adb3399a1195b328102e108859"
+      "id": "9421a3dcbe4b6b9224a7e92ccc76ae258f0a57f7",
+      "message": "rerun Chronos output-contract validation",
+      "timestamp": "2026-07-15T06:58:00Z",
+      "tree_id": "46e42c4d0404ff07a078c05242345cceade890da"
     },
     "head_repository": {
       "archive_url": "https://api.github.com/repos/Emad211/Trade-bot/{archive_format}{/ref}",
@@ -113,13 +113,13 @@
       "trees_url": "https://api.github.com/repos/Emad211/Trade-bot/git/trees{/sha}",
       "url": "https://api.github.com/repos/Emad211/Trade-bot"
     },
-    "head_sha": "00c1a21570c7b639e71264bf97377e1d88c0e031",
-    "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29395468818",
-    "id": 29395468818,
-    "jobs_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29395468818/jobs",
-    "logs_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29395468818/logs",
+    "head_sha": "9421a3dcbe4b6b9224a7e92ccc76ae258f0a57f7",
+    "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29395797386",
+    "id": 29395797386,
+    "jobs_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29395797386/jobs",
+    "logs_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29395797386/logs",
     "name": "finalize-foundation-timing-fix",
-    "node_id": "WFR_kwLOSjXKWc8AAAAG2BtCEg",
+    "node_id": "WFR_kwLOSjXKWc8AAAAG2CBFig",
     "path": ".github/workflows/finalize-foundation-timing-fix.yml",
     "previous_attempt_url": null,
     "pull_requests": [],
@@ -192,10 +192,10 @@
       "trees_url": "https://api.github.com/repos/Emad211/Trade-bot/git/trees{/sha}",
       "url": "https://api.github.com/repos/Emad211/Trade-bot"
     },
-    "rerun_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29395468818/rerun",
+    "rerun_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29395797386/rerun",
     "run_attempt": 1,
-    "run_number": 3,
-    "run_started_at": "2026-07-15T06:51:51Z",
+    "run_number": 4,
+    "run_started_at": "2026-07-15T06:58:03Z",
     "status": "completed",
     "triggering_actor": {
       "avatar_url": "https://avatars.githubusercontent.com/u/82148680?v=4",
@@ -218,28 +218,28 @@
       "url": "https://api.github.com/users/Emad211",
       "user_view_type": "public"
     },
-    "updated_at": "2026-07-15T06:52:29Z",
-    "url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29395468818",
+    "updated_at": "2026-07-15T06:59:42Z",
+    "url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29395797386",
     "workflow_id": 313492782,
     "workflow_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/workflows/313492782"
   },
   "jobs": [
     {
-      "id": 87287878178,
-      "run_id": 29395468818,
+      "id": 87288898751,
+      "run_id": 29395797386,
       "workflow_name": "finalize-foundation-timing-fix",
       "head_branch": "agent/phase-2c-real-data-benchmark",
-      "run_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29395468818",
+      "run_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29395797386",
       "run_attempt": 1,
-      "node_id": "CR_kwDOSjXKWc8AAAAUUsNSIg",
-      "head_sha": "00c1a21570c7b639e71264bf97377e1d88c0e031",
-      "url": "https://api.github.com/repos/Emad211/Trade-bot/actions/jobs/87287878178",
-      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29395468818/job/87287878178",
+      "node_id": "CR_kwDOSjXKWc8AAAAUUtLkvw",
+      "head_sha": "9421a3dcbe4b6b9224a7e92ccc76ae258f0a57f7",
+      "url": "https://api.github.com/repos/Emad211/Trade-bot/actions/jobs/87288898751",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29395797386/job/87288898751",
       "status": "completed",
-      "conclusion": "failure",
-      "created_at": "2026-07-15T06:51:52Z",
-      "started_at": "2026-07-15T06:51:54Z",
-      "completed_at": "2026-07-15T06:52:28Z",
+      "conclusion": "success",
+      "created_at": "2026-07-15T06:58:04Z",
+      "started_at": "2026-07-15T06:58:06Z",
+      "completed_at": "2026-07-15T06:59:42Z",
       "name": "finalize",
       "steps": [
         {
@@ -247,88 +247,88 @@
           "status": "completed",
           "conclusion": "success",
           "number": 1,
-          "started_at": "2026-07-15T06:51:54Z",
-          "completed_at": "2026-07-15T06:51:55Z"
+          "started_at": "2026-07-15T06:58:06Z",
+          "completed_at": "2026-07-15T06:58:07Z"
         },
         {
           "name": "Run actions/checkout@v4",
           "status": "completed",
           "conclusion": "success",
           "number": 2,
-          "started_at": "2026-07-15T06:51:55Z",
-          "completed_at": "2026-07-15T06:51:56Z"
+          "started_at": "2026-07-15T06:58:07Z",
+          "completed_at": "2026-07-15T06:58:08Z"
         },
         {
           "name": "Run actions/setup-python@v5",
           "status": "completed",
           "conclusion": "success",
           "number": 3,
-          "started_at": "2026-07-15T06:51:56Z",
-          "completed_at": "2026-07-15T06:51:58Z"
+          "started_at": "2026-07-15T06:58:08Z",
+          "completed_at": "2026-07-15T06:58:11Z"
         },
         {
           "name": "Install dependencies and format changed files",
           "status": "completed",
           "conclusion": "success",
           "number": 4,
-          "started_at": "2026-07-15T06:51:58Z",
-          "completed_at": "2026-07-15T06:52:26Z"
+          "started_at": "2026-07-15T06:58:11Z",
+          "completed_at": "2026-07-15T06:58:40Z"
         },
         {
           "name": "Validate complete fix tree",
           "status": "completed",
-          "conclusion": "failure",
+          "conclusion": "success",
           "number": 5,
-          "started_at": "2026-07-15T06:52:26Z",
-          "completed_at": "2026-07-15T06:52:26Z"
+          "started_at": "2026-07-15T06:58:40Z",
+          "completed_at": "2026-07-15T06:59:17Z"
         },
         {
           "name": "Build and clean-install wheel",
           "status": "completed",
-          "conclusion": "skipped",
+          "conclusion": "success",
           "number": 6,
-          "started_at": "2026-07-15T06:52:26Z",
-          "completed_at": "2026-07-15T06:52:26Z"
+          "started_at": "2026-07-15T06:59:17Z",
+          "completed_at": "2026-07-15T06:59:37Z"
         },
         {
           "name": "Commit formatter output",
           "status": "completed",
-          "conclusion": "skipped",
+          "conclusion": "success",
           "number": 7,
-          "started_at": "2026-07-15T06:52:26Z",
-          "completed_at": "2026-07-15T06:52:26Z"
+          "started_at": "2026-07-15T06:59:37Z",
+          "completed_at": "2026-07-15T06:59:38Z"
         },
         {
           "name": "Post Run actions/setup-python@v5",
           "status": "completed",
-          "conclusion": "skipped",
+          "conclusion": "success",
           "number": 13,
-          "started_at": "2026-07-15T06:52:26Z",
-          "completed_at": "2026-07-15T06:52:26Z"
+          "started_at": "2026-07-15T06:59:38Z",
+          "completed_at": "2026-07-15T06:59:39Z"
         },
         {
           "name": "Post Run actions/checkout@v4",
           "status": "completed",
           "conclusion": "success",
           "number": 14,
-          "started_at": "2026-07-15T06:52:26Z",
-          "completed_at": "2026-07-15T06:52:26Z"
+          "started_at": "2026-07-15T06:59:39Z",
+          "completed_at": "2026-07-15T06:59:39Z"
         },
         {
           "name": "Complete job",
           "status": "completed",
           "conclusion": "success",
           "number": 15,
-          "started_at": "2026-07-15T06:52:26Z",
-          "completed_at": "2026-07-15T06:52:26Z"
+          "started_at": "2026-07-15T06:59:39Z",
+          "completed_at": "2026-07-15T06:59:39Z"
         }
       ],
-      "check_run_url": "https://api.github.com/repos/Emad211/Trade-bot/check-runs/87287878178",
+      "check_run_url": "https://api.github.com/repos/Emad211/Trade-bot/check-runs/87288898751",
       "labels": [
         "ubuntu-latest"
       ],
-      "runner_id": 1000003318,
-      "runner_name": "GitHub Actions 1000003318",
+      "runner_id": 1000003337,
+      "runner_name": "GitHub Actions 1000003337",
       "runner_group_id": 0,
       "runner_group_name": "GitHub Actions"
     }
