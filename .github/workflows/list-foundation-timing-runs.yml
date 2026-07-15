@@ -1,6 +1,6 @@
 name: list-foundation-timing-runs
 
-# Generation 2: inventory all foundation-timing publication workflows.
+# Generation 3: include the actual pinned foundation matrix verification.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -26,7 +26,7 @@ jobs:
           set -euo pipefail
           mkdir -p .status
           gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-2c-real-data-benchmark&per_page=100" \
-            --jq '[.workflow_runs[] | select(.name == "materialize-foundation-timing-fix" or .name == "validate-foundation-timing-fix" or .name == "finalize-foundation-timing-fix" or .name == "publish-foundation-timing-clean-source") | {name,id,status,conclusion,head_sha,display_title,created_at,updated_at,html_url}]' \
+            --jq '[.workflow_runs[] | select(.name == "materialize-foundation-timing-fix" or .name == "validate-foundation-timing-fix" or .name == "finalize-foundation-timing-fix" or .name == "publish-foundation-timing-clean-source" or .name == "verify-foundation-timing-matrix") | {name,id,status,conclusion,head_sha,display_title,created_at,updated_at,html_url}]' \
             > .status/foundation-timing-runs.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
