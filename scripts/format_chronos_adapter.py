@@ -10,10 +10,12 @@ replacements = (
         '            )\n',
     ),
     (
-        '            raise RuntimeError("Install Chronos with: pip install -e \' .[forecast]\'") from exc\n'.replace(" \' .", " \'."),
-        '            raise RuntimeError(\n'
-        '                "Install Chronos with: pip install -e \' .[forecast]\'".replace(" ", "")\n'
-        '            ) from exc\n',
+        """            raise RuntimeError("Install Chronos with: pip install -e '.[forecast]'") from exc
+""",
+        """            raise RuntimeError(
+                "Install Chronos with: pip install -e '.[forecast]'"
+            ) from exc
+""",
     ),
     (
         '        self._pipeline = Chronos2Pipeline.from_pretrained(self.settings.model_id, **kwargs)\n',
