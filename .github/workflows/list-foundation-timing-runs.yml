@@ -1,6 +1,6 @@
 name: list-foundation-timing-runs
 
-# Trigger revision after workflow registration.
+# Generation 2: inventory all foundation-timing publication workflows.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -20,13 +20,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: agent/phase-2c-real-data-benchmark
-      - name: List recent materializer runs
+      - name: List recent foundation-timing runs
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p .status
           gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-2c-real-data-benchmark&per_page=100" \
-            --jq '[.workflow_runs[] | select(.name == "materialize-foundation-timing-fix") | {id,status,conclusion,head_sha,display_title,created_at,updated_at,html_url}]' \
+            --jq '[.workflow_runs[] | select(.name == "materialize-foundation-timing-fix" or .name == "validate-foundation-timing-fix" or .name == "finalize-foundation-timing-fix" or .name == "publish-foundation-timing-clean-source") | {name,id,status,conclusion,head_sha,display_title,created_at,updated_at,html_url}]' \
             > .status/foundation-timing-runs.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
