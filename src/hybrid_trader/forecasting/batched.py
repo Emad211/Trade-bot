@@ -9,7 +9,11 @@ import numpy as np
 import pandas as pd
 
 from hybrid_trader.forecasting.base import FloatArray, ForecastOutput
-from hybrid_trader.forecasting.chronos_adapter import Chronos2Forecaster, ChronosSettings
+from hybrid_trader.forecasting.chronos_adapter import (
+    Chronos2Forecaster,
+    ChronosSettings,
+    normalize_chronos_quantile_output,
+)
 from hybrid_trader.forecasting.timesfm_adapter import TimesFMForecaster, TimesFMSettings
 
 
@@ -119,21 +123,19 @@ class Chronos2BatchForecaster:
                 raise ValueError("Chronos history contains non-finite values")
             inputs.append(truncated)
         pipeline: Any = self._adapter._load()
-        quantile_tensor, mean_tensor = pipeline.predict_quantiles(
+        quantile_output, mean_output = pipeline.predict_quantiles(
             inputs=inputs,
             prediction_length=horizon,
             quantile_levels=list(self.settings.quantile_levels),
             context_length=self.settings.context_length,
         )
-        quantile_array = np.asarray(quantile_tensor.detach().cpu(), dtype=np.float64)
-        mean_array = np.asarray(mean_tensor.detach().cpu(), dtype=np.float64)
-        expected_quantiles = (len(inputs), horizon, len(self.settings.quantile_levels))
-        if quantile_array.shape != expected_quantiles:
-            raise RuntimeError(f"Unexpected Chronos quantile shape: {quantile_array.shape}")
-        if mean_array.shape != (len(inputs), horizon):
-            raise RuntimeError(f"Unexpected Chronos mean shape: {mean_array.shape}")
-        if not np.isfinite(quantile_array).all() or not np.isfinite(mean_array).all():
-            raise RuntimeError("Chronos returned non-finite forecasts")
+        quantile_array, mean_array = normalize_chronos_quantile_output(
+            quantile_output,
+            mean_output,
+            batch_size=len(inputs),
+            horizon=horizon,
+            quantile_count=len(self.settings.quantile_levels),
+        )
         return [
             ForecastOutput(
                 point=mean_array[index],
