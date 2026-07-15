@@ -1,179 +1,132 @@
 === traceback and errors ===
-411:foundation	Resolve immutable model revisions	2026-07-15T06:33:37.5636367Z ^[[36;1m            raise RuntimeError(f"Unresolved model revision: {model}")^[[0m
-728:foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5474288Z Traceback (most recent call last):
-745:foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5498520Z AttributeError: 'list' object has no attribute 'detach'
-746:foundation	Execute pinned challenger matrix	2026-07-15T06:39:30.3529518Z ##[error]Process completed with exit code 1.
-850:foundation	Enforce successful scientific gate	2026-07-15T06:39:31.1934186Z ##[error]Process completed with exit code 1.
+424:foundation	Resolve immutable model revisions	2026-07-15T11:01:43.7574726Z ^[[36;1m            raise RuntimeError(f"Unresolved model revision: {model}")^[[0m
+738:foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8429395Z Traceback (most recent call last):
+755:foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8454083Z AttributeError: 'list' object has no attribute 'detach'
+756:foundation	Execute pinned challenger matrix	2026-07-15T11:07:26.5776050Z ##[error]Process completed with exit code 1.
 
 === matrix section tail ===
-foundation	Execute pinned challenger matrix	﻿2026-07-15T06:34:48.2819495Z ##[group]Run python scripts/run_phase2c_foundation.py \
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2819986Z ^[[36;1mpython scripts/run_phase2c_foundation.py \^[[0m
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2820342Z ^[[36;1m  --baseline-root "$BASELINE_ROOT" \^[[0m
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2820675Z ^[[36;1m  --config configs/phase2c_btc_4h.yaml \^[[0m
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2821010Z ^[[36;1m  --output artifacts/phase2c-foundation \^[[0m
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2821346Z ^[[36;1m  --timesfm-revision "$TIMESFM_REVISION" \^[[0m
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2821678Z ^[[36;1m  --chronos-revision "$CHRONOS_REVISION" \^[[0m
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2821975Z ^[[36;1m  --device cpu \^[[0m
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2822212Z ^[[36;1m  --context 256 \^[[0m
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2822441Z ^[[36;1m  --horizon 6 \^[[0m
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2822659Z ^[[36;1m  --stride 6 \^[[0m
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2822881Z ^[[36;1m  --batch-size 16 \^[[0m
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2823142Z ^[[36;1m  --inference-latency-seconds 120^[[0m
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2856040Z shell: /usr/bin/bash -e {0}
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2856296Z env:
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2859343Z   GH_TOKEN: ***
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2859597Z   BASELINE_RUN_ID: 29319905230
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2859923Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2860367Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2860822Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2861211Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2861592Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2861982Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2862612Z   BASELINE_ROOT: baseline-download/phase2c-historical-3873ad260e4b0ca9ae2a07834a8abc414b08babb/phase2c-historical
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2863248Z   TIMESFM_REVISION: 1d952420fba87f3c6dee4f240de0f1a0fbc790e3
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2863636Z   CHRONOS_REVISION: 29ec3766d36d6f73f0696f85560a422f50e8498c
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:48.2863949Z ##[endgroup]
-foundation	Execute pinned challenger matrix	2026-07-15T06:34:52.4494014Z Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.0511279Z 
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.0969481Z Loading weights:   0%|          | 0/170 [00:00<?, ?it/s]
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.0970769Z Loading weights: 100%|██████████| 170/170 [00:00<00:00, 3723.50it/s]
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5474288Z Traceback (most recent call last):
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5484828Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/run_phase2c_foundation.py", line 306, in <module>
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5485719Z     main()
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5486443Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/run_phase2c_foundation.py", line 302, in main
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5487215Z     run(parser.parse_args())
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5488173Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/run_phase2c_foundation.py", line 185, in run
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5488968Z     evidence["chronos"] = _generate_cache(
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5489393Z                           ^^^^^^^^^^^^^^^^
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5490273Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/run_phase2c_foundation.py", line 65, in _generate_cache
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5491348Z     features = rolling_batched_features(series, forecaster, spec, availability=availability)
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5492113Z                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5493138Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/forecasting/batched.py", line 185, in rolling_batched_features
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5494177Z     forecasts = forecaster.predict_batch(histories, spec.horizon)
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5494758Z                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5495639Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/forecasting/batched.py", line 128, in predict_batch
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5496672Z     quantile_array = np.asarray(quantile_tensor.detach().cpu(), dtype=np.float64)
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5497993Z                                 ^^^^^^^^^^^^^^^^^^^^^^
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:29.5498520Z AttributeError: 'list' object has no attribute 'detach'
-foundation	Execute pinned challenger matrix	2026-07-15T06:39:30.3529518Z ##[error]Process completed with exit code 1.
-foundation	Record verification state	﻿2026-07-15T06:39:30.3608170Z ##[group]Run mkdir -p artifacts/phase2c-foundation
-foundation	Record verification state	2026-07-15T06:39:30.3608620Z ^[[36;1mmkdir -p artifacts/phase2c-foundation^[[0m
-foundation	Record verification state	2026-07-15T06:39:30.3609036Z ^[[36;1mcat > artifacts/phase2c-foundation/workflow_state.json <<EOF^[[0m
-foundation	Record verification state	2026-07-15T06:39:30.3609392Z ^[[36;1m{^[[0m
-foundation	Record verification state	2026-07-15T06:39:30.3609668Z ^[[36;1m  "source_branch": "agent/fix-foundation-timing-clean",^[[0m
-foundation	Record verification state	2026-07-15T06:39:30.3610043Z ^[[36;1m  "source_sha": "$(git rev-parse HEAD)",^[[0m
-foundation	Record verification state	2026-07-15T06:39:30.3610378Z ^[[36;1m  "historical_run_id": "$BASELINE_RUN_ID",^[[0m
-foundation	Record verification state	2026-07-15T06:39:30.3610680Z ^[[36;1m  "matrix_outcome": "failure",^[[0m
-foundation	Record verification state	2026-07-15T06:39:30.3610964Z ^[[36;1m  "verification_outcome": "skipped",^[[0m
-foundation	Record verification state	2026-07-15T06:39:30.3611276Z ^[[36;1m  "timesfm_revision": "$TIMESFM_REVISION",^[[0m
-foundation	Record verification state	2026-07-15T06:39:30.3611587Z ^[[36;1m  "chronos_revision": "$CHRONOS_REVISION"^[[0m
-foundation	Record verification state	2026-07-15T06:39:30.3611890Z ^[[36;1m}^[[0m
-foundation	Record verification state	2026-07-15T06:39:30.3612067Z ^[[36;1mEOF^[[0m
-foundation	Record verification state	2026-07-15T06:39:30.3644458Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-foundation	Record verification state	2026-07-15T06:39:30.3644842Z env:
-foundation	Record verification state	2026-07-15T06:39:30.3647361Z   GH_TOKEN: ***
-foundation	Record verification state	2026-07-15T06:39:30.3647851Z   BASELINE_RUN_ID: 29319905230
-foundation	Record verification state	2026-07-15T06:39:30.3648214Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Record verification state	2026-07-15T06:39:30.3648648Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
-foundation	Record verification state	2026-07-15T06:39:30.3649079Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Record verification state	2026-07-15T06:39:30.3649455Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Record verification state	2026-07-15T06:39:30.3649827Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Record verification state	2026-07-15T06:39:30.3650227Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
-foundation	Record verification state	2026-07-15T06:39:30.3650860Z   BASELINE_ROOT: baseline-download/phase2c-historical-3873ad260e4b0ca9ae2a07834a8abc414b08babb/phase2c-historical
-foundation	Record verification state	2026-07-15T06:39:30.3651688Z   TIMESFM_REVISION: 1d952420fba87f3c6dee4f240de0f1a0fbc790e3
-foundation	Record verification state	2026-07-15T06:39:30.3652070Z   CHRONOS_REVISION: 29ec3766d36d6f73f0696f85560a422f50e8498c
-foundation	Record verification state	2026-07-15T06:39:30.3652383Z ##[endgroup]
-foundation	Build deterministic archive and checksums	﻿2026-07-15T06:39:30.3766943Z ##[group]Run mkdir -p artifacts/distribution
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3767320Z ^[[36;1mmkdir -p artifacts/distribution^[[0m
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3767961Z ^[[36;1mtar --sort=name --mtime='UTC 1970-01-01' \^[[0m
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3768325Z ^[[36;1m  --owner=0 --group=0 --numeric-owner \^[[0m
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3768770Z ^[[36;1m  -czf artifacts/distribution/foundation-timing-fix-${GITHUB_SHA}.tar.gz \^[[0m
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3769212Z ^[[36;1m  -C artifacts phase2c-foundation^[[0m
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3769658Z ^[[36;1mfind artifacts -type f -not -path 'artifacts/distribution/SHA256SUMS' -print0 \^[[0m
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3770211Z ^[[36;1m  | sort -z | xargs -0 sha256sum > artifacts/distribution/SHA256SUMS^[[0m
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3799296Z shell: /usr/bin/bash -e {0}
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3799557Z env:
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3802137Z   GH_TOKEN: ***
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3802361Z   BASELINE_RUN_ID: 29319905230
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3802674Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3803110Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3803563Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3803944Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3804318Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3804696Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3805301Z   BASELINE_ROOT: baseline-download/phase2c-historical-3873ad260e4b0ca9ae2a07834a8abc414b08babb/phase2c-historical
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3805923Z   TIMESFM_REVISION: 1d952420fba87f3c6dee4f240de0f1a0fbc790e3
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3806299Z   CHRONOS_REVISION: 29ec3766d36d6f73f0696f85560a422f50e8498c
-foundation	Build deterministic archive and checksums	2026-07-15T06:39:30.3806613Z ##[endgroup]
-foundation	Upload foundation evidence	﻿2026-07-15T06:39:30.4306918Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4308534Z ##[group]Run actions/upload-artifact@v4
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4308809Z with:
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4309029Z   name: foundation-timing-fix-29394540536
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4309316Z   path: artifacts/
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4309534Z   if-no-files-found: error
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4309766Z   retention-days: 90
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4309975Z   compression-level: 6
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4310187Z   overwrite: false
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4310399Z   include-hidden-files: false
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4310639Z env:
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4313233Z   GH_TOKEN: ***
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4313454Z   BASELINE_RUN_ID: 29319905230
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4313765Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4314244Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4314675Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4315057Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4315435Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4315823Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4316440Z   BASELINE_ROOT: baseline-download/phase2c-historical-3873ad260e4b0ca9ae2a07834a8abc414b08babb/phase2c-historical
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4317061Z   TIMESFM_REVISION: 1d952420fba87f3c6dee4f240de0f1a0fbc790e3
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4317453Z   CHRONOS_REVISION: 29ec3766d36d6f73f0696f85560a422f50e8498c
-foundation	Upload foundation evidence	2026-07-15T06:39:30.4318015Z ##[endgroup]
-foundation	Upload foundation evidence	2026-07-15T06:39:30.5953785Z (node:2742) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-foundation	Upload foundation evidence	2026-07-15T06:39:30.5955571Z (Use `node --trace-deprecation ...` to show where the warning was created)
-foundation	Upload foundation evidence	2026-07-15T06:39:30.6134898Z With the provided path, there will be 7 files uploaded
-foundation	Upload foundation evidence	2026-07-15T06:39:30.6135468Z Artifact name is valid!
-foundation	Upload foundation evidence	2026-07-15T06:39:30.6135710Z Root directory input is valid!
-foundation	Upload foundation evidence	2026-07-15T06:39:30.7729840Z Beginning upload of artifact content to blob storage
-foundation	Upload foundation evidence	2026-07-15T06:39:30.8679462Z (node:2742) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-foundation	Upload foundation evidence	2026-07-15T06:39:30.9925050Z Uploaded bytes 2088929
-foundation	Upload foundation evidence	2026-07-15T06:39:31.0073254Z Finished uploading artifact content to blob storage!
-foundation	Upload foundation evidence	2026-07-15T06:39:31.0074386Z SHA256 digest of uploaded artifact zip is 70c519d6bd768954fe8c3746f9394c0983ff5f59e15ede9eaa733bb1a1d781e6
-foundation	Upload foundation evidence	2026-07-15T06:39:31.0075462Z Finalizing artifact upload
-foundation	Upload foundation evidence	2026-07-15T06:39:31.1698847Z Artifact foundation-timing-fix-29394540536.zip successfully finalized. Artifact ID 8334656826
-foundation	Upload foundation evidence	2026-07-15T06:39:31.1700798Z Artifact foundation-timing-fix-29394540536 has been successfully uploaded! Final size is 2088929 bytes. Artifact ID is 8334656826
-foundation	Upload foundation evidence	2026-07-15T06:39:31.1705499Z Artifact download URL: https://github.com/Emad211/Trade-bot/actions/runs/29394540536/artifacts/8334656826
-foundation	Enforce successful scientific gate	﻿2026-07-15T06:39:31.1834709Z ##[group]Run test "failure" = "success"
-foundation	Enforce successful scientific gate	2026-07-15T06:39:31.1835059Z ^[[36;1mtest "failure" = "success"^[[0m
-foundation	Enforce successful scientific gate	2026-07-15T06:39:31.1835337Z ^[[36;1mtest "skipped" = "success"^[[0m
-foundation	Enforce successful scientific gate	2026-07-15T06:39:31.1868618Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-foundation	Enforce successful scientific gate	2026-07-15T06:39:31.1869181Z env:
-foundation	Enforce successful scientific gate	2026-07-15T06:39:31.1874084Z   GH_TOKEN: ***
-foundation	Enforce successful scientific gate	2026-07-15T06:39:31.1874355Z   BASELINE_RUN_ID: 29319905230
-foundation	Enforce successful scientific gate	2026-07-15T06:39:31.1874697Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Enforce successful scientific gate	2026-07-15T06:39:31.1875160Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
-foundation	Enforce successful scientific gate	2026-07-15T06:39:31.1875614Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Enforce successful scientific gate	2026-07-15T06:39:31.1876048Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Enforce successful scientific gate	2026-07-15T06:39:31.1876436Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
-foundation	Enforce successful scientific gate	2026-07-15T06:39:31.1876828Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
-foundation	Enforce successful scientific gate	2026-07-15T06:39:31.1877475Z   BASELINE_ROOT: baseline-download/phase2c-historical-3873ad260e4b0ca9ae2a07834a8abc414b08babb/phase2c-historical
-foundation	Enforce successful scientific gate	2026-07-15T06:39:31.1878449Z   TIMESFM_REVISION: 1d952420fba87f3c6dee4f240de0f1a0fbc790e3
-foundation	Enforce successful scientific gate	2026-07-15T06:39:31.1878859Z   CHRONOS_REVISION: 29ec3766d36d6f73f0696f85560a422f50e8498c
-foundation	Enforce successful scientific gate	2026-07-15T06:39:31.1879179Z ##[endgroup]
-foundation	Enforce successful scientific gate	2026-07-15T06:39:31.1934186Z ##[error]Process completed with exit code 1.
-foundation	Post Run actions/checkout@v4	﻿2026-07-15T06:39:31.2058234Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-foundation	Post Run actions/checkout@v4	2026-07-15T06:39:31.2059557Z Post job cleanup.
-foundation	Post Run actions/checkout@v4	2026-07-15T06:39:31.2888397Z [command]/usr/bin/git version
-foundation	Post Run actions/checkout@v4	2026-07-15T06:39:31.2935090Z git version 2.54.0
-foundation	Post Run actions/checkout@v4	2026-07-15T06:39:31.2978247Z Temporarily overriding HOME='/home/runner/work/_temp/42d195e7-8f61-4e4a-9137-cde42cf4800e' before making global git config changes
-foundation	Post Run actions/checkout@v4	2026-07-15T06:39:31.2979617Z Adding repository directory to the temporary git global config as a safe directory
-foundation	Post Run actions/checkout@v4	2026-07-15T06:39:31.2983650Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Trade-bot/Trade-bot
-foundation	Post Run actions/checkout@v4	2026-07-15T06:39:31.3028586Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-foundation	Post Run actions/checkout@v4	2026-07-15T06:39:31.3062784Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-foundation	Post Run actions/checkout@v4	2026-07-15T06:39:31.3326508Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-foundation	Post Run actions/checkout@v4	2026-07-15T06:39:31.3358817Z http.https://github.com/.extraheader
-foundation	Post Run actions/checkout@v4	2026-07-15T06:39:31.3370756Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-foundation	Post Run actions/checkout@v4	2026-07-15T06:39:31.3405383Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-foundation	Post Run actions/checkout@v4	2026-07-15T06:39:31.3701669Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-foundation	Post Run actions/checkout@v4	2026-07-15T06:39:31.3738673Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-foundation	Complete job	﻿2026-07-15T06:39:31.4149409Z Cleaning up orphan processes
-foundation	Complete job	2026-07-15T06:39:31.4549084Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+foundation	Execute pinned challenger matrix	﻿2026-07-15T11:02:53.5130923Z ##[group]Run python scripts/run_phase2c_foundation.py \
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5131387Z ^[[36;1mpython scripts/run_phase2c_foundation.py \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5131739Z ^[[36;1m  --baseline-root "$BASELINE_ROOT" \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5132367Z ^[[36;1m  --config configs/phase2c_btc_4h.yaml \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5132718Z ^[[36;1m  --output artifacts/phase2c-foundation \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5133071Z ^[[36;1m  --timesfm-revision "$TIMESFM_REVISION" \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5133412Z ^[[36;1m  --chronos-revision "$CHRONOS_REVISION" \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5133716Z ^[[36;1m  --device cpu \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5133973Z ^[[36;1m  --context 256 \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5134206Z ^[[36;1m  --horizon 6 \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5134427Z ^[[36;1m  --stride 6 \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5134652Z ^[[36;1m  --batch-size 16 \^[[0m
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5134913Z ^[[36;1m  --inference-latency-seconds 120^[[0m
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5167593Z shell: /usr/bin/bash -e {0}
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5167849Z env:
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5170614Z   GH_TOKEN: ***
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5170910Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5171360Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5171790Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5172426Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5172825Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5173215Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5174040Z   BASELINE_ROOT: baseline-download/phase2c-historical-3873ad260e4b0ca9ae2a07834a8abc414b08babb/phase2c-historical
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5174654Z   TIMESFM_REVISION: 1d952420fba87f3c6dee4f240de0f1a0fbc790e3
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5175033Z   CHRONOS_REVISION: 29ec3766d36d6f73f0696f85560a422f50e8498c
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:53.5175341Z ##[endgroup]
+foundation	Execute pinned challenger matrix	2026-07-15T11:02:57.7201656Z Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.3463139Z 
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.3960343Z Loading weights:   0%|          | 0/170 [00:00<?, ?it/s]
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.3961598Z Loading weights: 100%|██████████| 170/170 [00:00<00:00, 3428.32it/s]
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8429395Z Traceback (most recent call last):
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8440410Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/run_phase2c_foundation.py", line 306, in <module>
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8441324Z     main()
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8442286Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/run_phase2c_foundation.py", line 302, in main
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8443107Z     run(parser.parse_args())
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8443856Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/run_phase2c_foundation.py", line 185, in run
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8444602Z     evidence["chronos"] = _generate_cache(
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8445036Z                           ^^^^^^^^^^^^^^^^
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8445840Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/run_phase2c_foundation.py", line 65, in _generate_cache
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8446938Z     features = rolling_batched_features(series, forecaster, spec, availability=availability)
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8447718Z                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8448755Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/forecasting/batched.py", line 185, in rolling_batched_features
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8449792Z     forecasts = forecaster.predict_batch(histories, spec.horizon)
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8450356Z                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8451248Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/forecasting/batched.py", line 128, in predict_batch
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8452460Z     quantile_array = np.asarray(quantile_tensor.detach().cpu(), dtype=np.float64)
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8453094Z                                 ^^^^^^^^^^^^^^^^^^^^^^
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:25.8454083Z AttributeError: 'list' object has no attribute 'detach'
+foundation	Execute pinned challenger matrix	2026-07-15T11:07:26.5776050Z ##[error]Process completed with exit code 1.
+foundation	Build deterministic archive and checksums	﻿2026-07-15T11:07:26.5843139Z ##[group]Run mkdir -p artifacts/distribution
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5843661Z ^[[36;1mmkdir -p artifacts/distribution^[[0m
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5844087Z ^[[36;1mif [ -d artifacts/phase2c-foundation ]; then^[[0m
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5844625Z ^[[36;1m  tar --sort=name --mtime='UTC 1970-01-01' \^[[0m
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5845163Z ^[[36;1m    --owner=0 --group=0 --numeric-owner \^[[0m
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5845760Z ^[[36;1m    -czf artifacts/distribution/phase2c-foundation-${GITHUB_SHA}.tar.gz \^[[0m
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5846310Z ^[[36;1m    -C artifacts phase2c-foundation^[[0m
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5846670Z ^[[36;1mfi^[[0m
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5847182Z ^[[36;1mfind artifacts -type f -not -path 'artifacts/distribution/SHA256SUMS' -print0 \^[[0m
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5847833Z ^[[36;1m  | sort -z | xargs -0 sha256sum > artifacts/distribution/SHA256SUMS || true^[[0m
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5880260Z shell: /usr/bin/bash -e {0}
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5880670Z env:
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5884035Z   GH_TOKEN: ***
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5884508Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5885240Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5885768Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5886309Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5886814Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5887525Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5888254Z   BASELINE_ROOT: baseline-download/phase2c-historical-3873ad260e4b0ca9ae2a07834a8abc414b08babb/phase2c-historical
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5888995Z   TIMESFM_REVISION: 1d952420fba87f3c6dee4f240de0f1a0fbc790e3
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5889567Z   CHRONOS_REVISION: 29ec3766d36d6f73f0696f85560a422f50e8498c
+foundation	Build deterministic archive and checksums	2026-07-15T11:07:26.5889976Z ##[endgroup]
+foundation	Upload foundation evidence	﻿2026-07-15T11:07:26.6403290Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6404689Z ##[group]Run actions/upload-artifact@v4
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6405186Z with:
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6405586Z   name: phase2c-foundation-760c3af59944031ffe4970ef0645a217479b6909
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6406092Z   path: artifacts/
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6406456Z   if-no-files-found: error
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6406762Z   retention-days: 90
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6407159Z   compression-level: 6
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6407463Z   overwrite: false
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6407791Z   include-hidden-files: false
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6408129Z env:
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6410919Z   GH_TOKEN: ***
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6411398Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6412270Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6412910Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6413390Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6413972Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6414451Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6415246Z   BASELINE_ROOT: baseline-download/phase2c-historical-3873ad260e4b0ca9ae2a07834a8abc414b08babb/phase2c-historical
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6416034Z   TIMESFM_REVISION: 1d952420fba87f3c6dee4f240de0f1a0fbc790e3
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6416500Z   CHRONOS_REVISION: 29ec3766d36d6f73f0696f85560a422f50e8498c
+foundation	Upload foundation evidence	2026-07-15T11:07:26.6417012Z ##[endgroup]
+foundation	Upload foundation evidence	2026-07-15T11:07:26.8121112Z (node:2678) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+foundation	Upload foundation evidence	2026-07-15T11:07:26.8122719Z (Use `node --trace-deprecation ...` to show where the warning was created)
+foundation	Upload foundation evidence	2026-07-15T11:07:26.8264017Z With the provided path, there will be 6 files uploaded
+foundation	Upload foundation evidence	2026-07-15T11:07:26.8265379Z Artifact name is valid!
+foundation	Upload foundation evidence	2026-07-15T11:07:26.8266010Z Root directory input is valid!
+foundation	Upload foundation evidence	2026-07-15T11:07:27.1582231Z Beginning upload of artifact content to blob storage
+foundation	Upload foundation evidence	2026-07-15T11:07:27.2674715Z (node:2678) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+foundation	Upload foundation evidence	2026-07-15T11:07:28.0614666Z Uploaded bytes 2088193
+foundation	Upload foundation evidence	2026-07-15T11:07:28.1424418Z Finished uploading artifact content to blob storage!
+foundation	Upload foundation evidence	2026-07-15T11:07:28.1425520Z SHA256 digest of uploaded artifact zip is 834b7c4765d3701da56c69c646bdfc8a97c10eb93a52caaa585f3672486f4069
+foundation	Upload foundation evidence	2026-07-15T11:07:28.1427281Z Finalizing artifact upload
+foundation	Upload foundation evidence	2026-07-15T11:07:28.3768666Z Artifact phase2c-foundation-760c3af59944031ffe4970ef0645a217479b6909.zip successfully finalized. Artifact ID 8340882796
+foundation	Upload foundation evidence	2026-07-15T11:07:28.3770943Z Artifact phase2c-foundation-760c3af59944031ffe4970ef0645a217479b6909 has been successfully uploaded! Final size is 2088193 bytes. Artifact ID is 8340882796
+foundation	Upload foundation evidence	2026-07-15T11:07:28.3776555Z Artifact download URL: https://github.com/Emad211/Trade-bot/actions/runs/29410149756/artifacts/8340882796
+foundation	Post Run actions/checkout@v4	﻿2026-07-15T11:07:28.3963622Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+foundation	Post Run actions/checkout@v4	2026-07-15T11:07:28.3965101Z Post job cleanup.
+foundation	Post Run actions/checkout@v4	2026-07-15T11:07:28.4793630Z [command]/usr/bin/git version
+foundation	Post Run actions/checkout@v4	2026-07-15T11:07:28.4838206Z git version 2.54.0
+foundation	Post Run actions/checkout@v4	2026-07-15T11:07:28.4908738Z Temporarily overriding HOME='/home/runner/work/_temp/6510edfe-5f1f-40ba-b587-b780bc1f6c12' before making global git config changes
+foundation	Post Run actions/checkout@v4	2026-07-15T11:07:28.4910296Z Adding repository directory to the temporary git global config as a safe directory
+foundation	Post Run actions/checkout@v4	2026-07-15T11:07:28.4914544Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Trade-bot/Trade-bot
+foundation	Post Run actions/checkout@v4	2026-07-15T11:07:28.4955169Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+foundation	Post Run actions/checkout@v4	2026-07-15T11:07:28.4997417Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+foundation	Post Run actions/checkout@v4	2026-07-15T11:07:28.5265317Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+foundation	Post Run actions/checkout@v4	2026-07-15T11:07:28.5294407Z http.https://github.com/.extraheader
+foundation	Post Run actions/checkout@v4	2026-07-15T11:07:28.5302008Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+foundation	Post Run actions/checkout@v4	2026-07-15T11:07:28.5337111Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+foundation	Post Run actions/checkout@v4	2026-07-15T11:07:28.5601447Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+foundation	Post Run actions/checkout@v4	2026-07-15T11:07:28.5640154Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+foundation	Complete job	﻿2026-07-15T11:07:28.6057276Z Cleaning up orphan processes
+foundation	Complete job	2026-07-15T11:07:28.6450681Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
