@@ -1,0 +1,52 @@
+name: open-foundation-timing-clean-pr
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/open-foundation-timing-clean-pr.yml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  open:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Open clean foundation timing PR
+        shell: bash
+        run: |
+          set -euo pipefail
+          existing=$(gh pr list --repo "$GITHUB_REPOSITORY" \
+            --head agent/fix-foundation-timing-clean \
+            --base main --state open --json number --jq '.[0].number // empty')
+          if [ -z "$existing" ]; then
+            cat > /tmp/body.md <<'EOF'
+          ## Scope
+
+          Closes the Foundation gate blocker exposed by the first pinned TimesFM/Chronos run.
+
+          - records explicit forecast origin, origin availability, output availability and horizon step for every carried row;
+          - permits valid carried multi-horizon forecasts without weakening future-origin checks;
+          - advances rolling cache manifests to schema 1.3 while retaining legacy 1.2 verification;
+          - strips provenance metadata before model feature joins while preserving decision availability;
+          - validates maximum availability across non-OHLCV artifacts rather than the last event row;
+          - adds stride/horizon/origin and non-monotonic-availability regression tests.
+
+          ## Validation
+
+          The branch is one commit directly on `main` and passed Ruff format/lint, strict Mypy, all core tests, optional LightGBM/CatBoost tests, dependency checks and clean-wheel installation/import smoke tests.
+
+          ## Safety
+
+          No credentials, orders, leverage, shorting, withdrawals or automatic model promotion are introduced.
+          EOF
+            gh pr create --repo "$GITHUB_REPOSITORY" \
+              --head agent/fix-foundation-timing-clean \
+              --base main \
+              --title "Fix foundation forecast-origin timing semantics" \
+              --body-file /tmp/body.md
+          fi
