@@ -1,6 +1,6 @@
 name: capture-foundation-timing-materializer
 
-# Generation 3: capture only the Mypy-safe materializer trigger commit.
+# Generation 4: capture the explicit-isna-guard rerun.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 90
     env:
       GH_TOKEN: ${{ github.token }}
-      TARGET_HEAD: "d3ee62aa618de958decea4e09ffb5561e78f8705"
+      TARGET_HEAD: "3786775e44abe263f99cf3c3340a2cb61026b4d7"
     steps:
       - uses: actions/checkout@v4
         with:
