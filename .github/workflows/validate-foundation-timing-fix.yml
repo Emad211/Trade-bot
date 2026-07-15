@@ -1,5 +1,6 @@
 name: validate-foundation-timing-fix
 
+# Trigger revision after workflow registration.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
