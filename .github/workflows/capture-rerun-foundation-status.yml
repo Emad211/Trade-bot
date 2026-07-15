@@ -1,0 +1,39 @@
+name: capture-rerun-foundation-status
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/capture-rerun-foundation-status.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase-2c-real-data-benchmark
+      - name: Capture latest foundation rerun status
+        shell: bash
+        run: |
+          set -euo pipefail
+          run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-2c-real-data-benchmark&per_page=100" \
+            --jq '[.workflow_runs[] | select(.name == "rerun-foundation-after-timing-fix")][0]')
+          run_id=$(jq -r .id <<<"$run")
+          jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
+          artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts?per_page=100")
+          mkdir -p .status
+          jq -n --argjson run "$run" --argjson jobs "$jobs" --argjson artifacts "$artifacts" \
+            '{run:$run,jobs:$jobs.jobs,artifacts:$artifacts.artifacts}' \
+            > .status/foundation-rerun.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .status/foundation-rerun.json
+          git commit -m "capture foundation rerun status" || true
+          git push origin HEAD:agent/phase-2c-real-data-benchmark
