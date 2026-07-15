@@ -39,6 +39,7 @@ from hybrid_trader.forecasting import (
 )
 from hybrid_trader.forecasting.base import TimeSeriesForecaster
 from hybrid_trader.forecasting.rolling import (
+    FORECAST_METADATA_COLUMNS,
     RollingForecastSpec,
     cache_rolling_features,
     read_cached_rolling_features,
@@ -133,6 +134,9 @@ def _prepare_supervised(
                     f"feature_available_at_{cache_index}"
                 )
             )
+        for metadata_column in FORECAST_METADATA_COLUMNS:
+            if metadata_column != "available_at" and metadata_column in feature_frame:
+                feature_frame.pop(metadata_column)
         overlap = set(data.columns).intersection(feature_frame.columns)
         if overlap:
             raise ValueError(f"Feature cache duplicates columns: {sorted(overlap)}")
