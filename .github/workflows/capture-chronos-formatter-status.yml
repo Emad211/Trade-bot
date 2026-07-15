@@ -1,5 +1,6 @@
 name: capture-chronos-formatter-status
 
+# Registered workflow; capture the latest formatter job and step state.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -23,13 +24,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-2c-real-data-benchmark&per_page=100" \
-            --jq '[.workflow_runs[] | select(.name == "format-chronos-output-fix")][0]')
+          run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-2c-real-data-benchmark&per_page=100" --jq '[.workflow_runs[] | select(.name == "format-chronos-output-fix")][0]')
           run_id=$(jq -r .id <<<"$run")
           jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
           mkdir -p .status
-          jq -n --argjson run "$run" --argjson jobs "$jobs" '{run:$run,jobs:$jobs.jobs}' \
-            > .status/chronos-formatter.json
+          jq -n --argjson run "$run" --argjson jobs "$jobs" '{run:$run,jobs:$jobs.jobs}' > .status/chronos-formatter.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .status/chronos-formatter.json
