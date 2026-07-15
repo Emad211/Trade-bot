@@ -1,6 +1,6 @@
 name: format-chronos-output-fix
 
-# Apply exact formatter anchors, validate, and remove the one-time helper.
+# Directly apply Ruff's canonical formatting, remove the helper, and validate.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -22,14 +22,14 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - name: Apply deterministic formatter anchors
-        run: |
-          python scripts/format_chronos_adapter.py
-          rm scripts/format_chronos_adapter.py
-      - name: Format and validate
+      - name: Install and apply canonical formatting
         run: |
           python -m pip install -e '.[dev,ml]'
-          ruff format .
+          ruff format src/hybrid_trader/forecasting/chronos_adapter.py
+          rm -f scripts/format_chronos_adapter.py
+      - name: Validate formatted branch
+        run: |
+          ruff format --check .
           ruff check .
           mypy --python-version 3.12 src
           pytest -m 'not optional_ml' --cov=hybrid_trader --cov-report=term-missing
