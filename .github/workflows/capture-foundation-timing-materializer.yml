@@ -1,6 +1,6 @@
 name: capture-foundation-timing-materializer
 
-# Generation 7: target the lint-corrected Chronos finalizer trigger commit.
+# Generation 8: capture the Chronos-corrected foundation matrix rerun.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -14,22 +14,22 @@ permissions:
 jobs:
   capture:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 300
     env:
       GH_TOKEN: ${{ github.token }}
-      TARGET_HEAD: "9421a3dcbe4b6b9224a7e92ccc76ae258f0a57f7"
+      TARGET_HEAD: "ddb71be6813fa0f9cb6b13010724fd166863220e"
     steps:
       - uses: actions/checkout@v4
         with:
           ref: agent/phase-2c-real-data-benchmark
-      - name: Capture completed Chronos finalizer status
+      - name: Capture completed foundation matrix rerun
         shell: bash
         run: |
           set -euo pipefail
           run=""
-          for attempt in $(seq 1 240); do
+          for attempt in $(seq 1 960); do
             run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-2c-real-data-benchmark&per_page=100" \
-              --jq '[.workflow_runs[] | select(.name == "finalize-foundation-timing-fix" and .head_sha == env.TARGET_HEAD)][0]')
+              --jq '[.workflow_runs[] | select(.name == "verify-foundation-timing-matrix" and .head_sha == env.TARGET_HEAD)][0]')
             if [ "$(jq -r '.status // empty' <<<"$run")" = "completed" ]; then
               break
             fi
@@ -38,11 +38,13 @@ jobs:
           test -n "$run"
           run_id=$(jq -r .id <<<"$run")
           jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
+          artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts?per_page=100")
           mkdir -p .status
-          jq -n --argjson run "$run" --argjson jobs "$jobs" \
-            '{run:$run,jobs:$jobs.jobs}' > .status/chronos-finalizer.json
+          jq -n --argjson run "$run" --argjson jobs "$jobs" --argjson artifacts "$artifacts" \
+            '{run:$run,jobs:$jobs.jobs,artifacts:$artifacts.artifacts}' \
+            > .status/foundation-matrix-rerun.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .status/chronos-finalizer.json
-          git commit -m "capture Chronos adapter finalizer status" || true
+          git add .status/foundation-matrix-rerun.json
+          git commit -m "capture foundation matrix rerun status" || true
           git push origin HEAD:agent/phase-2c-real-data-benchmark
