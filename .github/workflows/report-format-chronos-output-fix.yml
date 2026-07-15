@@ -1,0 +1,46 @@
+name: report-format-chronos-output-fix
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/report-format-chronos-output-fix.yml"
+
+permissions:
+  actions: read
+  issues: write
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Wait for formatter and report
+        shell: bash
+        run: |
+          set -euo pipefail
+          run=""
+          for attempt in $(seq 1 240); do
+            run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-2c-real-data-benchmark&per_page=100" \
+              --jq '[.workflow_runs[] | select(.name == "format-chronos-output-fix")][0]')
+            if [ "$(jq -r '.status // empty' <<<"$run")" = "completed" ]; then
+              break
+            fi
+            sleep 15
+          done
+          test -n "$run"
+          run_id=$(jq -r .id <<<"$run")
+          jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
+          {
+            echo '## Chronos formatter status'
+            echo
+            echo "- run: $(jq -r .html_url <<<"$run")"
+            echo "- status: $(jq -r .status <<<"$run")"
+            echo "- conclusion: $(jq -r .conclusion <<<"$run")"
+            echo
+            jq -r '.jobs[] as $job | $job.steps[]? | "- \($job.name) / \(.name): \(.status) / \(.conclusion)"' <<<"$jobs"
+          } > /tmp/chronos-formatter.md
+          gh issue comment 3 --repo "$GITHUB_REPOSITORY" --body-file /tmp/chronos-formatter.md
