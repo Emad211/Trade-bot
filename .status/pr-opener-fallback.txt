@@ -1,0 +1,1 @@
+Direct GitHub connector fallback selected for the clean foundation timing PR.
