@@ -1,6 +1,6 @@
 name: capture-foundation-timing-materializer
 
-# Generation 6: capture the lint-corrected Chronos finalizer run.
+# Generation 7: target the lint-corrected Chronos finalizer trigger commit.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -17,6 +17,7 @@ jobs:
     timeout-minutes: 90
     env:
       GH_TOKEN: ${{ github.token }}
+      TARGET_HEAD: "9421a3dcbe4b6b9224a7e92ccc76ae258f0a57f7"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,7 +29,7 @@ jobs:
           run=""
           for attempt in $(seq 1 240); do
             run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-2c-real-data-benchmark&per_page=100" \
-              --jq '[.workflow_runs[] | select(.name == "finalize-foundation-timing-fix")][0]')
+              --jq '[.workflow_runs[] | select(.name == "finalize-foundation-timing-fix" and .head_sha == env.TARGET_HEAD)][0]')
             if [ "$(jq -r '.status // empty' <<<"$run")" = "completed" ]; then
               break
             fi
