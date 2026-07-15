@@ -1,0 +1,77 @@
+name: publish-foundation-timing-main
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/publish-foundation-timing-main.yml"
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Reconstruct clean timing fix on main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin agent/fix-foundation-forecast-timing
+          git switch -C agent/fix-foundation-timing-main origin/main
+          git checkout origin/agent/fix-foundation-forecast-timing -- \
+            src/hybrid_trader/forecasting/batched.py \
+            src/hybrid_trader/forecasting/rolling.py \
+            src/hybrid_trader/cli.py \
+            src/hybrid_trader/data/artifact.py \
+            tests/test_batched_forecasting.py \
+            tests/test_forecasting.py \
+            tests/test_tabular_artifact.py
+      - name: Validate reconstructed fix
+        run: |
+          python -m pip install -e '.[dev,ml]'
+          ruff format --check .
+          ruff check .
+          mypy --python-version 3.12 src
+          pytest -m 'not optional_ml' --cov=hybrid_trader --cov-report=term-missing
+          pytest -m optional_ml -q
+          python -m pip check
+      - name: Build and clean-install wheel
+        run: |
+          python -m pip wheel --no-deps --wheel-dir dist .
+          python -m venv /tmp/foundation-timing-main-wheel
+          /tmp/foundation-timing-main-wheel/bin/python -m pip install dist/*.whl
+          /tmp/foundation-timing-main-wheel/bin/hybrid-trader --help >/dev/null
+          /tmp/foundation-timing-main-wheel/bin/python -c 'import hybrid_trader.forecasting.rolling'
+          /tmp/foundation-timing-main-wheel/bin/python -m pip check
+      - name: Publish one-commit branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/hybrid_trader/forecasting/batched.py \
+                  src/hybrid_trader/forecasting/rolling.py \
+                  src/hybrid_trader/cli.py \
+                  src/hybrid_trader/data/artifact.py \
+                  tests/test_batched_forecasting.py \
+                  tests/test_forecasting.py \
+                  tests/test_tabular_artifact.py
+          git commit -m "fix foundation forecast-origin timing semantics"
+          git push --force-with-lease origin HEAD:agent/fix-foundation-timing-main
+      - name: Report success
+        run: |
+          gh issue comment 3 --repo "$GITHUB_REPOSITORY" --body \
+            "A clean one-commit foundation timing fix was reconstructed on current main and passed Ruff, strict Mypy, core tests, optional ML tests and clean-wheel smoke checks. Branch: \`agent/fix-foundation-timing-main\`. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
