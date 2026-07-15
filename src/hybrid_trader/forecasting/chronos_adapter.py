@@ -27,7 +27,9 @@ class ChronosSettings:
             or any(not 0 < level < 1 for level in self.quantile_levels)
             or tuple(sorted(self.quantile_levels)) != self.quantile_levels
         ):
-            raise ValueError("quantile_levels must be unique, sorted and strictly inside (0, 1)")
+            raise ValueError(
+                "quantile_levels must be unique, sorted and strictly inside (0, 1)"
+            )
 
 
 def _to_numpy(value: Any) -> np.ndarray:
@@ -84,11 +86,15 @@ class Chronos2Forecaster:
         try:
             from chronos import Chronos2Pipeline
         except ImportError as exc:  # pragma: no cover - optional dependency
-            raise RuntimeError("Install Chronos with: pip install -e '.[forecast]'") from exc
+            raise RuntimeError(
+                "Install Chronos with: pip install -e '.[forecast]'"
+            ) from exc
         kwargs: dict[str, Any] = {"device_map": self.settings.device_map}
         if self.settings.revision is not None:
             kwargs["revision"] = self.settings.revision
-        self._pipeline = Chronos2Pipeline.from_pretrained(self.settings.model_id, **kwargs)
+        self._pipeline = Chronos2Pipeline.from_pretrained(
+            self.settings.model_id, **kwargs
+        )
         return self._pipeline
 
     def predict(self, history: FloatArray, horizon: int) -> ForecastOutput:
