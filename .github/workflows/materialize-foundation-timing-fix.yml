@@ -1,6 +1,6 @@
 name: materialize-foundation-timing-fix
 
-# Generation 2: apply Mypy-safe forecast timing guards before full validation.
+# Generation 3: make all DatetimeIndex boolean checks explicit for Mypy.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -37,6 +37,9 @@ jobs:
           path = Path("src/hybrid_trader/forecasting/rolling.py")
           text = path.read_text("utf-8")
           replacements = {
+              "if row_times.isna().any():": (
+                  "if np.asarray(row_times.isna(), dtype=bool).any():"
+              ),
               "if (origin_at > row_times).any():": (
                   "if np.asarray(origin_at > row_times, dtype=bool).any():"
               ),
