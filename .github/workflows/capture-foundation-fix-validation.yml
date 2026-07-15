@@ -1,0 +1,46 @@
+name: capture-foundation-fix-validation
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/capture-foundation-fix-validation.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase-2c-real-data-benchmark
+      - name: Wait and capture validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          run=""
+          for attempt in $(seq 1 240); do
+            run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-2c-real-data-benchmark&per_page=100" \
+              --jq '[.workflow_runs[] | select(.name == "validate-foundation-timing-fix")][0]')
+            if [ "$(jq -r '.status // empty' <<<"$run")" = "completed" ]; then
+              break
+            fi
+            sleep 15
+          done
+          test -n "$run"
+          run_id=$(jq -r .id <<<"$run")
+          jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
+          mkdir -p .status
+          jq -n --argjson run "$run" --argjson jobs "$jobs" \
+            '{run:$run,jobs:$jobs.jobs}' > .status/foundation-fix-validation.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .status/foundation-fix-validation.json
+          git commit -m "capture foundation timing fix validation" || true
+          git push origin HEAD:agent/phase-2c-real-data-benchmark
