@@ -1,0 +1,59 @@
+name: finalize-foundation-timing-fix
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/finalize-foundation-timing-fix.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/fix-foundation-forecast-timing
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies and format changed files
+        run: |
+          python -m pip install -e '.[dev,ml]'
+          ruff format src/hybrid_trader/data/artifact.py tests/test_tabular_artifact.py
+      - name: Validate complete fix tree
+        run: |
+          ruff format --check .
+          ruff check .
+          mypy --python-version 3.12 src
+          pytest -m 'not optional_ml' --cov=hybrid_trader --cov-report=term-missing
+          pytest -m optional_ml -q
+          python -m pip check
+      - name: Build and clean-install wheel
+        run: |
+          python -m pip wheel --no-deps --wheel-dir dist .
+          python -m venv /tmp/foundation-timing-final
+          /tmp/foundation-timing-final/bin/python -m pip install dist/*.whl
+          /tmp/foundation-timing-final/bin/hybrid-trader --help >/dev/null
+          /tmp/foundation-timing-final/bin/python - <<'PY'
+          import hybrid_trader.data.artifact
+          import hybrid_trader.forecasting.batched
+          import hybrid_trader.forecasting.rolling
+          PY
+          /tmp/foundation-timing-final/bin/python -m pip check
+      - name: Commit formatter output
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/hybrid_trader/data/artifact.py tests/test_tabular_artifact.py
+          if ! git diff --cached --quiet; then
+            git commit -m "format tabular artifact timing guards"
+            git push origin HEAD:agent/fix-foundation-forecast-timing
+          fi
