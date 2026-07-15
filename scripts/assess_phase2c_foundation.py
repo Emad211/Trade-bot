@@ -2,12 +2,22 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
 from hybrid_trader.data.snapshot import canonical_json_sha256
+
+
+SCREENING_FLAG_NAMES = (
+    "net_return_above_baseline",
+    "sharpe_above_baseline",
+    "brier_not_worse",
+    "majority_positive_folds",
+    "positive_after_2x_cost",
+)
 
 
 def _scalar(frame: pd.DataFrame, column: str) -> float | None:
@@ -86,20 +96,43 @@ def assess(root: Path) -> dict[str, Any]:
                 }
             )
 
+    candidates = [
+        {"scenario": row["scenario"], "model": row["model"]}
+        for row in results
+        if row["all_screening_flags"]
+    ]
+    failed_flags = Counter(
+        flag_name
+        for row in results
+        for flag_name, passed in row["flags"].items()
+        if not passed
+    )
+    screening_outcome = "candidate_passed" if candidates else "no_candidate_passed"
+    recommendation = (
+        "human_review_candidates" if candidates else "retain_as_research_only"
+    )
+
     identity = {
         "dataset_sha256": manifest["dataset_sha256"],
         "foundation_manifest_sha256": manifest["manifest_sha256"],
         "screening_results": results,
         "ablation_contributions": contributions,
+        "screening_outcome": screening_outcome,
+        "screening_candidates": candidates,
+        "failed_flag_counts": {
+            name: int(failed_flags.get(name, 0)) for name in SCREENING_FLAG_NAMES
+        },
+        "recommendation": recommendation,
     }
     assessment: dict[str, Any] = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "status": "human_review_required",
         "assessment_id": canonical_json_sha256(identity),
         **identity,
         "promotion_policy": (
-            "Flags are screening evidence only. Promotion requires independent "
-            "human review and a separately frozen prospective paper period."
+            "Screening flags are necessary but not sufficient. A candidate requires "
+            "independent human review and a separately frozen prospective paper period. "
+            "When no candidate passes every flag, foundation features remain research-only."
         ),
     }
     (root / "foundation_assessment.json").write_text(
