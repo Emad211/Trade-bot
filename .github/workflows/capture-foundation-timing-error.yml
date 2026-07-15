@@ -1,6 +1,6 @@
 name: capture-foundation-timing-error
 
-# Trigger revision after workflow registration.
+# Generation 2: capture the Mypy-safe rerun failure.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -25,13 +25,13 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p .status
-          gh run view 29392270256 --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/timing-failed.log
+          gh run view 29392436131 --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/timing-failed.log
           {
             echo '=== errors ==='
             grep -nE 'error:|Error|FAILED|Traceback|AssertionError|mypy|ruff|coverage' /tmp/timing-failed.log || true
             echo
-            echo '=== final 180 lines ==='
-            tail -n 180 /tmp/timing-failed.log
+            echo '=== final 220 lines ==='
+            tail -n 220 /tmp/timing-failed.log
           } > .status/foundation-timing-error.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
