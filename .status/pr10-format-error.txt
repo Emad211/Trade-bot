@@ -1,0 +1,8 @@
+1:quality (3.11)	Formatting	﻿2026-07-15T11:16:15.3935352Z ##[group]Run ruff format --check .
+2:quality (3.11)	Formatting	2026-07-15T11:16:15.3935693Z ^[[36;1mruff format --check .^[[0m
+12:quality (3.11)	Formatting	2026-07-15T11:16:15.4192100Z Would reformat: src/hybrid_trader/forecasting/chronos_adapter.py
+13:quality (3.11)	Formatting	2026-07-15T11:16:15.4192642Z 1 file would be reformatted, 84 files already formatted
+15:quality (3.12)	Formatting	﻿2026-07-15T11:16:21.6241382Z ##[group]Run ruff format --check .
+16:quality (3.12)	Formatting	2026-07-15T11:16:21.6241741Z ^[[36;1mruff format --check .^[[0m
+26:quality (3.12)	Formatting	2026-07-15T11:16:21.6490807Z Would reformat: src/hybrid_trader/forecasting/chronos_adapter.py
+27:quality (3.12)	Formatting	2026-07-15T11:16:21.6491317Z 1 file would be reformatted, 84 files already formatted
