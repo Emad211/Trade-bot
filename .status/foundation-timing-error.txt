@@ -1,35 +1,30 @@
 === errors ===
-1:materialize	Validate source tree	﻿2026-07-15T05:45:53.8619958Z ##[group]Run ruff format --check .
-2:materialize	Validate source tree	2026-07-15T05:45:53.8620310Z ^[[36;1mruff format --check .^[[0m
-3:materialize	Validate source tree	2026-07-15T05:45:53.8620563Z ^[[36;1mruff check .^[[0m
-4:materialize	Validate source tree	2026-07-15T05:45:53.8620808Z ^[[36;1mmypy --python-version 3.12 src^[[0m
-20:materialize	Validate source tree	2026-07-15T05:46:05.5009731Z src/hybrid_trader/forecasting/rolling.py:171: error: "Index[bool]" has no attribute "any"  [attr-defined]
-21:materialize	Validate source tree	2026-07-15T05:46:05.5011188Z src/hybrid_trader/forecasting/rolling.py:317: error: No overload variant of "int" matches argument type "object"  [call-overload]
+1:materialize	Validate source tree	﻿2026-07-15T05:49:37.1958901Z ##[group]Run ruff format --check .
+2:materialize	Validate source tree	2026-07-15T05:49:37.1959255Z ^[[36;1mruff format --check .^[[0m
+3:materialize	Validate source tree	2026-07-15T05:49:37.1959519Z ^[[36;1mruff check .^[[0m
+4:materialize	Validate source tree	2026-07-15T05:49:37.1959771Z ^[[36;1mmypy --python-version 3.12 src^[[0m
+20:materialize	Validate source tree	2026-07-15T05:49:48.3308357Z src/hybrid_trader/forecasting/rolling.py:171: error: "Index[bool]" has no attribute "any"  [attr-defined]
 
-=== final 180 lines ===
-materialize	Validate source tree	﻿2026-07-15T05:45:53.8619958Z ##[group]Run ruff format --check .
-materialize	Validate source tree	2026-07-15T05:45:53.8620310Z ^[[36;1mruff format --check .^[[0m
-materialize	Validate source tree	2026-07-15T05:45:53.8620563Z ^[[36;1mruff check .^[[0m
-materialize	Validate source tree	2026-07-15T05:45:53.8620808Z ^[[36;1mmypy --python-version 3.12 src^[[0m
-materialize	Validate source tree	2026-07-15T05:45:53.8621240Z ^[[36;1mpytest -m 'not optional_ml' --cov=hybrid_trader --cov-report=term-missing^[[0m
-materialize	Validate source tree	2026-07-15T05:45:53.8621668Z ^[[36;1mpytest -m optional_ml -q^[[0m
-materialize	Validate source tree	2026-07-15T05:45:53.8621946Z ^[[36;1mpython -m pip check^[[0m
-materialize	Validate source tree	2026-07-15T05:45:53.8655120Z shell: /usr/bin/bash -e {0}
-materialize	Validate source tree	2026-07-15T05:45:53.8655387Z env:
-materialize	Validate source tree	2026-07-15T05:45:53.8658595Z   GH_TOKEN: ***
-materialize	Validate source tree	2026-07-15T05:45:53.8658921Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
-materialize	Validate source tree	2026-07-15T05:45:53.8659398Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
-materialize	Validate source tree	2026-07-15T05:45:53.8659867Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
-materialize	Validate source tree	2026-07-15T05:45:53.8660299Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
-materialize	Validate source tree	2026-07-15T05:45:53.8660711Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
-materialize	Validate source tree	2026-07-15T05:45:53.8661156Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
-materialize	Validate source tree	2026-07-15T05:45:53.8661510Z ##[endgroup]
-materialize	Validate source tree	2026-07-15T05:45:53.8864237Z 84 files already formatted
-materialize	Validate source tree	2026-07-15T05:45:53.9044903Z All checks passed!
-materialize	Validate source tree	2026-07-15T05:46:05.5009731Z src/hybrid_trader/forecasting/rolling.py:171: error: "Index[bool]" has no attribute "any"  [attr-defined]
-materialize	Validate source tree	2026-07-15T05:46:05.5011188Z src/hybrid_trader/forecasting/rolling.py:317: error: No overload variant of "int" matches argument type "object"  [call-overload]
-materialize	Validate source tree	2026-07-15T05:46:05.5012411Z src/hybrid_trader/forecasting/rolling.py:317: note: Possible overload variants:
-materialize	Validate source tree	2026-07-15T05:46:05.5013864Z src/hybrid_trader/forecasting/rolling.py:317: note:     def int(str | Buffer | SupportsInt | SupportsIndex | SupportsTrunc = ..., /) -> int
-materialize	Validate source tree	2026-07-15T05:46:05.5015414Z src/hybrid_trader/forecasting/rolling.py:317: note:     def int(str | bytes | bytearray, /, base: SupportsIndex) -> int
-materialize	Validate source tree	2026-07-15T05:46:05.8446042Z Found 2 errors in 1 file (checked 48 source files)
-materialize	Validate source tree	2026-07-15T05:46:05.8700237Z ##[error]Process completed with exit code 1.
+=== final 220 lines ===
+materialize	Validate source tree	﻿2026-07-15T05:49:37.1958901Z ##[group]Run ruff format --check .
+materialize	Validate source tree	2026-07-15T05:49:37.1959255Z ^[[36;1mruff format --check .^[[0m
+materialize	Validate source tree	2026-07-15T05:49:37.1959519Z ^[[36;1mruff check .^[[0m
+materialize	Validate source tree	2026-07-15T05:49:37.1959771Z ^[[36;1mmypy --python-version 3.12 src^[[0m
+materialize	Validate source tree	2026-07-15T05:49:37.1960242Z ^[[36;1mpytest -m 'not optional_ml' --cov=hybrid_trader --cov-report=term-missing^[[0m
+materialize	Validate source tree	2026-07-15T05:49:37.1960704Z ^[[36;1mpytest -m optional_ml -q^[[0m
+materialize	Validate source tree	2026-07-15T05:49:37.1960987Z ^[[36;1mpython -m pip check^[[0m
+materialize	Validate source tree	2026-07-15T05:49:37.2014609Z shell: /usr/bin/bash -e {0}
+materialize	Validate source tree	2026-07-15T05:49:37.2014933Z env:
+materialize	Validate source tree	2026-07-15T05:49:37.2023507Z   GH_TOKEN: ***
+materialize	Validate source tree	2026-07-15T05:49:37.2023831Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+materialize	Validate source tree	2026-07-15T05:49:37.2024331Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+materialize	Validate source tree	2026-07-15T05:49:37.2024798Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+materialize	Validate source tree	2026-07-15T05:49:37.2025213Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+materialize	Validate source tree	2026-07-15T05:49:37.2025632Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+materialize	Validate source tree	2026-07-15T05:49:37.2026082Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+materialize	Validate source tree	2026-07-15T05:49:37.2026428Z ##[endgroup]
+materialize	Validate source tree	2026-07-15T05:49:37.2227049Z 84 files already formatted
+materialize	Validate source tree	2026-07-15T05:49:37.2408710Z All checks passed!
+materialize	Validate source tree	2026-07-15T05:49:48.3308357Z src/hybrid_trader/forecasting/rolling.py:171: error: "Index[bool]" has no attribute "any"  [attr-defined]
+materialize	Validate source tree	2026-07-15T05:49:48.6468649Z Found 1 error in 1 file (checked 48 source files)
+materialize	Validate source tree	2026-07-15T05:49:48.6719358Z ##[error]Process completed with exit code 1.
