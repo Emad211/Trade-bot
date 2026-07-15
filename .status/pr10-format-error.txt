@@ -1,49 +1,59 @@
-=== errors ===
-4:format	Validate formatted branch	2026-07-15T11:29:37.0023505Z ^[[36;1mmypy --python-version 3.12 src^[[0m
-5:format	Validate formatted branch	2026-07-15T11:29:37.0023832Z ^[[36;1mpytest -m 'not optional_ml' --cov=hybrid_trader --cov-report=term-missing^[[0m
-6:format	Validate formatted branch	2026-07-15T11:29:37.0024153Z ^[[36;1mpytest -m optional_ml -q^[[0m
-40:format	Validate formatted branch	2026-07-15T11:29:37.0366608Z Found 2 errors.
+=== formatting diagnostics ===
+1:quality (3.12)	Formatting	﻿2026-07-15T11:39:31.3994047Z ##[group]Run ruff format --check .
+2:quality (3.12)	Formatting	2026-07-15T11:39:31.3994397Z ^[[36;1mruff format --check .^[[0m
+3:quality (3.12)	Formatting	2026-07-15T11:39:31.4028592Z shell: /usr/bin/bash -e {0}
+4:quality (3.12)	Formatting	2026-07-15T11:39:31.4028852Z env:
+5:quality (3.12)	Formatting	2026-07-15T11:39:31.4029134Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+6:quality (3.12)	Formatting	2026-07-15T11:39:31.4029580Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+7:quality (3.12)	Formatting	2026-07-15T11:39:31.4030180Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+8:quality (3.12)	Formatting	2026-07-15T11:39:31.4030568Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+9:quality (3.12)	Formatting	2026-07-15T11:39:31.4030954Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+10:quality (3.12)	Formatting	2026-07-15T11:39:31.4031341Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+11:quality (3.12)	Formatting	2026-07-15T11:39:31.4031688Z ##[endgroup]
+12:quality (3.12)	Formatting	2026-07-15T11:39:31.4251266Z Would reformat: src/hybrid_trader/forecasting/chronos_adapter.py
+13:quality (3.12)	Formatting	2026-07-15T11:39:31.4251993Z 1 file would be reformatted, 84 files already formatted
+14:quality (3.12)	Formatting	2026-07-15T11:39:31.4273524Z ##[error]Process completed with exit code 1.
+15:quality (3.11)	Formatting	﻿2026-07-15T11:39:29.7935030Z ##[group]Run ruff format --check .
+16:quality (3.11)	Formatting	2026-07-15T11:39:29.7935312Z ^[[36;1mruff format --check .^[[0m
+17:quality (3.11)	Formatting	2026-07-15T11:39:29.7963886Z shell: /usr/bin/bash -e {0}
+18:quality (3.11)	Formatting	2026-07-15T11:39:29.7964097Z env:
+19:quality (3.11)	Formatting	2026-07-15T11:39:29.7964319Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+20:quality (3.11)	Formatting	2026-07-15T11:39:29.7964670Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+21:quality (3.11)	Formatting	2026-07-15T11:39:29.7965003Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+22:quality (3.11)	Formatting	2026-07-15T11:39:29.7965302Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+23:quality (3.11)	Formatting	2026-07-15T11:39:29.7965595Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+24:quality (3.11)	Formatting	2026-07-15T11:39:29.7965889Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+25:quality (3.11)	Formatting	2026-07-15T11:39:29.7966168Z ##[endgroup]
+26:quality (3.11)	Formatting	2026-07-15T11:39:29.8147889Z Would reformat: src/hybrid_trader/forecasting/chronos_adapter.py
+27:quality (3.11)	Formatting	2026-07-15T11:39:29.8148354Z 1 file would be reformatted, 84 files already formatted
+28:quality (3.11)	Formatting	2026-07-15T11:39:29.8166015Z ##[error]Process completed with exit code 1.
 
-=== final 220 lines ===
-format	Validate formatted branch	﻿2026-07-15T11:29:37.0022833Z ##[group]Run ruff format --check .
-format	Validate formatted branch	2026-07-15T11:29:37.0023104Z ^[[36;1mruff format --check .^[[0m
-format	Validate formatted branch	2026-07-15T11:29:37.0023306Z ^[[36;1mruff check .^[[0m
-format	Validate formatted branch	2026-07-15T11:29:37.0023505Z ^[[36;1mmypy --python-version 3.12 src^[[0m
-format	Validate formatted branch	2026-07-15T11:29:37.0023832Z ^[[36;1mpytest -m 'not optional_ml' --cov=hybrid_trader --cov-report=term-missing^[[0m
-format	Validate formatted branch	2026-07-15T11:29:37.0024153Z ^[[36;1mpytest -m optional_ml -q^[[0m
-format	Validate formatted branch	2026-07-15T11:29:37.0024371Z ^[[36;1mpython -m pip check^[[0m
-format	Validate formatted branch	2026-07-15T11:29:37.0054289Z shell: /usr/bin/bash -e {0}
-format	Validate formatted branch	2026-07-15T11:29:37.0054496Z env:
-format	Validate formatted branch	2026-07-15T11:29:37.0054717Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
-format	Validate formatted branch	2026-07-15T11:29:37.0055053Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
-format	Validate formatted branch	2026-07-15T11:29:37.0055379Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
-format	Validate formatted branch	2026-07-15T11:29:37.0055687Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
-format	Validate formatted branch	2026-07-15T11:29:37.0055981Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
-format	Validate formatted branch	2026-07-15T11:29:37.0056310Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
-format	Validate formatted branch	2026-07-15T11:29:37.0056562Z ##[endgroup]
-format	Validate formatted branch	2026-07-15T11:29:37.0222820Z 85 files already formatted
-format	Validate formatted branch	2026-07-15T11:29:37.0362192Z UP037 [*] Remove quotes from type annotation
-format	Validate formatted branch	2026-07-15T11:29:37.0362565Z   --> tests/test_chronos_output_shapes.py:18:25
-format	Validate formatted branch	2026-07-15T11:29:37.0362850Z    |
-format	Validate formatted branch	2026-07-15T11:29:37.0363011Z 16 |         self.values = values
-format	Validate formatted branch	2026-07-15T11:29:37.0363204Z 17 |
-format	Validate formatted branch	2026-07-15T11:29:37.0363367Z 18 |     def detach(self) -> "FakeTensor":
-format	Validate formatted branch	2026-07-15T11:29:37.0363595Z    |                         ^^^^^^^^^^^^
-format	Validate formatted branch	2026-07-15T11:29:37.0363813Z 19 |         return self
-format	Validate formatted branch	2026-07-15T11:29:37.0364030Z    |
-format	Validate formatted branch	2026-07-15T11:29:37.0364248Z help: Remove quotes
-format	Validate formatted branch	2026-07-15T11:29:37.0364389Z 
-format	Validate formatted branch	2026-07-15T11:29:37.0364496Z UP037 [*] Remove quotes from type annotation
-format	Validate formatted branch	2026-07-15T11:29:37.0364974Z   --> tests/test_chronos_output_shapes.py:21:22
-format	Validate formatted branch	2026-07-15T11:29:37.0365200Z    |
-format	Validate formatted branch	2026-07-15T11:29:37.0365351Z 19 |         return self
-format	Validate formatted branch	2026-07-15T11:29:37.0365540Z 20 |
-format	Validate formatted branch	2026-07-15T11:29:37.0365703Z 21 |     def cpu(self) -> "FakeTensor":
-format	Validate formatted branch	2026-07-15T11:29:37.0365925Z    |                      ^^^^^^^^^^^^
-format	Validate formatted branch	2026-07-15T11:29:37.0366125Z 22 |         return self
-format	Validate formatted branch	2026-07-15T11:29:37.0366290Z    |
-format	Validate formatted branch	2026-07-15T11:29:37.0366438Z help: Remove quotes
-format	Validate formatted branch	2026-07-15T11:29:37.0366541Z 
-format	Validate formatted branch	2026-07-15T11:29:37.0366608Z Found 2 errors.
-format	Validate formatted branch	2026-07-15T11:29:37.0366802Z [*] 2 fixable with the `--fix` option.
-format	Validate formatted branch	2026-07-15T11:29:37.0379023Z ##[error]Process completed with exit code 1.
+=== final 100 lines ===
+quality (3.12)	Formatting	﻿2026-07-15T11:39:31.3994047Z ##[group]Run ruff format --check .
+quality (3.12)	Formatting	2026-07-15T11:39:31.3994397Z ^[[36;1mruff format --check .^[[0m
+quality (3.12)	Formatting	2026-07-15T11:39:31.4028592Z shell: /usr/bin/bash -e {0}
+quality (3.12)	Formatting	2026-07-15T11:39:31.4028852Z env:
+quality (3.12)	Formatting	2026-07-15T11:39:31.4029134Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+quality (3.12)	Formatting	2026-07-15T11:39:31.4029580Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+quality (3.12)	Formatting	2026-07-15T11:39:31.4030180Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+quality (3.12)	Formatting	2026-07-15T11:39:31.4030568Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+quality (3.12)	Formatting	2026-07-15T11:39:31.4030954Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+quality (3.12)	Formatting	2026-07-15T11:39:31.4031341Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+quality (3.12)	Formatting	2026-07-15T11:39:31.4031688Z ##[endgroup]
+quality (3.12)	Formatting	2026-07-15T11:39:31.4251266Z Would reformat: src/hybrid_trader/forecasting/chronos_adapter.py
+quality (3.12)	Formatting	2026-07-15T11:39:31.4251993Z 1 file would be reformatted, 84 files already formatted
+quality (3.12)	Formatting	2026-07-15T11:39:31.4273524Z ##[error]Process completed with exit code 1.
+quality (3.11)	Formatting	﻿2026-07-15T11:39:29.7935030Z ##[group]Run ruff format --check .
+quality (3.11)	Formatting	2026-07-15T11:39:29.7935312Z ^[[36;1mruff format --check .^[[0m
+quality (3.11)	Formatting	2026-07-15T11:39:29.7963886Z shell: /usr/bin/bash -e {0}
+quality (3.11)	Formatting	2026-07-15T11:39:29.7964097Z env:
+quality (3.11)	Formatting	2026-07-15T11:39:29.7964319Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+quality (3.11)	Formatting	2026-07-15T11:39:29.7964670Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+quality (3.11)	Formatting	2026-07-15T11:39:29.7965003Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+quality (3.11)	Formatting	2026-07-15T11:39:29.7965302Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+quality (3.11)	Formatting	2026-07-15T11:39:29.7965595Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+quality (3.11)	Formatting	2026-07-15T11:39:29.7965889Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+quality (3.11)	Formatting	2026-07-15T11:39:29.7966168Z ##[endgroup]
+quality (3.11)	Formatting	2026-07-15T11:39:29.8147889Z Would reformat: src/hybrid_trader/forecasting/chronos_adapter.py
+quality (3.11)	Formatting	2026-07-15T11:39:29.8148354Z 1 file would be reformatted, 84 files already formatted
+quality (3.11)	Formatting	2026-07-15T11:39:29.8166015Z ##[error]Process completed with exit code 1.
