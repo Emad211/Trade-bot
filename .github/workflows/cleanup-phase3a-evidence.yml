@@ -1,5 +1,6 @@
 name: cleanup-phase3a-evidence
 
+# One-time cleanup after the final provenance run was committed.
 on:
   push:
     branches: ["agent/phase-3a-robustness-gate"]
