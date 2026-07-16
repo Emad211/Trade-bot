@@ -72,8 +72,10 @@ def sample_pearson_kurtosis(returns: FloatVector) -> float:
         return 3.0
     fourth_moment = float(np.mean(centered**4))
     biased_excess = fourth_moment / second_moment**2 - 3.0
-    unbiased_excess = (observations - 1) / ((observations - 2) * (observations - 3)) * (
-        (observations + 1) * biased_excess + 6.0
+    unbiased_excess = (
+        (observations - 1)
+        / ((observations - 2) * (observations - 3))
+        * ((observations + 1) * biased_excess + 6.0)
     )
     return float(unbiased_excess + 3.0)
 
@@ -107,19 +109,21 @@ def probabilistic_sharpe_ratio(
     skewness = sample_skewness(values)
     kurtosis = sample_pearson_kurtosis(values)
     denominator_squared = (
-        1.0
-        - skewness * observed_sharpe
-        + ((kurtosis - 1.0) / 4.0) * observed_sharpe**2
+        1.0 - skewness * observed_sharpe + ((kurtosis - 1.0) / 4.0) * observed_sharpe**2
     )
     if denominator_squared <= 0:
         return float(observed_sharpe > benchmark_sharpe)
-    statistic = (observed_sharpe - benchmark_sharpe) * math.sqrt(values.size - 1) / math.sqrt(
-        denominator_squared
+    statistic = (
+        (observed_sharpe - benchmark_sharpe)
+        * math.sqrt(values.size - 1)
+        / math.sqrt(denominator_squared)
     )
     return float(NormalDist().cdf(statistic))
 
 
-def expected_maximum_sharpe(*, declared_trials: int, trial_sharpe_standard_deviation: float) -> float:
+def expected_maximum_sharpe(
+    *, declared_trials: int, trial_sharpe_standard_deviation: float
+) -> float:
     """Expected maximum Sharpe under repeated trials, in the supplied units."""
 
     if declared_trials < 2:

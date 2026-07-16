@@ -28,13 +28,9 @@ def _require_columns(frame: pd.DataFrame, columns: set[str], *, label: str) -> N
 def aggregate_trial_sharpes(trial_metrics: pd.DataFrame) -> np.ndarray:
     _require_columns(trial_metrics, {"model", "sharpe"}, label="trial metrics")
     grouping = [
-        column
-        for column in ("scenario", "ablation", "model")
-        if column in trial_metrics.columns
+        column for column in ("scenario", "ablation", "model") if column in trial_metrics.columns
     ]
-    values = (
-        trial_metrics.groupby(grouping, dropna=False)["sharpe"].mean().to_numpy(dtype=float)
-    )
+    values = trial_metrics.groupby(grouping, dropna=False)["sharpe"].mean().to_numpy(dtype=float)
     values = values[np.isfinite(values)]
     if values.size < 2:
         raise ValueError("At least two finite trial Sharpe estimates are required")
@@ -117,9 +113,7 @@ def assess_candidate_robustness(
 
     trial_sharpes = aggregate_trial_sharpes(trial_metrics)
     if policy.declared_trials < trial_sharpes.size:
-        raise ValueError(
-            "Policy declared_trials is smaller than the observed trial-family count"
-        )
+        raise ValueError("Policy declared_trials is smaller than the observed trial-family count")
 
     summary_rows: list[dict[str, Any]] = []
     regime_frames: list[pd.DataFrame] = []
@@ -164,17 +158,14 @@ def assess_candidate_robustness(
                 concentration.positive_fold_ratio >= policy.minimum_positive_fold_ratio
             ),
             "top_fold_concentration": (
-                concentration.top_fold_profit_share
-                <= policy.maximum_top_fold_profit_share
+                concentration.top_fold_profit_share <= policy.maximum_top_fold_profit_share
             ),
             "top_three_fold_concentration": (
                 concentration.top_three_fold_profit_share
                 <= policy.maximum_top_three_fold_profit_share
             ),
             "positive_two_x_cost_return": (
-                two_x_cost_return > 0
-                if policy.require_positive_two_x_cost_return
-                else True
+                two_x_cost_return > 0 if policy.require_positive_two_x_cost_return else True
             ),
         }
         summary_rows.append(
@@ -230,7 +221,9 @@ def assess_candidate_robustness(
     )
     regimes = pd.concat(regime_frames, ignore_index=True)
     passing = summary.loc[summary["eligible_for_human_freeze_review"]]
-    verdict = "candidate_requires_human_freeze_review" if not passing.empty else "no_candidate_passed"
+    verdict = (
+        "candidate_requires_human_freeze_review" if not passing.empty else "no_candidate_passed"
+    )
     action = "human_review_before_new_experiment" if not passing.empty else "retain_research_only"
 
     summary_records = json.loads(summary.to_json(orient="records"))

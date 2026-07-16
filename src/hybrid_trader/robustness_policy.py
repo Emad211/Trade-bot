@@ -38,9 +38,7 @@ class RobustnessPolicy(BaseModel):
         if self.low_volatility_threshold >= self.high_volatility_threshold:
             raise ValueError("low_volatility_threshold must be below high_volatility_threshold")
         if self.maximum_top_fold_profit_share > self.maximum_top_three_fold_profit_share:
-            raise ValueError(
-                "maximum_top_fold_profit_share cannot exceed the top-three threshold"
-            )
+            raise ValueError("maximum_top_fold_profit_share cannot exceed the top-three threshold")
         return self
 
 
