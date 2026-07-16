@@ -21,14 +21,14 @@
       "url": "https://api.github.com/users/Emad211",
       "user_view_type": "public"
     },
-    "artifacts_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29480551988/artifacts",
-    "cancel_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29480551988/cancel",
-    "check_suite_id": 79815479213,
-    "check_suite_node_id": "CS_kwDOSjXKWc8AAAASlV-PrQ",
-    "check_suite_url": "https://api.github.com/repos/Emad211/Trade-bot/check-suites/79815479213",
+    "artifacts_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29481219378/artifacts",
+    "cancel_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29481219378/cancel",
+    "check_suite_id": 79817319423,
+    "check_suite_node_id": "CS_kwDOSjXKWc8AAAASlXuj_w",
+    "check_suite_url": "https://api.github.com/repos/Emad211/Trade-bot/check-suites/79817319423",
     "conclusion": "failure",
-    "created_at": "2026-07-16T07:37:28Z",
-    "display_title": "trigger trusted Phase 3 robustness publisher",
+    "created_at": "2026-07-16T07:49:03Z",
+    "display_title": "verify decoded Phase 3 payload bytes",
     "event": "push",
     "head_branch": "agent/phase-2c-real-data-benchmark",
     "head_commit": {
@@ -40,10 +40,10 @@
         "email": "82148680+Emad211@users.noreply.github.com",
         "name": "Emad Karimi"
       },
-      "id": "603cd314d2b3ed4574f56ca60136542748e46802",
-      "message": "trigger trusted Phase 3 robustness publisher",
-      "timestamp": "2026-07-16T07:37:25Z",
-      "tree_id": "6105872d851025abc8495ca33c70d573d7530949"
+      "id": "034510a5ef5d6f4601596ed4d8a68def4621dd75",
+      "message": "verify decoded Phase 3 payload bytes",
+      "timestamp": "2026-07-16T07:49:00Z",
+      "tree_id": "48cc63b3f5cce37a23560d63cffdfa353befb672"
     },
     "head_repository": {
       "archive_url": "https://api.github.com/repos/Emad211/Trade-bot/{archive_format}{/ref}",
@@ -113,13 +113,13 @@
       "trees_url": "https://api.github.com/repos/Emad211/Trade-bot/git/trees{/sha}",
       "url": "https://api.github.com/repos/Emad211/Trade-bot"
     },
-    "head_sha": "603cd314d2b3ed4574f56ca60136542748e46802",
-    "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29480551988",
-    "id": 29480551988,
-    "jobs_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29480551988/jobs",
-    "logs_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29480551988/logs",
+    "head_sha": "034510a5ef5d6f4601596ed4d8a68def4621dd75",
+    "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29481219378",
+    "id": 29481219378,
+    "jobs_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29481219378/jobs",
+    "logs_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29481219378/logs",
     "name": "publish-phase3-classical-robustness",
-    "node_id": "WFR_kwLOSjXKWc8AAAAG3S2GNA",
+    "node_id": "WFR_kwLOSjXKWc8AAAAG3Te1Mg",
     "path": ".github/workflows/publish-phase3-classical-robustness.yml",
     "previous_attempt_url": null,
     "pull_requests": [],
@@ -192,10 +192,10 @@
       "trees_url": "https://api.github.com/repos/Emad211/Trade-bot/git/trees{/sha}",
       "url": "https://api.github.com/repos/Emad211/Trade-bot"
     },
-    "rerun_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29480551988/rerun",
+    "rerun_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29481219378/rerun",
     "run_attempt": 1,
-    "run_number": 2,
-    "run_started_at": "2026-07-16T07:37:28Z",
+    "run_number": 3,
+    "run_started_at": "2026-07-16T07:49:03Z",
     "status": "completed",
     "triggering_actor": {
       "avatar_url": "https://avatars.githubusercontent.com/u/82148680?v=4",
@@ -218,28 +218,28 @@
       "url": "https://api.github.com/users/Emad211",
       "user_view_type": "public"
     },
-    "updated_at": "2026-07-16T07:37:39Z",
-    "url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29480551988",
+    "updated_at": "2026-07-16T07:49:16Z",
+    "url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29481219378",
     "workflow_id": 314247621,
     "workflow_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/workflows/314247621"
   },
   "jobs": [
     {
-      "id": 87563051649,
-      "run_id": 29480551988,
+      "id": 87565171522,
+      "run_id": 29481219378,
       "workflow_name": "publish-phase3-classical-robustness",
       "head_branch": "agent/phase-2c-real-data-benchmark",
-      "run_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29480551988",
+      "run_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29481219378",
       "run_attempt": 1,
-      "node_id": "CR_kwDOSjXKWc8AAAAUYyoigQ",
-      "head_sha": "603cd314d2b3ed4574f56ca60136542748e46802",
-      "url": "https://api.github.com/repos/Emad211/Trade-bot/actions/jobs/87563051649",
-      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29480551988/job/87563051649",
+      "node_id": "CR_kwDOSjXKWc8AAAAUY0p7Qg",
+      "head_sha": "034510a5ef5d6f4601596ed4d8a68def4621dd75",
+      "url": "https://api.github.com/repos/Emad211/Trade-bot/actions/jobs/87565171522",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29481219378/job/87565171522",
       "status": "completed",
       "conclusion": "failure",
-      "created_at": "2026-07-16T07:37:28Z",
-      "started_at": "2026-07-16T07:37:30Z",
-      "completed_at": "2026-07-16T07:37:38Z",
+      "created_at": "2026-07-16T07:49:03Z",
+      "started_at": "2026-07-16T07:49:06Z",
+      "completed_at": "2026-07-16T07:49:15Z",
       "name": "publish",
       "steps": [
         {
@@ -247,104 +247,104 @@
           "status": "completed",
           "conclusion": "success",
           "number": 1,
-          "started_at": "2026-07-16T07:37:31Z",
-          "completed_at": "2026-07-16T07:37:32Z"
+          "started_at": "2026-07-16T07:49:07Z",
+          "completed_at": "2026-07-16T07:49:08Z"
         },
         {
           "name": "Run actions/checkout@v4",
           "status": "completed",
           "conclusion": "success",
           "number": 2,
-          "started_at": "2026-07-16T07:37:32Z",
-          "completed_at": "2026-07-16T07:37:33Z"
+          "started_at": "2026-07-16T07:49:08Z",
+          "completed_at": "2026-07-16T07:49:09Z"
         },
         {
           "name": "Run actions/setup-python@v5",
           "status": "completed",
           "conclusion": "success",
           "number": 3,
-          "started_at": "2026-07-16T07:37:33Z",
-          "completed_at": "2026-07-16T07:37:36Z"
+          "started_at": "2026-07-16T07:49:09Z",
+          "completed_at": "2026-07-16T07:49:13Z"
         },
         {
           "name": "Verify and apply the text-only source patch",
           "status": "completed",
           "conclusion": "failure",
           "number": 4,
-          "started_at": "2026-07-16T07:37:36Z",
-          "completed_at": "2026-07-16T07:37:36Z"
+          "started_at": "2026-07-16T07:49:13Z",
+          "completed_at": "2026-07-16T07:49:13Z"
         },
         {
           "name": "Install and validate the complete source tree",
           "status": "completed",
           "conclusion": "skipped",
           "number": 5,
-          "started_at": "2026-07-16T07:37:36Z",
-          "completed_at": "2026-07-16T07:37:36Z"
+          "started_at": "2026-07-16T07:49:13Z",
+          "completed_at": "2026-07-16T07:49:13Z"
         },
         {
           "name": "Recompute the classical verdict from immutable evidence",
           "status": "completed",
           "conclusion": "skipped",
           "number": 6,
-          "started_at": "2026-07-16T07:37:36Z",
-          "completed_at": "2026-07-16T07:37:36Z"
+          "started_at": "2026-07-16T07:49:13Z",
+          "completed_at": "2026-07-16T07:49:13Z"
         },
         {
           "name": "Build and clean-install wheel",
           "status": "completed",
           "conclusion": "skipped",
           "number": 7,
-          "started_at": "2026-07-16T07:37:36Z",
-          "completed_at": "2026-07-16T07:37:36Z"
+          "started_at": "2026-07-16T07:49:13Z",
+          "completed_at": "2026-07-16T07:49:13Z"
         },
         {
           "name": "Commit the validated clean tree",
           "status": "completed",
           "conclusion": "skipped",
           "number": 8,
-          "started_at": "2026-07-16T07:37:36Z",
-          "completed_at": "2026-07-16T07:37:36Z"
+          "started_at": "2026-07-16T07:49:13Z",
+          "completed_at": "2026-07-16T07:49:13Z"
         },
         {
           "name": "Report publication to PR 14",
           "status": "completed",
           "conclusion": "skipped",
           "number": 9,
-          "started_at": "2026-07-16T07:37:36Z",
-          "completed_at": "2026-07-16T07:37:36Z"
+          "started_at": "2026-07-16T07:49:13Z",
+          "completed_at": "2026-07-16T07:49:13Z"
         },
         {
           "name": "Post Run actions/setup-python@v5",
           "status": "completed",
           "conclusion": "skipped",
           "number": 17,
-          "started_at": "2026-07-16T07:37:36Z",
-          "completed_at": "2026-07-16T07:37:36Z"
+          "started_at": "2026-07-16T07:49:13Z",
+          "completed_at": "2026-07-16T07:49:13Z"
         },
         {
           "name": "Post Run actions/checkout@v4",
           "status": "completed",
           "conclusion": "success",
           "number": 18,
-          "started_at": "2026-07-16T07:37:36Z",
-          "completed_at": "2026-07-16T07:37:36Z"
+          "started_at": "2026-07-16T07:49:13Z",
+          "completed_at": "2026-07-16T07:49:13Z"
         },
         {
           "name": "Complete job",
           "status": "completed",
           "conclusion": "success",
           "number": 19,
-          "started_at": "2026-07-16T07:37:36Z",
-          "completed_at": "2026-07-16T07:37:36Z"
+          "started_at": "2026-07-16T07:49:13Z",
+          "completed_at": "2026-07-16T07:49:13Z"
         }
       ],
-      "check_run_url": "https://api.github.com/repos/Emad211/Trade-bot/check-runs/87563051649",
+      "check_run_url": "https://api.github.com/repos/Emad211/Trade-bot/check-runs/87565171522",
       "labels": [
         "ubuntu-latest"
       ],
-      "runner_id": 1000004139,
-      "runner_name": "GitHub Actions 1000004139",
+      "runner_id": 1000004178,
+      "runner_name": "GitHub Actions 1000004178",
       "runner_group_id": 0,
       "runner_group_name": "GitHub Actions"
     }
