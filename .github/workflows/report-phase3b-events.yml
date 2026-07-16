@@ -1,5 +1,6 @@
 name: report-phase3b-events
 
+# Report the final capture that also publishes compact Git evidence.
 on:
   push:
     branches: ["agent/phase-3b-prospective-events"]
@@ -36,7 +37,7 @@ jobs:
           jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
           artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts?per_page=100")
           {
-            echo '## Phase 3B public-feed capture status'
+            echo '## Final Phase 3B public-feed capture status'
             echo
             echo "- run: $(jq -r .html_url <<<"$run")"
             echo "- status: $(jq -r .status <<<"$run")"
