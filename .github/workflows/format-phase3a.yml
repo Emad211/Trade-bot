@@ -1,5 +1,6 @@
 name: format-phase3a
 
+# One-time formatter for the Phase 3A review branch.
 on:
   push:
     branches: ["agent/phase-3a-robustness-gate"]
