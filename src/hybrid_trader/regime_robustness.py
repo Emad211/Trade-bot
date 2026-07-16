@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import math
-from typing import cast
 
 import numpy as np
 import pandas as pd
@@ -55,7 +54,7 @@ def classify_market_regimes(
         ],
         dtype=np.str_,
     )
-    return cast(NDArray[np.str_], labels)
+    return labels
 
 
 def regime_performance(
