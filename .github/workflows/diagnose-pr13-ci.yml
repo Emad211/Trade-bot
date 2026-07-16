@@ -1,0 +1,35 @@
+name: diagnose-pr13-ci
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/diagnose-pr13-ci.yml"
+
+permissions:
+  actions: read
+  pull-requests: write
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      FAILED_RUN_ID: "29476460228"
+    steps:
+      - name: Extract failed-step diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh run view "$FAILED_RUN_ID" --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/failed.log
+          {
+            echo '## PR 13 CI diagnostics'
+            echo
+            echo '```text'
+            grep -nE 'Would reformat|error:|ERROR|FAILED|FAILURES|Traceback|ModuleNotFoundError|ImportError|AssertionError|collected|deselected' /tmp/failed.log | tail -n 160 || true
+            echo '```'
+            echo
+            echo "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$FAILED_RUN_ID"
+          } > /tmp/diagnostics.md
+          gh pr comment 13 --repo "$GITHUB_REPOSITORY" --body-file /tmp/diagnostics.md
