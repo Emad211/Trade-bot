@@ -1,0 +1,35 @@
+name: diagnose-phase3-publisher
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/diagnose-phase3-publisher.yml"
+
+permissions:
+  actions: read
+  pull-requests: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      FAILED_RUN_ID: "29480551988"
+    steps:
+      - name: Extract failed patch-stage diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh run view "$FAILED_RUN_ID" --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/failed.log
+          {
+            echo '## Phase 3 publisher diagnostics'
+            echo
+            echo '```text'
+            grep -nE 'FAILED|WARNING|sha256|patch|error:|Error|fatal:|No such file|does not apply|corrupt' /tmp/failed.log | tail -n 120 || true
+            echo
+            echo '--- final 100 lines ---'
+            tail -n 100 /tmp/failed.log
+            echo '```'
+          } > /tmp/diagnostics.md
+          gh pr comment 14 --repo "$GITHUB_REPOSITORY" --body-file /tmp/diagnostics.md
