@@ -1,10 +1,13 @@
 name: phase3c-materialize
 
-# One-time materializer for provider audit hardening and repository formatting.
 on:
-  push:
-    branches: ["agent/phase-3c-avalai-provider"]
+  pull_request:
+    branches: ["agent/phase-3b-prospective-events"]
     paths:
+      - "src/hybrid_trader/avalai.py"
+      - "src/hybrid_trader/avalai_capture.py"
+      - "tests/test_avalai_provider.py"
+      - "tests/test_phase3c_avalai_capture.py"
       - "scripts/materialize_avalai_audit_hardening.py"
       - ".github/workflows/phase3c-materialize.yml"
 
@@ -13,12 +16,14 @@ permissions:
 
 jobs:
   materialize:
+    if: ${{ github.head_ref == 'agent/phase-3c-avalai-provider' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
           ref: agent/phase-3c-avalai-provider
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -32,8 +37,8 @@ jobs:
           ruff format .
           ruff check --fix .
           python -m compileall -q src scripts tests
-      - name: Remove one-time materializer
-        run: rm -f scripts/materialize_avalai_audit_hardening.py .github/workflows/phase3c-materialize.yml
+      - name: Remove one-time files
+        run: rm -f scripts/materialize_avalai_audit_hardening.py .github/workflows/phase3c-materialize.yml .github/workflows/avalai-docs-inspect.yml
       - name: Commit materialized provider
         shell: bash
         run: |
