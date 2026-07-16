@@ -9,7 +9,7 @@ import pandas as pd
 from numpy.typing import NDArray
 
 from hybrid_trader.bootstrap_robustness import compounded_return
-from hybrid_trader.sharpe_robustness import FloatVector, finite_returns
+from hybrid_trader.sharpe_robustness import FloatVector, finite_returns, finite_vector
 
 
 def classify_market_regimes(
@@ -20,12 +20,12 @@ def classify_market_regimes(
     high_volatility_threshold: float,
     trend_band: float,
 ) -> NDArray[np.str_]:
-    volatility = finite_returns(
+    volatility = finite_vector(
         realized_volatility,
         name="realized_volatility",
         minimum_size=1,
     )
-    trend = finite_returns(ema_ratio, name="ema_ratio", minimum_size=1)
+    trend = finite_vector(ema_ratio, name="ema_ratio", minimum_size=1)
     if volatility.size != trend.size:
         raise ValueError("Volatility and trend vectors must have equal length")
     if low_volatility_threshold >= high_volatility_threshold:
