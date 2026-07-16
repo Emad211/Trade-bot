@@ -6,18 +6,14 @@ import hashlib
 import json
 import re
 from collections.abc import Callable
-from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from hybrid_trader.avalai import (
     AvalAICallRecord,
-    AvalAIProviderManifest if False else AvalAISettings,
-)
-from hybrid_trader.avalai import (
     AvalAISettings,
     AvalAIStructuredExtractor,
     AvalAITransport,
@@ -33,7 +29,9 @@ from hybrid_trader.event_capture_models import (
 from hybrid_trader.event_capture_state import canonical_sha256
 from hybrid_trader.semantic_extraction import verify_semantic_ledger
 
-_SECRET_BYTES = re.compile(rb"(?i)(?:authorization\s*[:=]|bearer\s+|\b(?:aa|sk)-[A-Za-z0-9_-]{6,})")
+_SECRET_BYTES = re.compile(
+    rb"(?i)(?:authorization\s*[:=]|bearer\s+|\b(?:aa|sk)-[A-Za-z0-9_-]{6,})"
+)
 
 
 class Phase3CAvalAIConfig(BaseModel):
@@ -60,7 +58,7 @@ class AvalAIProviderRunManifest(BaseModel):
     schema_version: str = "1.0"
     provider_run_id: str = Field(pattern=r"^[0-9a-f]{64}$")
     capture_id: str = Field(pattern=r"^[0-9a-f]{64}$")
-    capture_status: str
+    capture_status: Literal["success", "failed"]
     capture_manifest_relative_path: str
     config_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     settings_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
@@ -137,10 +135,7 @@ def _call_records(path: Path) -> tuple[AvalAICallRecord, ...]:
     )
 
 
-def _write_provider_manifest(
-    root: Path,
-    manifest: AvalAIProviderRunManifest,
-) -> Path:
+def _write_provider_manifest(root: Path, manifest: AvalAIProviderRunManifest) -> Path:
     run_root = root / "state" / "avalai_runs" / manifest.capture_id
     if run_root.exists():
         raise FileExistsError(f"AvalAI provider run is immutable: {run_root}")
@@ -185,9 +180,7 @@ def capture_avalai_events(
     capture_manifest: EventCaptureManifest | None = None
     capture_failure: EventCaptureFailure | None = None
     try:
-        capture_kwargs: dict[str, Any] = {
-            "extractor_factory": lambda: extractor,
-        }
+        capture_kwargs: dict[str, Any] = {"extractor_factory": lambda: extractor}
         if feed_factory is not None:
             capture_kwargs["feed_factory"] = feed_factory
         capture_manifest = capture_events(config.capture, root, **capture_kwargs)
@@ -298,6 +291,8 @@ def verify_phase3c_avalai_root(root: str | Path) -> dict[str, object]:
             raise RuntimeError("AvalAI provider manifest references an unknown call")
         run_manifests.append(manifest)
 
+    if not run_manifests:
+        raise RuntimeError("No valid AvalAI provider-run manifests were found")
     latest = max(run_manifests, key=lambda item: (item.call_count_after, item.capture_id))
     if latest.call_count_after != call_state.count:
         raise RuntimeError("Latest AvalAI provider manifest does not match call-ledger count")
