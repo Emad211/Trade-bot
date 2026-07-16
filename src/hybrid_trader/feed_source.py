@@ -31,9 +31,20 @@ class _TextExtractor(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
         self.parts: list[str] = []
+        self._ignored_depth = 0
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        del attrs
+        if tag.lower() in {"script", "style"}:
+            self._ignored_depth += 1
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.lower() in {"script", "style"} and self._ignored_depth:
+            self._ignored_depth -= 1
 
     def handle_data(self, data: str) -> None:
-        self.parts.append(data)
+        if self._ignored_depth == 0:
+            self.parts.append(data)
 
 
 def _strip_markup(value: str) -> str:
@@ -50,10 +61,11 @@ def _local_name(tag: str) -> str:
 def _child_text(element: ET.Element, names: tuple[str, ...]) -> str | None:
     wanted = set(names)
     for child in element:
-        if _local_name(child.tag) in wanted and child.text:
-            value = child.text.strip()
-            if value:
-                return value
+        if _local_name(child.tag) not in wanted:
+            continue
+        value = "".join(child.itertext()).strip()
+        if value:
+            return value
     return None
 
 
@@ -62,11 +74,12 @@ def _entry_link(element: ET.Element, *, feed_url: str) -> str | None:
         if _local_name(child.tag) != "link":
             continue
         href = child.attrib.get("href")
-        relation = child.attrib.get("rel", "alternate")
+        relation = child.attrib.get("rel", "alternate").lower()
         if href and relation in {"alternate", ""}:
-            return urljoin(feed_url, href)
-        if child.text and child.text.strip():
-            return urljoin(feed_url, child.text.strip())
+            return urljoin(feed_url, href.strip())
+        text = "".join(child.itertext()).strip()
+        if text:
+            return urljoin(feed_url, text)
     identifier = _child_text(element, ("id", "guid"))
     if identifier and identifier.startswith(("https://", "http://")):
         return identifier
@@ -99,8 +112,13 @@ def _default_downloader(url: str, timeout_seconds: int, maximum_bytes: int) -> b
     )
     with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
         declared_length = response.headers.get("Content-Length")
-        if declared_length is not None and int(declared_length) > maximum_bytes:
-            raise ValueError("Feed payload exceeds the configured maximum size")
+        if declared_length is not None:
+            try:
+                content_length = int(declared_length)
+            except ValueError:
+                content_length = -1
+            if content_length > maximum_bytes:
+                raise ValueError("Feed payload exceeds the configured maximum size")
         payload = response.read(maximum_bytes + 1)
     if len(payload) > maximum_bytes:
         raise ValueError("Feed payload exceeds the configured maximum size")
@@ -112,6 +130,7 @@ class FeedParseResult:
     documents: tuple[DocumentEnvelope, ...]
     duplicate_count: int
     skipped_count: int
+    truncated_count: int
     warnings: tuple[str, ...]
 
 
@@ -136,6 +155,8 @@ def parse_feed(
     if retrieved_at.tzinfo is None:
         raise ValueError("retrieved_at must be timezone-aware")
     retrieved = retrieved_at.astimezone(UTC)
+    if not payload:
+        raise ValueError("Feed payload cannot be empty")
     if len(payload) > spec.maximum_payload_bytes:
         raise ValueError("Feed payload exceeds the configured maximum size")
     try:
@@ -144,8 +165,13 @@ def parse_feed(
         raise ValueError(f"Invalid XML feed for {spec.source_id}") from exc
 
     payload_sha = hashlib.sha256(payload).hexdigest()
-    item_names = {"item", "entry"}
-    entries = [element for element in root.iter() if _local_name(element.tag) in item_names]
+    entries = [
+        element
+        for element in root.iter()
+        if _local_name(element.tag) in {"item", "entry"}
+    ]
+    selected_entries = entries[: spec.max_items]
+    truncated_count = max(0, len(entries) - len(selected_entries))
     documents: list[DocumentEnvelope] = []
     seen_ids: set[str] = set()
     duplicate_count = 0
@@ -153,7 +179,12 @@ def parse_feed(
     warnings: list[str] = []
     clock_skew = timedelta(seconds=spec.maximum_clock_skew_seconds)
 
-    for entry in entries[: spec.max_items]:
+    if not entries:
+        warnings.append("feed_contains_no_entries")
+    if truncated_count:
+        warnings.append("feed_entries_truncated")
+
+    for entry in selected_entries:
         title = _strip_markup(_child_text(entry, ("title",)) or "")
         raw_link = _entry_link(entry, feed_url=spec.feed_url)
         if not title or not raw_link:
@@ -215,6 +246,7 @@ def parse_feed(
         documents=tuple(documents),
         duplicate_count=duplicate_count,
         skipped_count=skipped_count,
+        truncated_count=truncated_count,
         warnings=tuple(sorted(warnings)),
     )
 
@@ -232,11 +264,15 @@ class PublicFeedSource:
         retrieved_at: datetime | None = None,
         downloader: Downloader = _default_downloader,
     ) -> FeedFetchResult:
-        observed_at = (retrieved_at or datetime.now(UTC)).astimezone(UTC)
+        if retrieved_at is not None and retrieved_at.tzinfo is None:
+            raise ValueError("retrieved_at must be timezone-aware")
         payload = downloader(
             self.spec.feed_url,
             self.timeout_seconds,
             self.spec.maximum_payload_bytes,
+        )
+        observed_at = (
+            retrieved_at.astimezone(UTC) if retrieved_at is not None else datetime.now(UTC)
         )
         parsed = parse_feed(payload, self.spec, retrieved_at=observed_at)
         return FeedFetchResult(
