@@ -51,7 +51,9 @@ class FeedClient(Protocol):
 class SemanticExtractor(Protocol):
     model_id: str
     model_revision: str
-    prompt_sha256: str
+
+    @property
+    def prompt_sha256(self) -> str: ...
 
     def extraction_key(self, envelope: DocumentEnvelope) -> str: ...
 
@@ -163,7 +165,9 @@ def capture_events(
         successful = tuple(
             sorted(attempt.source_id for attempt in attempts if attempt.status == "success")
         )
-        failed = tuple(sorted(attempt.source_id for attempt in attempts if attempt.status == "failed"))
+        failed = tuple(
+            sorted(attempt.source_id for attempt in attempts if attempt.status == "failed")
+        )
         required_failures = sorted(
             attempt.source_id
             for attempt in attempts

@@ -48,11 +48,10 @@ def verify_document_ledger(
             if previous_document is not None:
                 if document.retrieved_at < previous_document.retrieved_at:
                     raise ValueError("Event retrieval times cannot move backward")
-                if (
-                    document.retrieved_at == previous_document.retrieved_at
-                    and (document.source_id, document.document_id)
-                    <= (previous_document.source_id, previous_document.document_id)
-                ):
+                if document.retrieved_at == previous_document.retrieved_at and (
+                    document.source_id,
+                    document.document_id,
+                ) <= (previous_document.source_id, previous_document.document_id):
                     raise ValueError("Equal-time event records must use canonical source/ID order")
             previous_sha = document_record_sha256(document)
             previous_document = document

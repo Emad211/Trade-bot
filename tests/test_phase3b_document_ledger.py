@@ -70,7 +70,7 @@ def test_document_ledger_is_deduplicated_and_tamper_evident(tmp_path: Path) -> N
 
     raw = ledger.read_bytes()
     ledger.write_bytes(raw.replace(b"Protocol release 1.0", b"Protocol release X.0", 1))
-    with pytest.raises(ValueError, match="Invalid event ledger|hash chain"):
+    with pytest.raises(ValueError, match=r"Invalid event ledger|hash chain"):
         verify_document_ledger(ledger)
 
 

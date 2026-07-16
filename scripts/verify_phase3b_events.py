@@ -64,7 +64,10 @@ def verify_phase3b_root(root: Path) -> dict[str, object]:
         raise RuntimeError("Latest document ledger head does not match")
     if latest.semantic_ledger_head_sha256 != semantic_state.head_sha256:
         raise RuntimeError("Latest semantic ledger head does not match")
-    if latest.document_count != document_count or latest.semantic_record_count != semantic_state.count:
+    if (
+        latest.document_count != document_count
+        or latest.semantic_record_count != semantic_state.count
+    ):
         raise RuntimeError("Latest capture counts do not match current ledgers")
     return {
         "capture_count": len(manifests),

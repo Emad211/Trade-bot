@@ -190,7 +190,11 @@ def _event_type_and_severity(text: str) -> tuple[str, float]:
     normalized = text.lower()
     rules = (
         (("exploit", "hack", "vulnerability", "security incident"), "security_incident", 0.85),
-        (("rate cut", "rate hike", "interest rate", "central bank", "fomc"), "monetary_policy", 0.65),
+        (
+            ("rate cut", "rate hike", "interest rate", "central bank", "fomc"),
+            "monetary_policy",
+            0.65,
+        ),
         (("sec ", "cftc", "regulat", "enforcement", "approval"), "regulation", 0.60),
         (("release", "version", "upgrade", "hard fork", "soft fork"), "protocol_release", 0.35),
     )

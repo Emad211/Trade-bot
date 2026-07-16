@@ -119,7 +119,7 @@ def _default_downloader(url: str, timeout_seconds: int, maximum_bytes: int) -> b
                 content_length = -1
             if content_length > maximum_bytes:
                 raise ValueError("Feed payload exceeds the configured maximum size")
-        payload = response.read(maximum_bytes + 1)
+        payload = bytes(response.read(maximum_bytes + 1))
     if len(payload) > maximum_bytes:
         raise ValueError("Feed payload exceeds the configured maximum size")
     return payload
@@ -165,11 +165,7 @@ def parse_feed(
         raise ValueError(f"Invalid XML feed for {spec.source_id}") from exc
 
     payload_sha = hashlib.sha256(payload).hexdigest()
-    entries = [
-        element
-        for element in root.iter()
-        if _local_name(element.tag) in {"item", "entry"}
-    ]
+    entries = [element for element in root.iter() if _local_name(element.tag) in {"item", "entry"}]
     selected_entries = entries[: spec.max_items]
     truncated_count = max(0, len(entries) - len(selected_entries))
     documents: list[DocumentEnvelope] = []

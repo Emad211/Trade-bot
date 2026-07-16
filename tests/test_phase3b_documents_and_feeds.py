@@ -31,9 +31,7 @@ def _source_spec(**updates: object) -> FeedSourceSpec:
 
 
 def test_event_urls_are_canonical_and_feed_hosts_are_constrained() -> None:
-    value = canonicalize_url(
-        "HTTPS://Example.COM:443/releases/?utm_source=x&b=2&a=1#fragment"
-    )
+    value = canonicalize_url("HTTPS://Example.COM:443/releases/?utm_source=x&b=2&a=1#fragment")
     assert value == "https://example.com/releases?a=1&b=2"
     assert url_is_allowed(value, ("example.com",))
     assert url_is_allowed("https://sub.example.com/a", ("example.com",))

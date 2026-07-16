@@ -6,6 +6,8 @@ from typing import Any
 
 from hybrid_trader.event_identity import (
     document_identity_payload,
+)
+from hybrid_trader.event_identity import (
     make_document_id as _make_document_id,
 )
 from hybrid_trader.event_source_spec import FeedSourceSpec

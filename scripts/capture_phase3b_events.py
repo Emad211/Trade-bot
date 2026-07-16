@@ -58,7 +58,10 @@ def main() -> None:
         raise RuntimeError("Event capture unexpectedly created trading decisions")
     document_head, _, document_count, _ = verify_document_ledger(state_root / "documents.jsonl")
     semantic_state = verify_semantic_ledger(state_root / "semantic_events.jsonl")
-    if document_head != manifest.document_ledger_head_sha256 or document_count != manifest.document_count:
+    if (
+        document_head != manifest.document_ledger_head_sha256
+        or document_count != manifest.document_count
+    ):
         raise RuntimeError("Document ledger does not match the capture manifest")
     if (
         semantic_state.head_sha256 != manifest.semantic_ledger_head_sha256
