@@ -22,7 +22,7 @@ class EventSignal(BaseModel):
     novelty: float = Field(ge=0, le=1)
     source_quality: float = Field(ge=0, le=1)
     confidence: float = Field(ge=0, le=1)
-    evidence_ids: tuple[str, ...] = ()
+    evidence_ids: tuple[str, ...]
 
     @field_validator("event_time_utc")
     @classmethod
@@ -36,8 +36,18 @@ class EventSignal(BaseModel):
     def normalize_asset(cls, value: str) -> str:
         return value.strip().upper()
 
+    @field_validator("event_type")
+    @classmethod
+    def normalize_event_type(cls, value: str) -> str:
+        normalized = value.strip().lower().replace(" ", "_")
+        if not normalized:
+            raise ValueError("event_type cannot be empty")
+        return normalized
+
     @model_validator(mode="after")
     def validate_evidence(self) -> EventSignal:
+        if not self.evidence_ids:
+            raise ValueError("evidence_ids cannot be empty")
         if len(set(self.evidence_ids)) != len(self.evidence_ids):
             raise ValueError("evidence_ids cannot contain duplicates")
         return self
