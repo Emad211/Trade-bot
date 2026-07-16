@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from typing import cast
 
 import numpy as np
 import pandas as pd
@@ -43,7 +44,18 @@ def classify_market_regimes(
         "up",
         np.where(trend < -trend_band, "down", "flat"),
     )
-    return np.char.add(np.char.add(volatility_bucket.astype(str), "_"), trend_bucket.astype(str))
+    labels = np.asarray(
+        [
+            f"{volatility_label}_{trend_label}"
+            for volatility_label, trend_label in zip(
+                volatility_bucket.tolist(),
+                trend_bucket.tolist(),
+                strict=True,
+            )
+        ],
+        dtype=np.str_,
+    )
+    return cast(NDArray[np.str_], labels)
 
 
 def regime_performance(
