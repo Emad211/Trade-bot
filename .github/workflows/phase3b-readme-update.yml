@@ -1,0 +1,135 @@
+name: phase3b-readme-update
+
+on:
+  push:
+    branches: ["agent/phase-3b-prospective-events"]
+    paths:
+      - ".github/workflows/phase3b-readme-update.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase-3b-prospective-events
+      - name: Update repository status and Phase 3B links
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("README.md")
+          text = path.read_text(encoding="utf-8")
+
+          old = """> **Status: Phase 2C fixed-cutoff research candidate.** No live orders, exchange credentials,
+          > leverage, shorting, or withdrawal permissions are implemented. Nothing in this
+          > repository is financial advice.
+          """
+          new = """> **Status: Phase 3B prospective event research.** The Phase 3A robustness gate
+          > rejected every current trading candidate. No live orders, exchange credentials,
+          > leverage, shorting, or withdrawal permissions are implemented. Nothing in this
+          > repository is financial advice.
+          """
+          if text.count(old) != 1:
+              raise RuntimeError("Unexpected README status anchor")
+          text = text.replace(old, new, 1)
+
+          old = """این مخزن زیرساخت پژوهشی Phase 2C بات هیبریدی BTC Spot است. داده‌ها به‌صورت
+          point-in-time و دارای زمان واقعی دسترس‌پذیری ذخیره می‌شوند؛ مدل‌ها در ساختار
+          Train / Calibration / Validation / Test جداگانه ارزیابی می‌شوند؛ هزینه، اسلیپیج،
+          خروج اجباری پایان هر fold و دفتر forward-test ثبت می‌شوند. TimesFM و Chronos فقط
+          feature تولید می‌کنند و اجازه ارسال سفارش ندارند.
+          """
+          new = """این مخزن زیرساخت پژوهشی بات هیبریدی BTC Spot است. داده‌های بازار و رویدادها
+          با زمان واقعی دسترس‌پذیری ذخیره می‌شوند؛ مدل‌ها در ساختار جداگانه و sealed ارزیابی
+          می‌شوند و Phase 3A همه نامزدهای فعلی را رد کرده است. Phase 3B فقط اسناد عمومی و
+          featureهای معنایی آینده‌نگر را ثبت می‌کند. هیچ LLM، مدل سری زمانی یا مدل درختی
+          اجازه تعیین اندازه موقعیت یا ارسال سفارش ندارد.
+          """
+          if text.count(old) != 1:
+              raise RuntimeError("Unexpected Persian README anchor")
+          text = text.replace(old, new, 1)
+
+          anchor = "- tamper-evident prospective paper-decision ledger;\n"
+          addition = """- tamper-evident prospective paper-decision ledger;
+          - Phase 3A PSR/DSR, block-bootstrap, fold-concentration and 2x-cost rejection gate;
+          - prospective RSS/Atom capture with retrieval-time availability semantics;
+          - hash-chained document and semantic-event ledgers with deterministic retry identities;
+          """
+          if text.count(anchor) != 1:
+              raise RuntimeError("Unexpected implemented-list anchor")
+          text = text.replace(anchor, addition, 1)
+
+          anchor = """Large immutable feature caches and prediction matrices remain in GitHub Actions
+          under the artifact ID and SHA-256 digest recorded in the committed evidence; they
+          are not checked into Git as opaque binary archives.
+
+          ## Installation
+          """
+          addition = """Large immutable feature caches and prediction matrices remain in GitHub Actions
+          under the artifact ID and SHA-256 digest recorded in the committed evidence; they
+          are not checked into Git as opaque binary archives.
+
+          ## Phase 3A robustness verdict
+
+          The stricter PSR/DSR, circular block-bootstrap, fold-stability, profit-concentration
+          and doubled-cost gate screened the prior, ridge logistic, CatBoost and LightGBM
+          candidates. **Zero of four candidates passed all predeclared rules.** No paper
+          experiment was started and the prospective decision ledger remains empty.
+
+          - [Phase 3A result](docs/phase-3a-robustness-result.md)
+          - [Phase 3A method](docs/phase-3a-robustness-gate.md)
+          - [Committed Phase 3A evidence](research/runs/phase3a-robustness-29488655448/)
+
+          ## Phase 3B prospective event evidence
+
+          A credential-free public capture recorded 20 Bitcoin Core and Geth release
+          documents plus 20 neutral baseline semantic records. Document availability is the
+          actual retrieval time; semantic availability is inference completion. The raw XML
+          remains in a digest-addressed GitHub Actions artifact, while compact hash-chained
+          ledgers and checksums are committed to Git. This validates the data pipeline only;
+          it is not evidence of predictive value.
+
+          ```bash
+          python scripts/capture_phase3b_events.py \\
+            --config configs/phase3b_event_sources.yaml \\
+            --output artifacts/phase3b-events
+          python scripts/verify_phase3b_events.py artifacts/phase3b-events
+          ```
+
+          - [Phase 3B design and safety contract](docs/phase-3b-prospective-events.md)
+          - [Committed Phase 3B evidence](research/runs/phase3b-events-29494760888/)
+
+          ## Installation
+          """
+          if text.count(anchor) != 1:
+              raise RuntimeError("Unexpected research-verdict anchor")
+          text = text.replace(anchor, addition, 1)
+
+          anchor = "- [Foundation screening verdict](docs/foundation-screening-verdict.md)\n"
+          addition = """- [Foundation screening verdict](docs/foundation-screening-verdict.md)
+          - [Phase 3A robustness gate](docs/phase-3a-robustness-gate.md)
+          - [Phase 3A real-data result](docs/phase-3a-robustness-result.md)
+          - [Phase 3B prospective event stream](docs/phase-3b-prospective-events.md)
+          """
+          if text.count(anchor) != 1:
+              raise RuntimeError("Unexpected documentation-list anchor")
+          text = text.replace(anchor, addition, 1)
+
+          path.write_text(text, encoding="utf-8")
+          PY
+      - name: Verify Markdown-only change and commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          test "$(git diff --name-only)" = "README.md"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "document Phase 3A verdict and Phase 3B evidence"
+          git push origin HEAD:agent/phase-3b-prospective-events
