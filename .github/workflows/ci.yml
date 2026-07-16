@@ -28,7 +28,17 @@ jobs:
       - name: Lint
         run: ruff check .
       - name: Type check
-        run: mypy --python-version ${{ matrix.python-version }} src
+        run: |
+          set -o pipefail
+          mypy --python-version ${{ matrix.python-version }} src 2>&1 \
+            | tee mypy-${{ matrix.python-version }}.log
+      - name: Upload mypy diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mypy-${{ matrix.python-version }}-${{ github.sha }}
+          path: mypy-${{ matrix.python-version }}.log
+          if-no-files-found: error
       - name: Core tests
         run: |
           set -o pipefail
@@ -37,8 +47,9 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: pytest-${{ matrix.python-version }}
+          name: pytest-${{ matrix.python-version }}-${{ github.sha }}
           path: pytest.log
+          if-no-files-found: warn
       - name: Dependency consistency
         run: python -m pip check
 

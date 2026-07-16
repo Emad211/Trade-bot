@@ -1,0 +1,25 @@
+benchmark_model: trend
+periods_per_year: 2190
+
+# This count deliberately covers the non-foundation model/ablation family rather
+# than only the rows displayed in the final all-features table.
+declared_trials: 40
+
+bootstrap_samples: 5000
+bootstrap_block_length: 6
+random_seed: 42
+minimum_observations: 500
+minimum_psr: 0.95
+minimum_dsr: 0.95
+maximum_bootstrap_pvalue: 0.05
+minimum_positive_fold_ratio: 0.50
+maximum_top_fold_profit_share: 0.50
+maximum_top_three_fold_profit_share: 0.80
+require_positive_total_return: true
+require_positive_two_x_cost_return: true
+
+# Fixed descriptive regime thresholds. Changing any value creates a new
+# experiment identity and cannot be backfilled into an existing decision.
+low_volatility_threshold: 0.45
+high_volatility_threshold: 0.90
+trend_band: 0.00
