@@ -1,5 +1,6 @@
 name: apply-phase3c-hardening
 
+# Trigger after workflow registration on temporary PR #22.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
