@@ -1,0 +1,52 @@
+name: report-phase3b-events
+
+on:
+  push:
+    branches: ["agent/phase-3b-prospective-events"]
+    paths:
+      - ".github/workflows/report-phase3b-events.yml"
+
+permissions:
+  actions: read
+  pull-requests: write
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Wait for the latest Phase 3B capture and report
+        shell: bash
+        run: |
+          set -euo pipefail
+          run=''
+          for attempt in $(seq 1 120); do
+            run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-3b-prospective-events&per_page=100" \
+              --jq '[.workflow_runs[] | select(.name == "phase3b-events")][0]')
+            if [ "$(jq -r '.status // empty' <<<"$run")" = "completed" ]; then
+              break
+            fi
+            sleep 15
+          done
+          test -n "$run"
+          run_id=$(jq -r .id <<<"$run")
+          jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
+          artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts?per_page=100")
+          {
+            echo '## Phase 3B public-feed capture status'
+            echo
+            echo "- run: $(jq -r .html_url <<<"$run")"
+            echo "- status: $(jq -r .status <<<"$run")"
+            echo "- conclusion: $(jq -r .conclusion <<<"$run")"
+            echo "- source SHA: \`$(jq -r .head_sha <<<"$run")\`"
+            echo
+            echo '### Steps'
+            jq -r '.jobs[] as $job | $job.steps[]? | "- \($job.name) / \(.name): \(.status) / \(.conclusion)"' <<<"$jobs"
+            echo
+            echo '### Artifacts'
+            jq -r '.artifacts[] | "- `\(.name)` — \(.size_in_bytes) bytes — `\(.digest)`"' <<<"$artifacts"
+          } > /tmp/phase3b-report.md
+          gh pr comment 18 --repo "$GITHUB_REPOSITORY" --body-file /tmp/phase3b-report.md
