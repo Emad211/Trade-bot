@@ -1,0 +1,114 @@
+name: avalai-docs-inspect
+
+on:
+  push:
+    branches: ["agent/phase-3c-avalai-provider"]
+    paths:
+      - ".github/workflows/avalai-docs-inspect.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch official AvalAI documentation
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+
+          import hashlib
+          import json
+          import re
+          import urllib.request
+          from pathlib import Path
+          from urllib.parse import urljoin, urlparse
+
+          root = Path("artifacts/avalai-docs")
+          root.mkdir(parents=True, exist_ok=True)
+          seed_urls = {
+              "llms": "https://docs.avalai.ir/llms.txt",
+              "llms-full": "https://docs.avalai.ir/llms-full.txt",
+              "quickstart-fa": "https://docs.avalai.ir/fa/quickstart.md",
+              "model-details-fa": "https://docs.avalai.ir/fa/models/model-details.md",
+              "user-api-fa": "https://docs.avalai.ir/fa/api-reference/user.md",
+              "pricing-fa": "https://docs.avalai.ir/fa/pricing.md",
+          }
+
+          def fetch(url: str) -> tuple[bytes, str, str]:
+              request = urllib.request.Request(
+                  url,
+                  headers={
+                      "Accept": "text/markdown,text/plain,text/html;q=0.8,*/*;q=0.5",
+                      "User-Agent": "HybridTrader-AvalAI-Docs-Inspection/1.0",
+                  },
+              )
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  body = response.read(10_000_001)
+                  if len(body) > 10_000_000:
+                      raise RuntimeError(f"Documentation response too large: {url}")
+                  return body, response.geturl(), response.headers.get_content_type()
+
+          fetched: dict[str, dict[str, object]] = {}
+          queue = list(seed_urls.items())
+          seen: set[str] = set()
+          while queue and len(seen) < 250:
+              label, url = queue.pop(0)
+              if url in seen:
+                  continue
+              seen.add(url)
+              try:
+                  payload, final_url, content_type = fetch(url)
+                  text = payload.decode("utf-8", errors="replace")
+                  safe = re.sub(r"[^a-zA-Z0-9._-]+", "_", label).strip("_") or "doc"
+                  suffix = ".md" if (url.endswith(".md") or "markdown" in content_type) else ".txt"
+                  path = root / f"{safe}{suffix}"
+                  path.write_bytes(payload)
+                  fetched[url] = {
+                      "status": "success",
+                      "final_url": final_url,
+                      "content_type": content_type,
+                      "path": path.as_posix(),
+                      "size": len(payload),
+                      "sha256": hashlib.sha256(payload).hexdigest(),
+                  }
+                  if url.endswith("llms.txt"):
+                      for target in re.findall(r"https?://[^\s)>'\"]+|\[[^\]]+\]\(([^)]+)\)", text):
+                          candidate = target if isinstance(target, str) else target[0]
+                          if not candidate:
+                              continue
+                          absolute = urljoin(final_url, candidate)
+                          parsed = urlparse(absolute)
+                          if parsed.hostname == "docs.avalai.ir" and parsed.path:
+                              if not parsed.path.endswith((".md", ".txt")):
+                                  absolute = absolute.rstrip("/") + ".md"
+                              queue.append((f"linked-{len(queue)}", absolute))
+              except Exception as exc:
+                  fetched[url] = {
+                      "status": "failed",
+                      "error_type": type(exc).__name__,
+                      "error_message": str(exc),
+                  }
+
+          (root / "manifest.json").write_text(
+              json.dumps(fetched, sort_keys=True, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          successes = [item for item in fetched.values() if item["status"] == "success"]
+          if not successes:
+              raise RuntimeError("No official AvalAI documentation page was fetched")
+          PY
+      - name: Upload official documentation snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: avalai-official-docs-${{ github.sha }}
+          path: artifacts/avalai-docs/
+          if-no-files-found: error
+          retention-days: 14
