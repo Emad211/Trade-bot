@@ -1,8 +1,0 @@
-{
-  "historical_run_id": 29319905230,
-  "large_upstream_predictions_committed": false,
-  "schema_version": "1.0",
-  "source_commit": "79642f9fdd3f59339c409cbc7869adcebf47364c",
-  "storage": "git_compact_evidence",
-  "workflow_run_id": 29485993354
-}
