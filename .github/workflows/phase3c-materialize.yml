@@ -9,6 +9,7 @@ on:
       - "tests/test_avalai_provider.py"
       - "tests/test_phase3c_avalai_capture.py"
       - "scripts/materialize_avalai_audit_hardening.py"
+      - "scripts/fix_avalai_identity.py"
       - ".github/workflows/phase3c-materialize.yml"
 
 permissions:
@@ -28,17 +29,27 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - name: Apply audit hardening
-        run: python scripts/materialize_avalai_audit_hardening.py
-      - name: Install formatting tools
+      - name: Apply audit hardening and identity fixes
+        run: |
+          python scripts/materialize_avalai_audit_hardening.py
+          python scripts/fix_avalai_identity.py
+      - name: Install development dependencies
         run: python -m pip install -e '.[dev]'
-      - name: Format and apply safe lint fixes
+      - name: Format and validate provider integration
         run: |
           ruff format .
           ruff check --fix .
+          ruff format --check .
+          ruff check .
           python -m compileall -q src scripts tests
+          pytest -q tests/test_avalai_provider.py tests/test_phase3c_avalai_capture.py
       - name: Remove one-time files
-        run: rm -f scripts/materialize_avalai_audit_hardening.py .github/workflows/phase3c-materialize.yml .github/workflows/avalai-docs-inspect.yml
+        run: |
+          rm -f \
+            scripts/materialize_avalai_audit_hardening.py \
+            scripts/fix_avalai_identity.py \
+            .github/workflows/phase3c-materialize.yml \
+            .github/workflows/avalai-docs-inspect.yml
       - name: Commit materialized provider
         shell: bash
         run: |
