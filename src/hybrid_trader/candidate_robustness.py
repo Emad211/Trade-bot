@@ -200,7 +200,7 @@ def assess_candidate_robustness(
             }
         )
 
-        regimes = classify_market_regimes(
+        regime_labels = classify_market_regimes(
             aligned["realized_volatility"].to_numpy(dtype=np.float64),
             aligned["ema_ratio"].to_numpy(dtype=np.float64),
             low_volatility_threshold=policy.low_volatility_threshold,
@@ -209,7 +209,7 @@ def assess_candidate_robustness(
         )
         regime_frame = regime_performance(
             candidate_returns,
-            regimes,
+            regime_labels,
             periods_per_year=policy.periods_per_year,
         )
         regime_frame.insert(0, "model", model)
@@ -219,7 +219,7 @@ def assess_candidate_robustness(
         ["eligible_for_human_freeze_review", "deflated_sharpe_ratio", "total_return"],
         ascending=[False, False, False],
     )
-    regimes = pd.concat(regime_frames, ignore_index=True)
+    regime_summary = pd.concat(regime_frames, ignore_index=True)
     passing = summary.loc[summary["eligible_for_human_freeze_review"]]
     verdict = (
         "candidate_requires_human_freeze_review" if not passing.empty else "no_candidate_passed"
@@ -227,7 +227,7 @@ def assess_candidate_robustness(
     action = "human_review_before_new_experiment" if not passing.empty else "retain_research_only"
 
     summary_records = json.loads(summary.to_json(orient="records"))
-    regime_records = json.loads(regimes.to_json(orient="records"))
+    regime_records = json.loads(regime_summary.to_json(orient="records"))
     identity = {
         "policy": policy.model_dump(mode="json"),
         "trial_sharpes": trial_sharpes.tolist(),
@@ -249,4 +249,4 @@ def assess_candidate_robustness(
         "observed_trial_family_count": int(trial_sharpes.size),
         "policy": policy.model_dump(mode="json"),
     }
-    return summary.reset_index(drop=True), regimes, assessment
+    return summary.reset_index(drop=True), regime_summary, assessment
