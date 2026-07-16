@@ -21,7 +21,7 @@ on:
 
 permissions:
   actions: read
-  contents: read
+  contents: write
 
 jobs:
   robustness:
@@ -33,6 +33,8 @@ jobs:
       BRANCH_BOOTSTRAP_RUN_ID: "29319905230"
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -101,6 +103,51 @@ jobs:
             > artifacts/phase3a-robustness/historical_run_id.txt
           printf '%s\n' "$GITHUB_SHA" \
             > artifacts/phase3a-robustness/source_commit_sha.txt
+      - name: Commit compact branch evidence
+        if: ${{ success() && github.event_name == 'push' && github.ref_name == 'agent/phase-3a-robustness-gate' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEST="research/runs/phase3a-robustness-${GITHUB_RUN_ID}"
+          mkdir -p "$DEST"
+          cp artifacts/phase3a-robustness/robustness_summary.csv "$DEST/"
+          cp artifacts/phase3a-robustness/regime_summary.csv "$DEST/"
+          cp artifacts/phase3a-robustness/robustness_assessment.json "$DEST/"
+          cp artifacts/phase3a-robustness/prospective_decisions.jsonl "$DEST/"
+          cp artifacts/phase3a-robustness/historical_run_id.txt "$DEST/"
+          cp artifacts/phase3a-robustness/source_commit_sha.txt "$DEST/"
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          destination = Path("research/runs") / f"phase3a-robustness-{os.environ['GITHUB_RUN_ID']}"
+          payload = {
+              "schema_version": "1.0",
+              "workflow_run_id": int(os.environ["GITHUB_RUN_ID"]),
+              "historical_run_id": int("${{ steps.historical.outputs.run_id }}"),
+              "source_commit": os.environ["GITHUB_SHA"],
+              "storage": "git_compact_evidence",
+              "large_upstream_predictions_committed": False,
+          }
+          (destination / "artifact.json").write_text(
+              json.dumps(payload, sort_keys=True, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+          (cd "$DEST" && sha256sum \
+            artifact.json \
+            historical_run_id.txt \
+            prospective_decisions.jsonl \
+            regime_summary.csv \
+            robustness_assessment.json \
+            robustness_summary.csv \
+            source_commit_sha.txt > SHA256SUMS)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DEST"
+          git commit -m "record Phase 3A robustness evidence"
+          git push origin HEAD:agent/phase-3a-robustness-gate
       - name: Build deterministic archive and checksums
         if: always()
         run: |
