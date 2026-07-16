@@ -37,11 +37,18 @@ jobs:
           root.mkdir(parents=True, exist_ok=True)
           pages = {
               "llms.txt": "https://docs.avalai.ir/llms.txt",
-              "llms-full.txt": "https://docs.avalai.ir/llms-full.txt",
               "quickstart-fa.md": "https://docs.avalai.ir/fa/quickstart.md",
-              "model-details-fa.md": "https://docs.avalai.ir/fa/models/model-details.md",
+              "models-fa.md": "https://docs.avalai.ir/fa/api-reference/models.md",
+              "responses-fa.md": "https://docs.avalai.ir/fa/api-reference/responses.md",
+              "chat-fa.md": "https://docs.avalai.ir/fa/api-reference/chat.md",
+              "authentication-fa.md": "https://docs.avalai.ir/fa/api-reference/authentication.md",
+              "response-headers-fa.md": "https://docs.avalai.ir/fa/api-reference/response-headers.md",
+              "structured-outputs-fa.md": "https://docs.avalai.ir/fa/guides/structured-outputs.md",
+              "error-handling-fa.md": "https://docs.avalai.ir/fa/guides/error-handling.md",
+              "production-fa.md": "https://docs.avalai.ir/fa/guides/production-best-practices.md",
+              "responses-vs-chat-fa.md": "https://docs.avalai.ir/fa/guides/responses-vs-chat-completions.md",
+              "content-policy-fa.md": "https://docs.avalai.ir/fa/safety/content-policy.md",
               "user-api-fa.md": "https://docs.avalai.ir/fa/api-reference/user.md",
-              "pricing-fa.md": "https://docs.avalai.ir/fa/pricing.md",
           }
           fetched: dict[str, dict[str, object]] = {}
           for name, url in pages.items():
@@ -79,8 +86,10 @@ jobs:
               encoding="utf-8",
           )
           required = (
-              "https://docs.avalai.ir/llms.txt",
               "https://docs.avalai.ir/fa/quickstart.md",
+              "https://docs.avalai.ir/fa/api-reference/chat.md",
+              "https://docs.avalai.ir/fa/guides/structured-outputs.md",
+              "https://docs.avalai.ir/fa/guides/error-handling.md",
           )
           if any(fetched[url]["status"] != "success" for url in required):
               raise RuntimeError("Required official AvalAI documentation was not fetched")
