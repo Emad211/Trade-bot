@@ -10,7 +10,6 @@ import pandas as pd
 
 from hybrid_trader.data.snapshot import canonical_json_sha256
 
-
 SCREENING_FLAG_NAMES = (
     "net_return_above_baseline",
     "net_return_above_naive",
