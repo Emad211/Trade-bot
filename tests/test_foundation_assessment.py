@@ -51,9 +51,7 @@ def _write_inputs(root: Path, *, timesfm_net_return: float) -> None:
                 "delta_brier": -0.001 if scenario != "naive" else 0.0,
             }
         )
-    pd.DataFrame(comparison_rows).to_csv(
-        root / "baseline_vs_foundation.csv", index=False
-    )
+    pd.DataFrame(comparison_rows).to_csv(root / "baseline_vs_foundation.csv", index=False)
 
     pd.DataFrame(
         [
@@ -107,9 +105,7 @@ def test_assessment_rejects_candidate_that_does_not_beat_naive(
 
     assert result["screening_outcome"] == "no_candidate_passed"
     assert result["screening_candidates"] == []
-    timesfm = next(
-        row for row in result["screening_results"] if row["scenario"] == "timesfm"
-    )
+    timesfm = next(row for row in result["screening_results"] if row["scenario"] == "timesfm")
     assert timesfm["delta_net_return_vs_naive"] == pytest.approx(-0.01)
     assert timesfm["flags"]["net_return_above_naive"] is False
     assert timesfm["all_screening_flags"] is False
@@ -121,7 +117,5 @@ def test_assessment_can_screen_candidate_that_beats_naive(tmp_path: Path) -> Non
     result = assess(tmp_path)
 
     assert result["screening_outcome"] == "candidate_passed"
-    assert result["screening_candidates"] == [
-        {"scenario": "timesfm", "model": "ridge_logistic"}
-    ]
+    assert result["screening_candidates"] == [{"scenario": "timesfm", "model": "ridge_logistic"}]
     assert result["schema_version"] == "1.2"

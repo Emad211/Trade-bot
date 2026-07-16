@@ -119,10 +119,7 @@ def assess(root: Path) -> dict[str, Any]:
         if row["all_screening_flags"]
     ]
     failed_flags = Counter(
-        flag_name
-        for row in results
-        for flag_name, passed in row["flags"].items()
-        if not passed
+        flag_name for row in results for flag_name, passed in row["flags"].items() if not passed
     )
     screening_outcome = "candidate_passed" if candidates else "no_candidate_passed"
     recommendation = "human_review_candidates" if candidates else "retain_as_research_only"
@@ -158,9 +155,7 @@ def assess(root: Path) -> dict[str, Any]:
     pd.DataFrame(results).drop(columns="flags").to_csv(
         root / "foundation_screening.csv", index=False
     )
-    pd.DataFrame(contributions).to_csv(
-        root / "foundation_ablation_contributions.csv", index=False
-    )
+    pd.DataFrame(contributions).to_csv(root / "foundation_ablation_contributions.csv", index=False)
     return assessment
 
 
