@@ -4,16 +4,15 @@ from __future__ import annotations
 
 import hashlib
 import json
-import math
 import os
 import random
 import re
-import socket
 import time
 import urllib.error
 import urllib.request
 import uuid
 from collections.abc import Callable, Mapping
+from contextlib import suppress
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -75,9 +74,7 @@ class AvalAISettings(BaseModel):
     max_backoff_seconds: float = Field(default=20.0, gt=0, le=300)
     max_output_tokens: int = Field(default=700, ge=128, le=8_192)
     max_document_chars: int = Field(default=30_000, ge=1_000, le=500_000)
-    reasoning_effort: Literal["none", "minimal", "low", "medium", "high", "xhigh"] | None = (
-        "low"
-    )
+    reasoning_effort: Literal["none", "minimal", "low", "medium", "high", "xhigh"] | None = "low"
 
     @field_validator("base_url")
     @classmethod
@@ -266,6 +263,14 @@ class AvalAICallRecord(BaseModel):
             raise ValueError("Successful AvalAI calls cannot contain error metadata")
         if self.status == "failed" and not self.error_code:
             raise ValueError("Failed AvalAI calls must contain an error_code")
+        expected_call_id = _call_id(
+            self.model_dump(
+                mode="json",
+                exclude={"call_id", "previous_record_sha256"},
+            )
+        )
+        if self.call_id != expected_call_id:
+            raise ValueError("AvalAI call_id does not match call metadata")
         return self
 
 
@@ -285,9 +290,51 @@ def _redact(value: str, api_key: str) -> str:
 
 
 def _canonical_json_bytes(payload: Mapping[str, Any]) -> bytes:
-    return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode(
-        "utf-8"
+    return json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        default=str,
+    ).encode("utf-8")
+
+
+def _identity_value(value: Any) -> Any:
+    if isinstance(value, datetime):
+        normalized = value.astimezone(UTC).isoformat()
+        return normalized.replace("+00:00", "Z")
+    if isinstance(value, Mapping):
+        return {str(key): _identity_value(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_identity_value(item) for item in value]
+    return value
+
+
+def _call_id(payload: Mapping[str, Any]) -> str:
+    identity = {
+        key: _identity_value(value)
+        for key, value in payload.items()
+        if key not in {"call_id", "previous_record_sha256"}
+    }
+    return hashlib.sha256(_canonical_json_bytes(identity)).hexdigest()
+
+
+def _failed_call_record(
+    record: AvalAICallRecord,
+    *,
+    error_code: str,
+    error_message: str,
+) -> AvalAICallRecord:
+    payload = record.model_dump(
+        mode="python",
+        exclude={"call_id", "previous_record_sha256"},
     )
+    payload.update(
+        status="failed",
+        error_code=error_code,
+        error_message=error_message,
+    )
+    return AvalAICallRecord(call_id=_call_id(payload), **payload)
 
 
 def _default_transport(
@@ -328,7 +375,9 @@ def _json_object(payload: bytes) -> dict[str, Any]:
     return cast(dict[str, Any], parsed)
 
 
-def _usage(payload: Mapping[str, Any], *, route: AvalAIRoute) -> tuple[int | None, int | None, int | None]:
+def _usage(
+    payload: Mapping[str, Any], *, route: AvalAIRoute
+) -> tuple[int | None, int | None, int | None]:
     usage = payload.get("usage")
     if not isinstance(usage, dict):
         return None, None, None
@@ -492,44 +541,31 @@ class AvalAIClient:
         )
         response_id = response_payload.get("id") if response_payload is not None else None
         response_model = response_payload.get("model") if response_payload is not None else None
-        provider_request_id = (
-            response.headers.get("x-request-id") if response is not None else None
-        )
-        identity = {
+        provider_request_id = response.headers.get("x-request-id") if response is not None else None
+        record_payload: dict[str, Any] = {
+            "schema_version": "1.0",
             "extraction_key": extraction_key,
             "status": status,
+            "route": self.settings.route,
+            "endpoint": self.settings.endpoint,
+            "model": self.settings.model,
+            "model_revision": self.settings.model_revision,
             "client_request_id": client_request_id,
             "provider_request_id": provider_request_id,
+            "response_id": response_id if isinstance(response_id, str) else None,
+            "response_model": response_model if isinstance(response_model, str) else None,
             "request_body_sha256": request_sha256,
             "response_body_sha256": response_sha,
             "attempts": attempts,
-            "started_at": started_at.isoformat(),
-            "completed_at": completed_at.isoformat(),
+            "started_at": started_at,
+            "completed_at": completed_at,
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+            "total_tokens": total_tokens,
+            "error_code": error_code,
+            "error_message": error_message,
         }
-        call_id = hashlib.sha256(_canonical_json_bytes(identity)).hexdigest()
-        return AvalAICallRecord(
-            call_id=call_id,
-            extraction_key=extraction_key,
-            status=status,
-            route=self.settings.route,
-            endpoint=self.settings.endpoint,
-            model=self.settings.model,
-            model_revision=self.settings.model_revision,
-            client_request_id=client_request_id,
-            provider_request_id=provider_request_id,
-            response_id=response_id if isinstance(response_id, str) else None,
-            response_model=response_model if isinstance(response_model, str) else None,
-            request_body_sha256=request_sha256,
-            response_body_sha256=response_sha,
-            attempts=attempts,
-            started_at=started_at,
-            completed_at=completed_at,
-            input_tokens=input_tokens,
-            output_tokens=output_tokens,
-            total_tokens=total_tokens,
-            error_code=error_code,
-            error_message=error_message,
-        )
+        return AvalAICallRecord(call_id=_call_id(record_payload), **record_payload)
 
     def generate(
         self,
@@ -629,7 +665,7 @@ class AvalAIClient:
                 retry_after = response.headers.get("retry-after")
             except AvalAIRequestError:
                 raise
-            except (urllib.error.URLError, TimeoutError, socket.timeout, OSError) as exc:
+            except (urllib.error.URLError, TimeoutError, OSError) as exc:
                 response = None
                 parsed_response = None
                 last_code = "connection_error"
@@ -643,10 +679,8 @@ class AvalAIClient:
                 self.settings.initial_backoff_seconds * (2**attempt),
             )
             if retry_after is not None:
-                try:
+                with suppress(ValueError):
                     base_delay = max(base_delay, float(retry_after))
-                except ValueError:
-                    pass
             delay = min(
                 self.settings.max_backoff_seconds,
                 base_delay + self._jitter(0.0, max(0.001, base_delay * 0.25)),
@@ -730,8 +764,17 @@ class AvalAIStructuredExtractor:
         except AvalAIRequestError as exc:
             self.call_records.append(exc.call_record)
             raise
+        try:
+            signal = payload.to_event_signal(envelope)
+        except Exception as exc:
+            failed_record = _failed_call_record(
+                call_record,
+                error_code="semantic_contract_violation",
+                error_message=_redact(str(exc), self._client._api_key),
+            )
+            self.call_records.append(failed_record)
+            raise AvalAIRequestError(str(exc), call_record=failed_record) from exc
         self.call_records.append(call_record)
-        signal = payload.to_event_signal(envelope)
         return make_semantic_record(
             envelope,
             signal,
@@ -780,6 +823,14 @@ def verify_avalai_call_ledger(path: str | Path) -> AvalAICallLedgerState:
                 record = AvalAICallRecord.model_validate_json(raw)
             except Exception as exc:
                 raise ValueError(f"Invalid AvalAI call ledger line {line_number}") from exc
+            expected_call_id = _call_id(
+                record.model_dump(
+                    mode="json",
+                    exclude={"call_id", "previous_record_sha256"},
+                )
+            )
+            if record.call_id != expected_call_id:
+                raise ValueError(f"AvalAI call_id mismatch at line {line_number}")
             if record.previous_record_sha256 != previous_sha:
                 raise ValueError(f"AvalAI call ledger hash chain breaks at line {line_number}")
             if record.call_id in call_ids:

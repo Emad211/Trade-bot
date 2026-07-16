@@ -274,8 +274,10 @@ def test_provider_rejects_untrusted_assets_and_oversized_documents() -> None:
         transport=transport,
         clock=SequenceClock(datetime(2026, 7, 16, 12, 1, tzinfo=UTC)),
     )
-    with pytest.raises(ValueError, match="not allowed"):
+    with pytest.raises(AvalAIRequestError) as caught:
         extractor.extract(_envelope(asset_tags=("BTC",)))
+    assert caught.value.call_record.error_code == "semantic_contract_violation"
+    assert "not allowed" in str(caught.value)
 
     tiny = AvalAIStructuredExtractor(
         AvalAISettings(max_document_chars=1_000, max_retries=0, reasoning_effort=None),
@@ -311,5 +313,5 @@ def test_call_ledger_is_hash_chained_and_deduplicated(tmp_path: Path) -> None:
     assert duplicate.count == 1
     raw = ledger.read_bytes()
     ledger.write_bytes(raw.replace(b'"status":"success"', b'"status":"failed"', 1))
-    with pytest.raises(ValueError, match="Invalid AvalAI|hash chain|call_id"):
+    with pytest.raises(ValueError, match=r"Invalid AvalAI|hash chain|call_id"):
         verify_avalai_call_ledger(ledger)
