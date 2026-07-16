@@ -16,7 +16,7 @@ from hybrid_trader.bootstrap_robustness import (
 from hybrid_trader.data.snapshot import canonical_json_sha256
 from hybrid_trader.regime_robustness import classify_market_regimes, regime_performance
 from hybrid_trader.robustness_policy import RobustnessPolicy
-from hybrid_trader.sharpe_robustness import sharpe_diagnostics
+from hybrid_trader.sharpe_robustness import FloatVector, sharpe_diagnostics
 
 
 def _require_columns(frame: pd.DataFrame, columns: set[str], *, label: str) -> None:
@@ -25,12 +25,15 @@ def _require_columns(frame: pd.DataFrame, columns: set[str], *, label: str) -> N
         raise ValueError(f"{label} missing columns: {sorted(missing)}")
 
 
-def aggregate_trial_sharpes(trial_metrics: pd.DataFrame) -> np.ndarray:
+def aggregate_trial_sharpes(trial_metrics: pd.DataFrame) -> FloatVector:
     _require_columns(trial_metrics, {"model", "sharpe"}, label="trial metrics")
     grouping = [
         column for column in ("scenario", "ablation", "model") if column in trial_metrics.columns
     ]
-    values = trial_metrics.groupby(grouping, dropna=False)["sharpe"].mean().to_numpy(dtype=float)
+    values: FloatVector = np.asarray(
+        trial_metrics.groupby(grouping, dropna=False)["sharpe"].mean().to_numpy(dtype=float),
+        dtype=np.float64,
+    )
     values = values[np.isfinite(values)]
     if values.size < 2:
         raise ValueError("At least two finite trial Sharpe estimates are required")
