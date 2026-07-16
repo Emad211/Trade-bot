@@ -1,5 +1,6 @@
 name: publish-phase3-classical-robustness
 
+# Trigger revision after workflow registration on the established runner branch.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
