@@ -242,7 +242,7 @@ def assess_candidate_robustness(
         "automatic_promotion_allowed": False,
         "prospective_ledger_started": False,
         "candidate_count": len(candidates),
-        "passing_candidate_count": int(len(passing)),
+        "passing_candidate_count": len(passing),
         "passing_candidates": passing["model"].astype(str).tolist(),
         "benchmark_model": policy.benchmark_model,
         "declared_trials": policy.declared_trials,
