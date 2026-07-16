@@ -5,6 +5,10 @@ on:
     branches: ["agent/phase-3c-avalai-provider"]
     paths:
       - ".github/workflows/avalai-docs-inspect.yml"
+  pull_request:
+    branches: ["agent/phase-3b-prospective-events"]
+    paths:
+      - ".github/workflows/avalai-docs-inspect.yml"
   workflow_dispatch:
 
 permissions:
@@ -80,10 +84,10 @@ jobs:
                       "sha256": hashlib.sha256(payload).hexdigest(),
                   }
                   if url.endswith("llms.txt"):
-                      for target in re.findall(r"https?://[^\s)>'\"]+|\[[^\]]+\]\(([^)]+)\)", text):
-                          candidate = target if isinstance(target, str) else target[0]
-                          if not candidate:
-                              continue
+                      candidates: list[str] = []
+                      candidates.extend(re.findall(r"https?://[^\s)>'\"]+", text))
+                      candidates.extend(re.findall(r"\[[^\]]+\]\(([^)]+)\)", text))
+                      for candidate in candidates:
                           absolute = urljoin(final_url, candidate)
                           parsed = urlparse(absolute)
                           if parsed.hostname == "docs.avalai.ir" and parsed.path:
