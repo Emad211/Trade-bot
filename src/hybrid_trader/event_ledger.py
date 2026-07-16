@@ -61,6 +61,19 @@ def verify_document_ledger(
     return previous_sha, previous_document, count, frozenset(document_ids)
 
 
+def load_document_index(path: str | Path) -> dict[str, ProspectiveDocument]:
+    ledger = Path(path)
+    verify_document_ledger(ledger)
+    if not ledger.exists():
+        return {}
+    index: dict[str, ProspectiveDocument] = {}
+    with ledger.open("rb") as handle:
+        for raw in handle:
+            document = ProspectiveDocument.model_validate_json(raw)
+            index[document.document_id] = document
+    return index
+
+
 def append_documents(
     path: str | Path,
     documents: tuple[ProspectiveDocument, ...] | list[ProspectiveDocument],
@@ -70,6 +83,19 @@ def append_documents(
     ledger = Path(path)
     ledger.parent.mkdir(parents=True, exist_ok=True)
     head, previous, _, existing_ids = verify_document_ledger(ledger)
+    existing = load_document_index(ledger)
+    for document in documents:
+        stored = existing.get(document.document_id)
+        if stored is None:
+            continue
+        if (
+            stored.source_quality != document.source_quality
+            or stored.asset_tags != document.asset_tags
+            or stored.source_id != document.source_id
+        ):
+            raise ValueError(
+                "Existing document identity was observed under conflicting source metadata"
+            )
     pending = [document for document in documents if document.document_id not in existing_ids]
     pending.sort(key=lambda item: (item.retrieved_at, item.source_id, item.document_id))
     if not pending:
