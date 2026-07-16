@@ -1,5 +1,6 @@
 name: diagnose-pr13-ci-v2
 
+# Trigger revision after workflow registration.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
