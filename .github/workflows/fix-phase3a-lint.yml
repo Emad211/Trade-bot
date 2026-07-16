@@ -1,5 +1,6 @@
 name: fix-phase3a-lint
 
+# Trigger revision after workflow registration.
 on:
   push:
     branches: ["agent/phase-3a-robustness-gate"]
