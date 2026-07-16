@@ -1,6 +1,6 @@
 name: publish-phase3-classical-robustness
 
-# Trigger revision after workflow registration on the established runner branch.
+# Generation 2: verify decoded gzip and patch bytes, independent of base64 line wrapping.
 on:
   push:
     branches: ["agent/phase-2c-real-data-benchmark"]
@@ -35,7 +35,6 @@ jobs:
         run: |
           set -euo pipefail
           PAYLOAD=.bootstrap/phase3-classical-robustness.patch.gz.b64
-          echo "b0e79161ddbdd57c862a357bcec87dae359d34a19b8333dddf207b7873219a33  $PAYLOAD" | sha256sum -c -
           base64 --decode "$PAYLOAD" > /tmp/phase3.patch.gz
           echo "2e1c5b7f4270b167f2529caf85f2fb8447481e835345513a6846f7925803201d  /tmp/phase3.patch.gz" | sha256sum -c -
           gzip --decompress --stdout /tmp/phase3.patch.gz > /tmp/phase3.patch
@@ -114,4 +113,4 @@ jobs:
       - name: Report publication to PR 14
         run: |
           gh pr comment 14 --repo "$GITHUB_REPOSITORY" --body \
-            "The clean Phase 3 tree passed patch SHA-256 verification, Ruff, strict Mypy, core and optional-ML tests, historical artifact gates, deterministic assessment reproduction and clean-wheel smoke testing. Bootstrap files were removed before commit. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            "The clean Phase 3 tree passed decoded gzip and patch SHA-256 verification, Ruff, strict Mypy, core and optional-ML tests, historical artifact gates, deterministic assessment reproduction and clean-wheel smoke testing. Bootstrap files were removed before commit. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
