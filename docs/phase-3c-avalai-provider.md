@@ -32,7 +32,6 @@ Official references:
 - <https://docs.avalai.ir/fa/guides/production-best-practices>
 - <https://docs.avalai.ir/fa/api-reference/response-headers>
 
-
 ## Pinned low-cost model
 
 A secret-free probe of `https://api.avalai.ir/public/models` on 2026-07-16
@@ -54,6 +53,16 @@ Use a dedicated short-lived project key with a small budget and the minimum mode
 access required by this workflow. Even a deliberately limited key must be injected as
 a process or CI secret and must never be committed, passed as a command-line argument
 or written to an artifact.
+
+For GitHub Actions, the repository secret name is exactly:
+
+```text
+AVALAI_API_KEY
+```
+
+The live smoke workflow is deliberately manual. It must not be run until that secret
+exists. The workflow masks the value before any network request and scans all produced
+evidence for credential-shaped strings before upload.
 
 Optional non-secret environment overrides:
 
@@ -111,6 +120,9 @@ The predicted asset must be one of the document's predeclared asset tags, or
 `MARKET` when no tags exist. Any schema violation, refusal, truncation, malformed
 JSON, disallowed asset or provider error fails closed.
 
+The document body is untrusted data. Instructions embedded in a feed item are never
+followed, and the model is explicitly prohibited from inventing unsupported facts.
+
 ## Audit state
 
 Each logical provider request records secret-free metadata in:
@@ -147,16 +159,22 @@ patterns and requires an empty `prospective_decisions.jsonl`.
 
 ## Local execution
 
-After creating a new, non-exposed key:
+With `AVALAI_API_KEY` available in the process environment:
 
 ```bash
-export AVALAI_API_KEY='...'
 python scripts/capture_phase3c_avalai_events.py \
   --config configs/phase3c_avalai_event_sources.yaml \
   --output artifacts/phase3c-avalai
 
 python scripts/verify_phase3c_provider.py artifacts/phase3c-avalai
 ```
+
+## Validation status
+
+The provider has passed deterministic transport, retry, schema, provenance,
+redaction, tamper-evidence and non-activation tests. A real AvalAI network call is a
+separate release gate. Until the manual smoke workflow succeeds with secret-free
+evidence, Phase 3C remains a draft provider integration and cannot be merged.
 
 ## Promotion rule
 
