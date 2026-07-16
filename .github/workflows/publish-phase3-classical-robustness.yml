@@ -1,0 +1,116 @@
+name: publish-phase3-classical-robustness
+
+on:
+  push:
+    branches: ["agent/phase-2c-real-data-benchmark"]
+    paths:
+      - ".github/workflows/publish-phase3-classical-robustness.yml"
+
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGET_BRANCH: "agent/phase-3-classical-robustness"
+      HISTORICAL_RUN_ID: "29313821568"
+      EVIDENCE_PATH: "research/runs/phase2c-historical-29313821568"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase-3-classical-robustness
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Verify and apply the text-only source patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          PAYLOAD=.bootstrap/phase3-classical-robustness.patch.gz.b64
+          echo "b0e79161ddbdd57c862a357bcec87dae359d34a19b8333dddf207b7873219a33  $PAYLOAD" | sha256sum -c -
+          base64 --decode "$PAYLOAD" > /tmp/phase3.patch.gz
+          echo "2e1c5b7f4270b167f2529caf85f2fb8447481e835345513a6846f7925803201d  /tmp/phase3.patch.gz" | sha256sum -c -
+          gzip --decompress --stdout /tmp/phase3.patch.gz > /tmp/phase3.patch
+          echo "3f787b3e53e351a825e0eae82bddb6de2955125125f8698ddeb11a0402dfd759  /tmp/phase3.patch" | sha256sum -c -
+          git apply --check /tmp/phase3.patch
+          git apply /tmp/phase3.patch
+          rm -rf .bootstrap .github/workflows/materialize-phase3-classical-robustness.yml
+      - name: Install and validate the complete source tree
+        run: |
+          python -m pip install -e '.[dev,ml]'
+          ruff format .
+          ruff check .
+          mypy --python-version 3.12 src
+          pytest -m 'not optional_ml' --cov=hybrid_trader --cov-report=term-missing
+          pytest -m optional_ml -q
+          python -m pip check
+      - name: Recompute the classical verdict from immutable evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/historical-download /tmp/classical-assessment
+          gh run download "$HISTORICAL_RUN_ID" --dir /tmp/historical-download
+          REGISTRY=$(find /tmp/historical-download -type f -name source_registry.json -print -quit)
+          test -n "$REGISTRY"
+          HISTORICAL_ROOT=$(dirname "$REGISTRY")
+          python scripts/verify_phase2c_artifacts.py "$HISTORICAL_ROOT"
+          python scripts/verify_phase2c_artifacts_strict.py \
+            "$HISTORICAL_ROOT" \
+            --spec configs/phase2c_sources_authoritative.yaml
+          python scripts/verify_phase2c_macro_gate.py \
+            "$HISTORICAL_ROOT" \
+            --spec configs/phase2c_sources_authoritative.yaml
+          python scripts/assess_phase2c_classical.py \
+            "$HISTORICAL_ROOT" \
+            --output /tmp/classical-assessment
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          committed = json.loads(
+              Path("research/runs/phase2c-historical-29313821568/classical_assessment.json")
+              .read_text("utf-8")
+          )
+          generated = json.loads(
+              Path("/tmp/classical-assessment/classical_assessment.json").read_text("utf-8")
+          )
+          if generated["assessment_id"] != committed["assessment_id"]:
+              raise RuntimeError("Classical assessment identity is not reproducible")
+          if generated["verdict"] != "no_candidate_passed" or generated["candidates"]:
+              raise RuntimeError("Historical artifact unexpectedly produced a candidate")
+          if generated["promotion_allowed"] or generated["prospective_ledger_allowed"]:
+              raise RuntimeError("Assessment attempted automatic activation")
+          if Path(
+              "research/runs/phase2c-historical-29313821568/prospective/decisions.jsonl"
+          ).read_text("utf-8").strip():
+              raise RuntimeError("Historical evidence contains prospective decisions")
+          PY
+          (cd "$EVIDENCE_PATH" && sha256sum -c SHA256SUMS)
+      - name: Build and clean-install wheel
+        run: |
+          python -m pip wheel --no-deps --wheel-dir dist .
+          python -m venv /tmp/phase3-wheel
+          /tmp/phase3-wheel/bin/python -m pip install dist/*.whl
+          /tmp/phase3-wheel/bin/hybrid-trader --help >/dev/null
+          /tmp/phase3-wheel/bin/python -c 'import hybrid_trader.candidate_screening; import hybrid_trader.statistical_validation'
+          /tmp/phase3-wheel/bin/python -m pip check
+      - name: Commit the validated clean tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "add serial-dependence-aware classical robustness gate"
+          git push origin HEAD:"$TARGET_BRANCH"
+      - name: Report publication to PR 14
+        run: |
+          gh pr comment 14 --repo "$GITHUB_REPOSITORY" --body \
+            "The clean Phase 3 tree passed patch SHA-256 verification, Ruff, strict Mypy, core and optional-ML tests, historical artifact gates, deterministic assessment reproduction and clean-wheel smoke testing. Bootstrap files were removed before commit. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
