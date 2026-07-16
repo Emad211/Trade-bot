@@ -1,0 +1,91 @@
+name: avalai-public-model-probe
+
+on:
+  push:
+    branches: ["agent/avalai-model-probe"]
+    paths:
+      - ".github/workflows/avalai-public-model-probe.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch and filter the public AvalAI model registry
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+
+          import hashlib
+          import json
+          import urllib.request
+          from pathlib import Path
+
+          url = "https://api.avalai.ir/public/models"
+          request = urllib.request.Request(
+              url,
+              headers={
+                  "Accept": "application/json",
+                  "User-Agent": "HybridTrader-AvalAI-Model-Probe/1.0",
+              },
+          )
+          with urllib.request.urlopen(request, timeout=60) as response:
+              payload = response.read(10_000_001)
+              if len(payload) > 10_000_000:
+                  raise RuntimeError("AvalAI public model registry exceeded size limit")
+              status = response.status
+              headers = {key.lower(): value for key, value in response.headers.items()}
+          parsed = json.loads(payload)
+          if isinstance(parsed, dict):
+              models = parsed.get("data") or parsed.get("models") or []
+          elif isinstance(parsed, list):
+              models = parsed
+          else:
+              raise RuntimeError("Unexpected AvalAI public model-registry shape")
+          if not isinstance(models, list):
+              raise RuntimeError("AvalAI public model registry did not contain a model list")
+          selected = [
+              model
+              for model in models
+              if isinstance(model, dict)
+              and any(
+                  token in str(model.get("id", "")).lower()
+                  for token in ("gpt-5.4-mini", "gpt-5.5", "gpt-5-mini")
+              )
+          ]
+          if not selected:
+              raise RuntimeError("No intended low-cost GPT model was found")
+          root = Path("artifacts/avalai-model-probe")
+          root.mkdir(parents=True, exist_ok=True)
+          (root / "selected_models.json").write_text(
+              json.dumps(selected, sort_keys=True, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          manifest = {
+              "url": url,
+              "status": status,
+              "payload_sha256": hashlib.sha256(payload).hexdigest(),
+              "payload_bytes": len(payload),
+              "x_request_id": headers.get("x-request-id"),
+              "selected_count": len(selected),
+          }
+          (root / "manifest.json").write_text(
+              json.dumps(manifest, sort_keys=True, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+      - name: Upload secret-free model evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: avalai-public-model-probe-${{ github.sha }}
+          path: artifacts/avalai-model-probe/
+          if-no-files-found: error
+          retention-days: 14
