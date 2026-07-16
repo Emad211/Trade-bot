@@ -1,5 +1,6 @@
 name: phase3c-avalai-ephemeral-smoke
 
+# One-time encrypted live smoke; triggered after temporary PR registration.
 on:
   push:
     branches: ["agent/phase3c-avalai-ephemeral-smoke"]
