@@ -1,5 +1,6 @@
 name: format-foundation-verdict
 
+# Trigger revision after workflow registration.
 on:
   push:
     branches: ["agent/foundation-screening-verdict"]
