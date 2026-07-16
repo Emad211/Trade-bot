@@ -1,11 +1,26 @@
 from __future__ import annotations
 
+import importlib.util
 import json
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
+import pytest
 
-from scripts.assess_phase2c_foundation import assess
+
+def _load_assessor() -> Callable[[Path], dict[str, Any]]:
+    script = Path(__file__).resolve().parents[1] / "scripts" / "assess_phase2c_foundation.py"
+    spec = importlib.util.spec_from_file_location("assess_phase2c_foundation", script)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Unable to load assessment script: {script}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.assess
+
+
+assess = _load_assessor()
 
 
 def _write_inputs(root: Path, *, timesfm_net_return: float) -> None:
@@ -36,7 +51,9 @@ def _write_inputs(root: Path, *, timesfm_net_return: float) -> None:
                 "delta_brier": -0.001 if scenario != "naive" else 0.0,
             }
         )
-    pd.DataFrame(comparison_rows).to_csv(root / "baseline_vs_foundation.csv", index=False)
+    pd.DataFrame(comparison_rows).to_csv(
+        root / "baseline_vs_foundation.csv", index=False
+    )
 
     pd.DataFrame(
         [
@@ -81,7 +98,9 @@ def _write_inputs(root: Path, *, timesfm_net_return: float) -> None:
     ).to_csv(root / "ablation_summary.csv", index=False)
 
 
-def test_assessment_rejects_candidate_that_does_not_beat_naive(tmp_path: Path) -> None:
+def test_assessment_rejects_candidate_that_does_not_beat_naive(
+    tmp_path: Path,
+) -> None:
     _write_inputs(tmp_path, timesfm_net_return=0.04)
 
     result = assess(tmp_path)
@@ -91,7 +110,7 @@ def test_assessment_rejects_candidate_that_does_not_beat_naive(tmp_path: Path) -
     timesfm = next(
         row for row in result["screening_results"] if row["scenario"] == "timesfm"
     )
-    assert timesfm["delta_net_return_vs_naive"] == -0.01
+    assert timesfm["delta_net_return_vs_naive"] == pytest.approx(-0.01)
     assert timesfm["flags"]["net_return_above_naive"] is False
     assert timesfm["all_screening_flags"] is False
 
