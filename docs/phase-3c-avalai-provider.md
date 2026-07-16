@@ -32,15 +32,28 @@ Official references:
 - <https://docs.avalai.ir/fa/guides/production-best-practices>
 - <https://docs.avalai.ir/fa/api-reference/response-headers>
 
+
+## Pinned low-cost model
+
+A secret-free probe of `https://api.avalai.ir/public/models` on 2026-07-16
+(run `29507238028`, artifact digest
+`sha256:ce75419dc9926160e4ef968fb1a8c4e6baa1c7d948ccb405fab1808d8bd83a23`)
+confirmed that `gpt-5-mini-2025-08-07` supports both `/v1/responses` and strict
+response schemas. Its advertised input/output prices were lower than the unversioned
+`gpt-5.4-mini` alias. Phase 3C therefore pins both `model` and `model_revision` to
+`gpt-5-mini-2025-08-07` and rejects a mismatched `response.model`. This prevents an
+alias update from silently reusing an old extraction identity.
+
 ## Credential handling
 
 `AVALAI_API_KEY` is read only from the process environment or a CI secret. It is
 never accepted in YAML, command-line arguments, source files, manifests, ledgers or
 artifacts.
 
-A key disclosed in chat, a screenshot, an issue or source code is compromised and
-must be revoked and replaced before any live smoke test. Use a dedicated project key
-with a small budget and the minimum model access required by this workflow.
+Use a dedicated short-lived project key with a small budget and the minimum model
+access required by this workflow. Even a deliberately limited key must be injected as
+a process or CI secret and must never be committed, passed as a command-line argument
+or written to an artifact.
 
 Optional non-secret environment overrides:
 
@@ -108,7 +121,7 @@ state/avalai_calls.jsonl
 
 Recorded fields include:
 
-- model, provider-managed revision label and route;
+- exact pinned model ID, response model, route and HTTP status;
 - endpoint;
 - request and response body hashes;
 - client and provider request IDs;

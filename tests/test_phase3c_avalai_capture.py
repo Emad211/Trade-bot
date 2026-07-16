@@ -75,7 +75,7 @@ class FakeTransport:
             payload = {
                 "id": f"resp-{self.calls}",
                 "status": "completed",
-                "model": "gpt-5.4-mini",
+                "model": "gpt-5-mini-2025-08-07",
                 "output": [
                     {
                         "type": "message",
@@ -113,7 +113,8 @@ def _config() -> Phase3CAvalAIConfig:
             sources=(source,),
         ),
         avalai=AvalAISettings(
-            model_revision="test-revision",
+            model="gpt-5-mini-2025-08-07",
+            model_revision="gpt-5-mini-2025-08-07",
             max_retries=0,
             reasoning_effort=None,
         ),

@@ -24,13 +24,13 @@ capture:
 
 avalai:
   base_url: https://api.avalai.ir/v1
-  model: gpt-5.4-mini
-  model_revision: provider-managed-catalog-2026-07-16
+  model: gpt-5-mini-2025-08-07
+  model_revision: gpt-5-mini-2025-08-07
   route: responses
   timeout_seconds: 60
   max_retries: 3
   initial_backoff_seconds: 1
   max_backoff_seconds: 20
-  max_output_tokens: 700
-  max_document_chars: 30000
-  reasoning_effort: low
+  max_output_tokens: 512
+  max_document_chars: 12000
+  reasoning_effort: minimal
