@@ -1,0 +1,126 @@
+{
+  "baseline_registry_id": "869222ece2463d6912cae419986ea228a1f9c2142c5e009ed1d68d7f58e24bd5",
+  "combined_experiment_id": "b828935eee13d30e6e2138787011f792631a43f5810f1dd037eb2e6bca869941",
+  "created_at": "2026-07-15T11:56:18.781818+00:00",
+  "dataset_sha256": "fa8c7f3ddc75baa7fccc8b835b47c4bb75ca3e8dbdc208a27428d513da40f144",
+  "device": "cpu",
+  "manifest_sha256": "911d0f038899dac23e1e2874a5cc6ad4eb3ea3d7d5e2ff714949fd3bc151e910",
+  "models": {
+    "chronos": {
+      "cache_id": "d17758a343609374ca5628dbeb9d2653c4d4f1920ba1b1efc9a700a85a0fb0d3",
+      "columns": [
+        "forecast_origin_at",
+        "forecast_origin_available_at",
+        "available_at",
+        "forecast_step",
+        "chronos_point_1",
+        "chronos_point_sum",
+        "chronos_forecast_age_bars",
+        "chronos_q0p1_1",
+        "chronos_q0p1_sum",
+        "chronos_q0p25_1",
+        "chronos_q0p25_sum",
+        "chronos_q0p5_1",
+        "chronos_q0p5_sum",
+        "chronos_q0p75_1",
+        "chronos_q0p75_sum",
+        "chronos_q0p9_1",
+        "chronos_q0p9_sum"
+      ],
+      "feature_sha256": "a77ab8df95bb2e464898a6816f6fbdffda99a63a68eda8a74717dc87a92facde",
+      "model_id": "amazon/chronos-2",
+      "revision": "29ec3766d36d6f73f0696f85560a422f50e8498c",
+      "rows": 7478,
+      "runtime_seconds": 36.83749821599997,
+      "spec": {
+        "batch_size": 16,
+        "context_length": 256,
+        "horizon": 6,
+        "inference_latency_seconds": 120.0,
+        "min_history": 256,
+        "prefix": "chronos",
+        "stride": 6
+      }
+    },
+    "naive": {
+      "cache_id": "9f63f2eb871edbab0e9b1678d6845f4807a9f6f16c0ae6bce5a25fd87746232c",
+      "columns": [
+        "forecast_origin_at",
+        "forecast_origin_available_at",
+        "available_at",
+        "forecast_step",
+        "naive_point_1",
+        "naive_point_sum",
+        "naive_forecast_age_bars"
+      ],
+      "feature_sha256": "394650ca43c9309b02eda7cff7380076ca44fa57bbc187d5275302a5f7a55572",
+      "model_id": "naive-zero-return-batch",
+      "revision": "deterministic-v1",
+      "rows": 7478,
+      "runtime_seconds": 0.33802341300000194,
+      "spec": {
+        "batch_size": 16,
+        "context_length": 256,
+        "horizon": 6,
+        "inference_latency_seconds": 120.0,
+        "min_history": 256,
+        "prefix": "naive",
+        "stride": 6
+      }
+    },
+    "timesfm": {
+      "cache_id": "d6ace5a8848866ba11c565251c9300ecdebef19bdfb18dafc758f4eee47a76be",
+      "columns": [
+        "forecast_origin_at",
+        "forecast_origin_available_at",
+        "available_at",
+        "forecast_step",
+        "timesfm_point_1",
+        "timesfm_point_sum",
+        "timesfm_forecast_age_bars",
+        "timesfm_q0p1_1",
+        "timesfm_q0p1_sum",
+        "timesfm_q0p2_1",
+        "timesfm_q0p2_sum",
+        "timesfm_q0p3_1",
+        "timesfm_q0p3_sum",
+        "timesfm_q0p4_1",
+        "timesfm_q0p4_sum",
+        "timesfm_q0p5_1",
+        "timesfm_q0p5_sum",
+        "timesfm_q0p6_1",
+        "timesfm_q0p6_sum",
+        "timesfm_q0p7_1",
+        "timesfm_q0p7_sum",
+        "timesfm_q0p8_1",
+        "timesfm_q0p8_sum",
+        "timesfm_q0p9_1",
+        "timesfm_q0p9_sum"
+      ],
+      "feature_sha256": "1b3d1b78756cc643f18c71f11ad8b303b757d63b1837ced7638c68072dc68e31",
+      "model_id": "google/timesfm-2.5-200m-pytorch",
+      "revision": "1d952420fba87f3c6dee4f240de0f1a0fbc790e3",
+      "rows": 7478,
+      "runtime_seconds": 236.32750476400003,
+      "spec": {
+        "batch_size": 16,
+        "context_length": 256,
+        "horizon": 6,
+        "inference_latency_seconds": 120.0,
+        "min_history": 256,
+        "prefix": "timesfm",
+        "stride": 6
+      }
+    }
+  },
+  "python": "3.11.15",
+  "scenarios": [
+    "naive",
+    "timesfm",
+    "chronos",
+    "timesfm_chronos"
+  ],
+  "schema_version": "1.0",
+  "source_tree_sha256": "c070a293ddd5399dfa5dc817ae3dadefa76ddeffb6cbb1cd4ee1f212bd8892fe",
+  "status": "historical_challenger_not_activated"
+}

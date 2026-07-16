@@ -1,0 +1,20 @@
+{
+  "chronos_revision": "29ec3766d36d6f73f0696f85560a422f50e8498c",
+  "dataset_sha256": "fa8c7f3ddc75baa7fccc8b835b47c4bb75ca3e8dbdc208a27428d513da40f144",
+  "manifest_sha256": "911d0f038899dac23e1e2874a5cc6ad4eb3ea3d7d5e2ff714949fd3bc151e910",
+  "models": [
+    "catboost",
+    "lightgbm",
+    "prior",
+    "ridge_logistic",
+    "trend"
+  ],
+  "scenarios": [
+    "chronos",
+    "naive",
+    "timesfm",
+    "timesfm_chronos"
+  ],
+  "timesfm_revision": "1d952420fba87f3c6dee4f240de0f1a0fbc790e3",
+  "verified": true
+}

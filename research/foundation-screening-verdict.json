@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.1",
+  "verdict": "no_candidate_passed",
+  "action": "retain_as_research_only",
+  "promotion_allowed": false,
+  "prospective_ledger_allowed": false,
+  "repository_commit": "494e5af03b7957cac6e3f654ea92fbfda4ac1b8f",
+  "workflow_run_id": 29412736808,
+  "artifact": {
+    "id": 8342048388,
+    "name": "phase2c-foundation-494e5af03b7957cac6e3f654ea92fbfda4ac1b8f",
+    "size_bytes": 54411026,
+    "digest": "sha256:0e01fc2c0179000c83c7cb2d56665356fb8e42dd7f4a1d2711ce1d80b6766335",
+    "storage": "github_actions",
+    "large_binary_outputs_committed_to_git": false
+  },
+  "compact_evidence_path": "research/runs/phase2c-foundation-29412736808",
+  "dataset_sha256": "fa8c7f3ddc75baa7fccc8b835b47c4bb75ca3e8dbdc208a27428d513da40f144",
+  "foundation_manifest_sha256": "e05675bf220d2d58fd7508586da35cd7a8ca16b86cecccfd0c4412c31958d84a",
+  "dataset_window": {
+    "start": "2023-01-01T00:00:00Z",
+    "end": "2026-07-12T20:00:00Z",
+    "observation_cutoff": "2026-07-13T00:15:00Z"
+  },
+  "models": {
+    "timesfm": {
+      "model_id": "google/timesfm-2.5-200m-pytorch",
+      "revision": "1d952420fba87f3c6dee4f240de0f1a0fbc790e3",
+      "feature_sha256": "4b85afb29f5e5b464210769c9a2f3638cd043f863f1f120f8200ab3e99ec9af8",
+      "runtime_seconds": 286.201683522
+    },
+    "chronos": {
+      "model_id": "amazon/chronos-2",
+      "revision": "29ec3766d36d6f73f0696f85560a422f50e8498c",
+      "feature_sha256": "a77ab8df95bb2e464898a6816f6fbdffda99a63a68eda8a74717dc87a92facde",
+      "runtime_seconds": 38.63174424800002
+    },
+    "naive": {
+      "model_id": "naive-zero-return-batch",
+      "revision": "deterministic-v1",
+      "feature_sha256": "394650ca43c9309b02eda7cff7380076ca44fa57bbc187d5275302a5f7a55572"
+    }
+  },
+  "inference_contract": {
+    "context": 256,
+    "horizon": 6,
+    "stride": 6,
+    "batch_size": 16,
+    "inference_latency_seconds": 120
+  },
+  "screening_rules": [
+    "net_return_above_baseline",
+    "net_return_above_naive",
+    "sharpe_above_baseline",
+    "brier_not_worse",
+    "majority_positive_folds",
+    "positive_after_2x_cost"
+  ],
+  "candidate_count": 15,
+  "candidates_passing_all_rules": 0,
+  "notable_partial_results": [
+    {
+      "scenario": "timesfm_chronos",
+      "model": "lightgbm",
+      "delta_net_return": 0.010799,
+      "delta_net_return_vs_naive": 0.013113,
+      "delta_sharpe": 0.951846,
+      "delta_brier": 0.001665488,
+      "positive_fold_ratio": 0.25,
+      "mean_net_return_at_2x_cost": -0.055565
+    },
+    {
+      "scenario": "chronos",
+      "model": "catboost",
+      "delta_net_return": 0.006628664,
+      "delta_net_return_vs_naive": 0.016981,
+      "delta_sharpe": 1.381694,
+      "delta_brier": 0.0001800406,
+      "positive_fold_ratio": 0.0,
+      "mean_net_return_at_2x_cost": -0.061219
+    },
+    {
+      "scenario": "timesfm",
+      "model": "catboost",
+      "delta_net_return": 0.003442136,
+      "delta_net_return_vs_naive": 0.013794,
+      "delta_sharpe": -0.4771391,
+      "delta_brier": 0.000004276704,
+      "positive_fold_ratio": 0.0833333333,
+      "mean_net_return_at_2x_cost": -0.071706
+    }
+  ],
+  "next_step": "Design a new predeclared experiment around derivatives regimes, volatility/liquidity targets, stronger classical baselines and multiple-comparison controls. Do not activate the completed foundation scenarios."
+}

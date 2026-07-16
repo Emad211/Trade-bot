@@ -42,6 +42,23 @@ feature تولید می‌کنند و اجازه ارسال سفارش ندار�
 - tamper-evident prospective paper-decision ledger;
 - lint, strict typing, tests, wheel smoke test and GitHub Actions.
 
+## Current research verdict
+
+The real pinned TimesFM 2.5 and Chronos-2 experiment completed successfully, but
+**no foundation scenario/model candidate passed every screening rule**. A candidate
+must beat both its market-only baseline and the matching naive zero-return
+challenger, preserve calibration, be positive in at least half of sealed folds and
+remain profitable at twice the declared costs. Therefore TimesFM, Chronos and their
+combination remain research-only and cannot enter the prospective ledger.
+
+- [Human-readable verdict](docs/foundation-screening-verdict.md)
+- [Machine-readable verdict](research/foundation-screening-verdict.json)
+- [Compact committed run evidence](research/runs/phase2c-foundation-29412736808/README.md)
+
+Large immutable feature caches and prediction matrices remain in GitHub Actions
+under the artifact ID and SHA-256 digest recorded in the committed evidence; they
+are not checked into Git as opaque binary archives.
+
 ## Installation
 
 ```bash
@@ -191,6 +208,9 @@ hybrid-trader forward-verify \
   --ledger artifacts/forward/decisions.jsonl
 ```
 
+The current foundation scenarios are not eligible for this ledger. A new candidate
+must have a separate predeclared identity and pass every historical screening gate.
+
 ## Fixed-cutoff Phase 2C
 
 The authoritative historical workflow uses `configs/phase2c_sources_authoritative.yaml`
@@ -199,11 +219,18 @@ two independent spot histories, derivative coverage, Nasdaq, a broad USD index,
 and gold futures, then runs sealed tree-model benchmarks, cost stress and ablation.
 
 ```bash
-python -m hybrid_trader.phase2c   --spec configs/phase2c_sources_authoritative.yaml   --config configs/phase2c_btc_4h.yaml   --output artifacts/phase2c-historical
+python -m hybrid_trader.phase2c \
+  --spec configs/phase2c_sources_authoritative.yaml \
+  --config configs/phase2c_btc_4h.yaml \
+  --output artifacts/phase2c-historical
 
 python scripts/verify_phase2c_artifacts.py artifacts/phase2c-historical
-python scripts/verify_phase2c_artifacts_strict.py   artifacts/phase2c-historical   --spec configs/phase2c_sources_authoritative.yaml
-python scripts/verify_phase2c_macro_gate.py   artifacts/phase2c-historical   --spec configs/phase2c_sources_authoritative.yaml
+python scripts/verify_phase2c_artifacts_strict.py \
+  artifacts/phase2c-historical \
+  --spec configs/phase2c_sources_authoritative.yaml
+python scripts/verify_phase2c_macro_gate.py \
+  artifacts/phase2c-historical \
+  --spec configs/phase2c_sources_authoritative.yaml
 ```
 
 Historical success never activates a strategy. The foundation-model workflow remains
@@ -230,10 +257,10 @@ execution.
 - [Phase 2 methodology](docs/phase-2-methodology.md)
 - [Public data contracts](docs/phase-2b-data-sources.md)
 - [TimesFM and Chronos protocol](docs/foundation-models.md)
+- [Foundation screening verdict](docs/foundation-screening-verdict.md)
 - [Forward-test ledger](docs/forward-test.md)
 - [Platform selection](docs/platform-selection.md)
 - [Release gates](docs/release-gates.md)
-
 
 Phase 2C details:
 

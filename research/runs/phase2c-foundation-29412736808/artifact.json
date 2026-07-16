@@ -1,0 +1,11 @@
+{
+  "workflow_run_id": 29412736808,
+  "artifact_id": 8342048388,
+  "artifact_name": "phase2c-foundation-494e5af03b7957cac6e3f654ea92fbfda4ac1b8f",
+  "artifact_size_bytes": 54411026,
+  "artifact_digest": "sha256:0e01fc2c0179000c83c7cb2d56665356fb8e42dd7f4a1d2711ce1d80b6766335",
+  "source_commit": "494e5af03b7957cac6e3f654ea92fbfda4ac1b8f",
+  "storage": "github_actions",
+  "raw_feature_caches_and_predictions_committed_to_git": false,
+  "reason": "Large immutable binary and prediction outputs remain in GitHub Actions; compact auditable reports and their checksums are committed here."
+}
