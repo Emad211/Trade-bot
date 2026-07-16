@@ -29,7 +29,7 @@ def test_probabilistic_and_deflated_sharpe_are_conservative() -> None:
 
 def test_sample_shape_metrics_are_close_to_normal() -> None:
     rng = np.random.default_rng(99)
-    returns = rng.normal(0, 1, size=50_000)
+    returns = rng.normal(0, 0.01, size=50_000)
     assert abs(sample_skewness(returns)) < 0.05
     assert abs(sample_pearson_kurtosis(returns) - 3.0) < 0.08
 
