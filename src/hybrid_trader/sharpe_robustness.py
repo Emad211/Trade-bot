@@ -24,11 +24,11 @@ class SharpeDiagnostics:
     deflated_benchmark_annualized_sharpe: float
 
 
-def finite_returns(
+def finite_vector(
     values: NDArray[np.floating[Any]] | list[float] | tuple[float, ...],
     *,
-    name: str = "returns",
-    minimum_size: int = 3,
+    name: str,
+    minimum_size: int,
 ) -> FloatVector:
     vector = np.asarray(values, dtype=np.float64)
     if vector.ndim != 1:
@@ -37,6 +37,16 @@ def finite_returns(
         raise ValueError(f"{name} requires at least {minimum_size} observations")
     if not np.isfinite(vector).all():
         raise ValueError(f"{name} must contain only finite values")
+    return vector
+
+
+def finite_returns(
+    values: NDArray[np.floating[Any]] | list[float] | tuple[float, ...],
+    *,
+    name: str = "returns",
+    minimum_size: int = 3,
+) -> FloatVector:
+    vector = finite_vector(values, name=name, minimum_size=minimum_size)
     if (vector <= -1.0).any():
         raise ValueError(f"{name} cannot contain returns at or below -100%")
     return vector
@@ -135,7 +145,7 @@ def sharpe_diagnostics(
     periods_per_year: int,
 ) -> SharpeDiagnostics:
     values = finite_returns(returns, minimum_size=4)
-    trial_sharpes = finite_returns(
+    trial_sharpes = finite_vector(
         trial_annualized_sharpes,
         name="trial_annualized_sharpes",
         minimum_size=2,
