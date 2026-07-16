@@ -1,0 +1,34 @@
+[
+  {
+    "duplicate_documents": 0,
+    "error_message": null,
+    "error_type": null,
+    "feed_url": "https://github.com/bitcoin/bitcoin/releases.atom",
+    "parsed_documents": 10,
+    "payload_bytes": 8653,
+    "payload_sha256": "ca146c5e2b04f3ebe5c7e1846d05d1d7462d74d2018d8eeeec7dd50e67000f62",
+    "required": true,
+    "retrieved_at": "2026-07-16T11:32:28.896985Z",
+    "skipped_documents": 0,
+    "source_id": "bitcoin-core-releases",
+    "status": "success",
+    "truncated_documents": 0,
+    "warnings": []
+  },
+  {
+    "duplicate_documents": 0,
+    "error_message": null,
+    "error_type": null,
+    "feed_url": "https://github.com/ethereum/go-ethereum/releases.atom",
+    "parsed_documents": 10,
+    "payload_bytes": 230411,
+    "payload_sha256": "09d483dcee4825bb20e31b861d2d7dab9688d581c6ca59597ca3d22412674a39",
+    "required": false,
+    "retrieved_at": "2026-07-16T11:32:29.610823Z",
+    "skipped_documents": 0,
+    "source_id": "geth-releases",
+    "status": "success",
+    "truncated_documents": 0,
+    "warnings": []
+  }
+]

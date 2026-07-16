@@ -1,0 +1,76 @@
+{
+  "capture_completed_at": "2026-07-16T11:32:29.643036Z",
+  "capture_id": "50e41bcb807da292637e00d7773ec3cf3837b013440932c2a51cd83b35c982a0",
+  "capture_started_at": "2026-07-16T11:32:28.551734Z",
+  "config_sha256": "826fdcd95a69cfc18f44c410c041974592e1c076a2da589b0373d5f6d380fc6c",
+  "cross_source_duplicate_content_count": 0,
+  "document_count": 20,
+  "document_ledger_head_sha256": "6ffb1e390d09d48d25c1698e883b855cfac471d90063c5bbadce024f54da3254",
+  "extractor_model_id": "deterministic-keyword-baseline",
+  "extractor_model_revision": "1.0",
+  "extractor_prompt_sha256": "8a9cc8c4c6fb09b3d390b44e54ed3d24effa92afeeb1cca250a7b0566f57925f",
+  "failed_sources": [],
+  "failure_message": null,
+  "failure_type": null,
+  "new_document_count": 20,
+  "new_semantic_record_count": 20,
+  "prospective_decisions_created": false,
+  "raw_payloads": [
+    {
+      "relative_path": "raw/50e41bcb807da292637e00d7773ec3cf3837b013440932c2a51cd83b35c982a0/bitcoin-core-releases.xml",
+      "sha256": "ca146c5e2b04f3ebe5c7e1846d05d1d7462d74d2018d8eeeec7dd50e67000f62",
+      "size_bytes": 8653,
+      "source_id": "bitcoin-core-releases"
+    },
+    {
+      "relative_path": "raw/50e41bcb807da292637e00d7773ec3cf3837b013440932c2a51cd83b35c982a0/geth-releases.xml",
+      "sha256": "09d483dcee4825bb20e31b861d2d7dab9688d581c6ca59597ca3d22412674a39",
+      "size_bytes": 230411,
+      "source_id": "geth-releases"
+    }
+  ],
+  "raw_payloads_committed_to_git": false,
+  "recovered_semantic_record_count": 0,
+  "schema_version": "1.1",
+  "semantic_ledger_head_sha256": "2376ecd9d13672118c608a9b3ebbbde81f94111cd9d21ef894b60ef0cbd1ae21",
+  "semantic_record_count": 20,
+  "source_attempts": [
+    {
+      "duplicate_documents": 0,
+      "error_message": null,
+      "error_type": null,
+      "feed_url": "https://github.com/bitcoin/bitcoin/releases.atom",
+      "parsed_documents": 10,
+      "payload_bytes": 8653,
+      "payload_sha256": "ca146c5e2b04f3ebe5c7e1846d05d1d7462d74d2018d8eeeec7dd50e67000f62",
+      "required": true,
+      "retrieved_at": "2026-07-16T11:32:28.896985Z",
+      "skipped_documents": 0,
+      "source_id": "bitcoin-core-releases",
+      "status": "success",
+      "truncated_documents": 0,
+      "warnings": []
+    },
+    {
+      "duplicate_documents": 0,
+      "error_message": null,
+      "error_type": null,
+      "feed_url": "https://github.com/ethereum/go-ethereum/releases.atom",
+      "parsed_documents": 10,
+      "payload_bytes": 230411,
+      "payload_sha256": "09d483dcee4825bb20e31b861d2d7dab9688d581c6ca59597ca3d22412674a39",
+      "required": false,
+      "retrieved_at": "2026-07-16T11:32:29.610823Z",
+      "skipped_documents": 0,
+      "source_id": "geth-releases",
+      "status": "success",
+      "truncated_documents": 0,
+      "warnings": []
+    }
+  ],
+  "status": "success",
+  "successful_sources": [
+    "bitcoin-core-releases",
+    "geth-releases"
+  ]
+}

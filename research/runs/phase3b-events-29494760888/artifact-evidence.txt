@@ -1,0 +1,5 @@
+workflow_run_id=29494760888
+artifact_id=8373899812
+artifact_name=phase3b-events-10f415387d0f677eb90ed25688e6ed05c43b2e00
+artifact_size_bytes=39459
+artifact_digest=sha256:1ad8477bdeabda74d1f9df9868961fa22bcd732c6b4148121751784ed2acba4e

@@ -1,0 +1,14 @@
+[
+  {
+    "relative_path": "raw/50e41bcb807da292637e00d7773ec3cf3837b013440932c2a51cd83b35c982a0/bitcoin-core-releases.xml",
+    "sha256": "ca146c5e2b04f3ebe5c7e1846d05d1d7462d74d2018d8eeeec7dd50e67000f62",
+    "size_bytes": 8653,
+    "source_id": "bitcoin-core-releases"
+  },
+  {
+    "relative_path": "raw/50e41bcb807da292637e00d7773ec3cf3837b013440932c2a51cd83b35c982a0/geth-releases.xml",
+    "sha256": "09d483dcee4825bb20e31b861d2d7dab9688d581c6ca59597ca3d22412674a39",
+    "size_bytes": 230411,
+    "source_id": "geth-releases"
+  }
+]

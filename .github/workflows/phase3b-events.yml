@@ -1,0 +1,83 @@
+name: phase3b-events
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "configs/phase3b_event_sources.yaml"
+      - "scripts/capture_phase3b_events.py"
+      - "scripts/verify_phase3b_events.py"
+      - "src/hybrid_trader/event_*.py"
+      - "src/hybrid_trader/feed_source.py"
+      - "src/hybrid_trader/semantic_extraction.py"
+      - ".github/workflows/phase3b-events.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install event-capture dependencies
+        run: python -m pip install -e .
+      - name: Capture credential-free public feeds
+        run: |
+          python scripts/capture_phase3b_events.py \
+            --config configs/phase3b_event_sources.yaml \
+            --output artifacts/phase3b-events
+      - name: Independently verify ledgers and capture files
+        run: python scripts/verify_phase3b_events.py artifacts/phase3b-events
+      - name: Enforce semantic-only non-activation
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          state = Path("artifacts/phase3b-events/state")
+          decisions = state / "prospective_decisions.jsonl"
+          if not decisions.exists() or decisions.read_text(encoding="utf-8").strip():
+              raise RuntimeError("Phase 3B created a prospective trading decision")
+          prohibited = {
+              "desired_exposure",
+              "leverage",
+              "order_type",
+              "price_target",
+              "stop_loss",
+              "take_profit",
+              "wallet_address",
+              "withdrawal",
+          }
+          for path in state.rglob("*"):
+              if not path.is_file() or path.suffix not in {".json", ".jsonl"}:
+                  continue
+              text = path.read_text(encoding="utf-8")
+              present = sorted(key for key in prohibited if f'"{key}"' in text)
+              if present:
+                  raise RuntimeError(f"Prohibited trading fields in {path}: {present}")
+          PY
+      - name: Record workflow provenance
+        run: |
+          printf '%s\n' "$GITHUB_SHA" > artifacts/phase3b-events/source_commit_sha.txt
+          printf '%s\n' "$GITHUB_RUN_ID" > artifacts/phase3b-events/workflow_run_id.txt
+      - name: Build checksum inventory
+        if: always()
+        run: |
+          find artifacts/phase3b-events -type f -print0 \
+            | sort -z | xargs -0 sha256sum \
+            > artifacts/phase3b-events/SHA256SUMS
+      - name: Upload prospective event evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase3b-events-${{ github.sha }}
+          path: artifacts/phase3b-events/
+          if-no-files-found: error
+          retention-days: 90
