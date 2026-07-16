@@ -43,9 +43,7 @@ def assess(root: Path) -> dict[str, Any]:
             naive_row = comparison.loc[
                 (comparison.scenario == "naive") & (comparison.model == model)
             ]
-            fold_rows = folds.loc[
-                (folds.scenario == scenario) & (folds.model == model)
-            ]
+            fold_rows = folds.loc[(folds.scenario == scenario) & (folds.model == model)]
             stress_2x = stress.loc[
                 (stress.scenario == scenario)
                 & (stress.model == model)
@@ -62,7 +60,9 @@ def assess(root: Path) -> dict[str, Any]:
             delta_sharpe = _scalar(row, "delta_sharpe")
             delta_brier = _scalar(row, "delta_brier")
             positive_fold_ratio = (
-                float((fold_rows.net_return > 0).mean()) if not fold_rows.empty else None
+                float((fold_rows.net_return > 0).mean())
+                if not fold_rows.empty
+                else None
             )
             stressed_net = (
                 float(stress_2x.net_return.mean()) if not stress_2x.empty else None
