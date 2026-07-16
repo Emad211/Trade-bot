@@ -6,60 +6,9 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  phase3a-autofix:
-    if: ${{ (github.event_name == 'push' && github.ref_name == 'agent/phase-3a-robustness-gate') || (github.event_name == 'pull_request' && github.head_ref == 'agent/phase-3a-robustness-gate') }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: agent/phase-3a-robustness-gate
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Apply safe Ruff fixes
-        shell: bash
-        run: |
-          set -euo pipefail
-          files=(
-            src/hybrid_trader/robustness_policy.py
-            src/hybrid_trader/sharpe_robustness.py
-            src/hybrid_trader/bootstrap_robustness.py
-            src/hybrid_trader/regime_robustness.py
-            src/hybrid_trader/candidate_robustness.py
-            scripts/assess_phase3a_robustness.py
-            tests/test_sharpe_robustness.py
-            tests/test_bootstrap_robustness.py
-            tests/test_candidate_robustness.py
-          )
-          python -m pip install 'ruff>=0.8,<1'
-          ruff check --fix "${files[@]}" || true
-          ruff format "${files[@]}"
-      - name: Commit safe fixes
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            src/hybrid_trader/robustness_policy.py \
-            src/hybrid_trader/sharpe_robustness.py \
-            src/hybrid_trader/bootstrap_robustness.py \
-            src/hybrid_trader/regime_robustness.py \
-            src/hybrid_trader/candidate_robustness.py \
-            scripts/assess_phase3a_robustness.py \
-            tests/test_sharpe_robustness.py \
-            tests/test_bootstrap_robustness.py \
-            tests/test_candidate_robustness.py
-          if git diff --cached --quiet; then
-            echo 'No safe lint fixes were required.'
-          else
-            git commit -m 'apply safe Ruff fixes to Phase 3A gate'
-            git push origin HEAD:agent/phase-3a-robustness-gate
-          fi
-
   quality:
     runs-on: ubuntu-latest
     strategy:
@@ -79,7 +28,17 @@ jobs:
       - name: Lint
         run: ruff check .
       - name: Type check
-        run: mypy --python-version ${{ matrix.python-version }} src
+        run: |
+          set -o pipefail
+          mypy --python-version ${{ matrix.python-version }} src 2>&1 \
+            | tee mypy-${{ matrix.python-version }}.log
+      - name: Upload mypy diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mypy-${{ matrix.python-version }}-${{ github.sha }}
+          path: mypy-${{ matrix.python-version }}.log
+          if-no-files-found: error
       - name: Core tests
         run: |
           set -o pipefail
@@ -88,8 +47,9 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: pytest-${{ matrix.python-version }}
+          name: pytest-${{ matrix.python-version }}-${{ github.sha }}
           path: pytest.log
+          if-no-files-found: warn
       - name: Dependency consistency
         run: python -m pip check
 
