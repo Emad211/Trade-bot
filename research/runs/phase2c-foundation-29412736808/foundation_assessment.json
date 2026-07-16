@@ -1,0 +1,408 @@
+{
+  "ablation_contributions": [
+    {
+      "all_features_net_return": -0.0397412447505679,
+      "feature_model": "timesfm",
+      "incremental_net_return": -0.007530031540306903,
+      "model": "catboost",
+      "without_feature_net_return": -0.032211213210261
+    },
+    {
+      "all_features_net_return": -0.0397412447505679,
+      "feature_model": "chronos",
+      "incremental_net_return": -0.0043435037404728,
+      "model": "catboost",
+      "without_feature_net_return": -0.0353977410100951
+    },
+    {
+      "all_features_net_return": -0.0490226136249241,
+      "feature_model": "timesfm",
+      "incremental_net_return": -0.015603470405579696,
+      "model": "lightgbm",
+      "without_feature_net_return": -0.0334191432193444
+    },
+    {
+      "all_features_net_return": -0.0490226136249241,
+      "feature_model": "chronos",
+      "incremental_net_return": 0.008996139307328302,
+      "model": "lightgbm",
+      "without_feature_net_return": -0.0580187529322524
+    },
+    {
+      "all_features_net_return": 0.0053664234192326,
+      "feature_model": "timesfm",
+      "incremental_net_return": 0.0,
+      "model": "prior",
+      "without_feature_net_return": 0.0053664234192326
+    },
+    {
+      "all_features_net_return": 0.0053664234192326,
+      "feature_model": "chronos",
+      "incremental_net_return": 0.0,
+      "model": "prior",
+      "without_feature_net_return": 0.0053664234192326
+    },
+    {
+      "all_features_net_return": -0.0220269316161991,
+      "feature_model": "timesfm",
+      "incremental_net_return": 0.014672290800341999,
+      "model": "ridge_logistic",
+      "without_feature_net_return": -0.0366992224165411
+    },
+    {
+      "all_features_net_return": -0.0220269316161991,
+      "feature_model": "chronos",
+      "incremental_net_return": 0.015091976346836004,
+      "model": "ridge_logistic",
+      "without_feature_net_return": -0.0371189079630351
+    },
+    {
+      "all_features_net_return": 0.0003561641154041,
+      "feature_model": "timesfm",
+      "incremental_net_return": 0.0,
+      "model": "trend",
+      "without_feature_net_return": 0.0003561641154041
+    },
+    {
+      "all_features_net_return": 0.0003561641154041,
+      "feature_model": "chronos",
+      "incremental_net_return": 0.0,
+      "model": "trend",
+      "without_feature_net_return": 0.0003561641154041
+    }
+  ],
+  "assessment_id": "7e3a0bfc8d94838db47aed59d6b4bb57047d415b3bbc5014a2a57b30196fe5bb",
+  "dataset_sha256": "fa8c7f3ddc75baa7fccc8b835b47c4bb75ca3e8dbdc208a27428d513da40f144",
+  "failed_flag_counts": {
+    "brier_not_worse": 14,
+    "majority_positive_folds": 15,
+    "net_return_above_baseline": 6,
+    "net_return_above_naive": 11,
+    "positive_after_2x_cost": 12,
+    "sharpe_above_baseline": 9
+  },
+  "foundation_manifest_sha256": "911d0f038899dac23e1e2874a5cc6ad4eb3ea3d7d5e2ff714949fd3bc151e910",
+  "promotion_policy": "Screening flags are necessary but not sufficient. A candidate must improve net return over both its market-only baseline and the zero-return challenger, then pass independent human review and a separately frozen prospective paper period. When no candidate passes every flag, foundation features remain research-only.",
+  "recommendation": "retain_as_research_only",
+  "schema_version": "1.2",
+  "screening_candidates": [],
+  "screening_outcome": "no_candidate_passed",
+  "screening_results": [
+    {
+      "all_screening_flags": false,
+      "delta_brier": 4.149546032394813e-06,
+      "delta_net_return": 0.0034421360668307,
+      "delta_net_return_vs_naive": 0.013794407931218201,
+      "delta_sharpe": -0.4771391273637682,
+      "flags": {
+        "brier_not_worse": false,
+        "majority_positive_folds": false,
+        "net_return_above_baseline": true,
+        "net_return_above_naive": true,
+        "positive_after_2x_cost": false,
+        "sharpe_above_baseline": false
+      },
+      "mean_net_return_at_2x_cost": -0.07170621459347921,
+      "model": "catboost",
+      "naive_net_return": -0.0491921489413133,
+      "net_return": -0.0353977410100951,
+      "positive_fold_ratio": 0.08333333333333333,
+      "scenario": "timesfm"
+    },
+    {
+      "all_screening_flags": false,
+      "delta_brier": 0.0016008151429652,
+      "delta_net_return": -0.0076636442873032,
+      "delta_net_return_vs_naive": -0.005349732974106895,
+      "delta_sharpe": 0.1279800998481142,
+      "flags": {
+        "brier_not_worse": false,
+        "majority_positive_folds": false,
+        "net_return_above_baseline": false,
+        "net_return_above_naive": false,
+        "positive_after_2x_cost": false,
+        "sharpe_above_baseline": true
+      },
+      "mean_net_return_at_2x_cost": -0.08634339260131402,
+      "model": "lightgbm",
+      "naive_net_return": -0.0422923208447611,
+      "net_return": -0.047642053818868,
+      "positive_fold_ratio": 0.08333333333333333,
+      "scenario": "timesfm"
+    },
+    {
+      "all_screening_flags": false,
+      "delta_brier": 2.775557561562892e-17,
+      "delta_net_return": 3.903127820947816e-17,
+      "delta_net_return_vs_naive": 0.0,
+      "delta_sharpe": 5.551115123125783e-17,
+      "flags": {
+        "brier_not_worse": false,
+        "majority_positive_folds": false,
+        "net_return_above_baseline": true,
+        "net_return_above_naive": false,
+        "positive_after_2x_cost": true,
+        "sharpe_above_baseline": true
+      },
+      "mean_net_return_at_2x_cost": 0.004627222396173043,
+      "model": "prior",
+      "naive_net_return": 0.0053664234192326,
+      "net_return": 0.0053664234192326,
+      "positive_fold_ratio": 0.16666666666666666,
+      "scenario": "timesfm"
+    },
+    {
+      "all_screening_flags": false,
+      "delta_brier": 3.236871635764471e-05,
+      "delta_net_return": -0.0213451379593998,
+      "delta_net_return_vs_naive": -0.019512772877616304,
+      "delta_sharpe": -2.7508859709940783,
+      "flags": {
+        "brier_not_worse": false,
+        "majority_positive_folds": false,
+        "net_return_above_baseline": false,
+        "net_return_above_naive": false,
+        "positive_after_2x_cost": false,
+        "sharpe_above_baseline": false
+      },
+      "mean_net_return_at_2x_cost": -0.06972149353448946,
+      "model": "ridge_logistic",
+      "naive_net_return": -0.0176061350854188,
+      "net_return": -0.0371189079630351,
+      "positive_fold_ratio": 0.08333333333333333,
+      "scenario": "timesfm"
+    },
+    {
+      "all_screening_flags": false,
+      "delta_brier": null,
+      "delta_net_return": 1.3606737264693079e-17,
+      "delta_net_return_vs_naive": 0.0,
+      "delta_sharpe": 0.0,
+      "flags": {
+        "brier_not_worse": false,
+        "majority_positive_folds": false,
+        "net_return_above_baseline": true,
+        "net_return_above_naive": false,
+        "positive_after_2x_cost": false,
+        "sharpe_above_baseline": false
+      },
+      "mean_net_return_at_2x_cost": -0.004007751931421509,
+      "model": "trend",
+      "naive_net_return": 0.0003561641154041,
+      "net_return": 0.0003561641154041,
+      "positive_fold_ratio": 0.3333333333333333,
+      "scenario": "timesfm"
+    },
+    {
+      "all_screening_flags": false,
+      "delta_brier": 0.0001800405873226,
+      "delta_net_return": 0.0066286638666648,
+      "delta_net_return_vs_naive": 0.016980935731052305,
+      "delta_sharpe": 1.3816940687398664,
+      "flags": {
+        "brier_not_worse": false,
+        "majority_positive_folds": false,
+        "net_return_above_baseline": true,
+        "net_return_above_naive": true,
+        "positive_after_2x_cost": false,
+        "sharpe_above_baseline": true
+      },
+      "mean_net_return_at_2x_cost": -0.06121936738487594,
+      "model": "catboost",
+      "naive_net_return": -0.0491921489413133,
+      "net_return": -0.032211213210261,
+      "positive_fold_ratio": 0.0,
+      "scenario": "chronos"
+    },
+    {
+      "all_screening_flags": false,
+      "delta_brier": 0.0015788703286934,
+      "delta_net_return": -0.0048509834771864,
+      "delta_net_return_vs_naive": -0.0025370721639901006,
+      "delta_sharpe": -0.2000230045730942,
+      "flags": {
+        "brier_not_worse": false,
+        "majority_positive_folds": false,
+        "net_return_above_baseline": false,
+        "net_return_above_naive": false,
+        "positive_after_2x_cost": false,
+        "sharpe_above_baseline": false
+      },
+      "mean_net_return_at_2x_cost": -0.07542150575765975,
+      "model": "lightgbm",
+      "naive_net_return": -0.0422923208447611,
+      "net_return": -0.0448293930087512,
+      "positive_fold_ratio": 0.0,
+      "scenario": "chronos"
+    },
+    {
+      "all_screening_flags": false,
+      "delta_brier": 2.775557561562892e-17,
+      "delta_net_return": 3.903127820947816e-17,
+      "delta_net_return_vs_naive": 0.0,
+      "delta_sharpe": 5.551115123125783e-17,
+      "flags": {
+        "brier_not_worse": false,
+        "majority_positive_folds": false,
+        "net_return_above_baseline": true,
+        "net_return_above_naive": false,
+        "positive_after_2x_cost": true,
+        "sharpe_above_baseline": true
+      },
+      "mean_net_return_at_2x_cost": 0.004627222396173043,
+      "model": "prior",
+      "naive_net_return": 0.0053664234192326,
+      "net_return": 0.0053664234192326,
+      "positive_fold_ratio": 0.16666666666666666,
+      "scenario": "chronos"
+    },
+    {
+      "all_screening_flags": false,
+      "delta_brier": 0.0001882038848629,
+      "delta_net_return": -0.0209254524129058,
+      "delta_net_return_vs_naive": -0.019093087331122298,
+      "delta_sharpe": -3.2571117658865703,
+      "flags": {
+        "brier_not_worse": false,
+        "majority_positive_folds": false,
+        "net_return_above_baseline": false,
+        "net_return_above_naive": false,
+        "positive_after_2x_cost": false,
+        "sharpe_above_baseline": false
+      },
+      "mean_net_return_at_2x_cost": -0.06995347273493997,
+      "model": "ridge_logistic",
+      "naive_net_return": -0.0176061350854188,
+      "net_return": -0.0366992224165411,
+      "positive_fold_ratio": 0.16666666666666666,
+      "scenario": "chronos"
+    },
+    {
+      "all_screening_flags": false,
+      "delta_brier": null,
+      "delta_net_return": 1.3606737264693079e-17,
+      "delta_net_return_vs_naive": 0.0,
+      "delta_sharpe": 0.0,
+      "flags": {
+        "brier_not_worse": false,
+        "majority_positive_folds": false,
+        "net_return_above_baseline": true,
+        "net_return_above_naive": false,
+        "positive_after_2x_cost": false,
+        "sharpe_above_baseline": false
+      },
+      "mean_net_return_at_2x_cost": -0.004007751931421509,
+      "model": "trend",
+      "naive_net_return": 0.0003561641154041,
+      "net_return": 0.0003561641154041,
+      "positive_fold_ratio": 0.3333333333333333,
+      "scenario": "chronos"
+    },
+    {
+      "all_screening_flags": false,
+      "delta_brier": 0.0001911328475054,
+      "delta_net_return": -0.000901367673642,
+      "delta_net_return_vs_naive": 0.009450904190745402,
+      "delta_sharpe": -0.114647292808391,
+      "flags": {
+        "brier_not_worse": false,
+        "majority_positive_folds": false,
+        "net_return_above_baseline": false,
+        "net_return_above_naive": true,
+        "positive_after_2x_cost": false,
+        "sharpe_above_baseline": false
+      },
+      "mean_net_return_at_2x_cost": -0.07935187278866858,
+      "model": "catboost",
+      "naive_net_return": -0.0491921489413133,
+      "net_return": -0.0397412447505679,
+      "positive_fold_ratio": 0.08333333333333333,
+      "scenario": "timesfm_chronos"
+    },
+    {
+      "all_screening_flags": false,
+      "delta_brier": 0.0016281583312598,
+      "delta_net_return": 0.0035551386609953,
+      "delta_net_return_vs_naive": 0.005869049974191701,
+      "delta_sharpe": 0.9775316923945908,
+      "flags": {
+        "brier_not_worse": false,
+        "majority_positive_folds": false,
+        "net_return_above_baseline": true,
+        "net_return_above_naive": true,
+        "positive_after_2x_cost": false,
+        "sharpe_above_baseline": true
+      },
+      "mean_net_return_at_2x_cost": -0.07319744474884261,
+      "model": "lightgbm",
+      "naive_net_return": -0.0422923208447611,
+      "net_return": -0.0364232708705694,
+      "positive_fold_ratio": 0.25,
+      "scenario": "timesfm_chronos"
+    },
+    {
+      "all_screening_flags": false,
+      "delta_brier": 2.775557561562892e-17,
+      "delta_net_return": 3.903127820947816e-17,
+      "delta_net_return_vs_naive": 0.0,
+      "delta_sharpe": 5.551115123125783e-17,
+      "flags": {
+        "brier_not_worse": false,
+        "majority_positive_folds": false,
+        "net_return_above_baseline": true,
+        "net_return_above_naive": false,
+        "positive_after_2x_cost": true,
+        "sharpe_above_baseline": true
+      },
+      "mean_net_return_at_2x_cost": 0.004627222396173043,
+      "model": "prior",
+      "naive_net_return": 0.0053664234192326,
+      "net_return": 0.0053664234192326,
+      "positive_fold_ratio": 0.16666666666666666,
+      "scenario": "timesfm_chronos"
+    },
+    {
+      "all_screening_flags": false,
+      "delta_brier": -2.1705356449575053e-05,
+      "delta_net_return": -0.0066250616857746,
+      "delta_net_return_vs_naive": -0.004792696603991103,
+      "delta_sharpe": -0.99499596387975,
+      "flags": {
+        "brier_not_worse": true,
+        "majority_positive_folds": false,
+        "net_return_above_baseline": false,
+        "net_return_above_naive": false,
+        "positive_after_2x_cost": false,
+        "sharpe_above_baseline": false
+      },
+      "mean_net_return_at_2x_cost": -0.0480827688649872,
+      "model": "ridge_logistic",
+      "naive_net_return": -0.0176061350854188,
+      "net_return": -0.0223988316894099,
+      "positive_fold_ratio": 0.25,
+      "scenario": "timesfm_chronos"
+    },
+    {
+      "all_screening_flags": false,
+      "delta_brier": null,
+      "delta_net_return": 1.3606737264693079e-17,
+      "delta_net_return_vs_naive": 0.0,
+      "delta_sharpe": 0.0,
+      "flags": {
+        "brier_not_worse": false,
+        "majority_positive_folds": false,
+        "net_return_above_baseline": true,
+        "net_return_above_naive": false,
+        "positive_after_2x_cost": false,
+        "sharpe_above_baseline": false
+      },
+      "mean_net_return_at_2x_cost": -0.004007751931421509,
+      "model": "trend",
+      "naive_net_return": 0.0003561641154041,
+      "net_return": 0.0003561641154041,
+      "positive_fold_ratio": 0.3333333333333333,
+      "scenario": "timesfm_chronos"
+    }
+  ],
+  "status": "human_review_required"
+}
