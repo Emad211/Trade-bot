@@ -6,35 +6,9 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  phase3a-typing-patch:
-    if: ${{ (github.event_name == 'push' && github.ref_name == 'agent/phase-3a-robustness-gate') || (github.event_name == 'pull_request' && github.head_ref == 'agent/phase-3a-robustness-gate') }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: agent/phase-3a-robustness-gate
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Apply reviewed typing-only patch
-        run: |
-          python scripts/patch_phase3a_candidate_typing.py
-          python -m pip install 'ruff>=0.8,<1'
-          ruff format src/hybrid_trader/candidate_robustness.py
-          ruff check src/hybrid_trader/candidate_robustness.py
-      - name: Commit typing-only patch
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/hybrid_trader/candidate_robustness.py
-          git commit -m 'fix Phase 3A regime-summary typing'
-          git push origin HEAD:agent/phase-3a-robustness-gate
-
   quality:
     runs-on: ubuntu-latest
     strategy:
