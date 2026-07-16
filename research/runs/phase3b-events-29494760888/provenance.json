@@ -1,0 +1,12 @@
+{
+  "capture_id": "50e41bcb807da292637e00d7773ec3cf3837b013440932c2a51cd83b35c982a0",
+  "document_count": 20,
+  "expected_artifact_name": "phase3b-events-10f415387d0f677eb90ed25688e6ed05c43b2e00",
+  "full_feed_files_in_git": false,
+  "prospective_decision_count": 0,
+  "raw_payload_storage": "github_actions_artifact",
+  "schema_version": "1.0",
+  "semantic_record_count": 20,
+  "source_commit": "10f415387d0f677eb90ed25688e6ed05c43b2e00",
+  "workflow_run_id": 29494760888
+}
