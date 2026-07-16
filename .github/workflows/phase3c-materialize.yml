@@ -1,5 +1,6 @@
 name: phase3c-materialize
 
+# One-time materializer for provider audit hardening and repository formatting.
 on:
   push:
     branches: ["agent/phase-3c-avalai-provider"]
