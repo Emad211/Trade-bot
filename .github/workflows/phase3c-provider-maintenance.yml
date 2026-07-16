@@ -1,5 +1,6 @@
 name: phase3c-provider-maintenance
 
+# Trigger source transformation from the established Phase 3B runner branch.
 on:
   push:
     branches: ["agent/phase-3b-prospective-events"]
