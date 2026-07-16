@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -23,20 +25,56 @@ order, exposure, leverage, price target, stop, or execution instruction.
 """
 
 
+def _canonical_identity(payload: dict[str, Any]) -> str:
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode()
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def make_extraction_key(
+    *,
+    document_id: str,
+    model_id: str,
+    model_revision: str,
+    prompt_sha256: str,
+    input_sha256: str,
+) -> str:
+    return _canonical_identity(
+        {
+            "document_id": document_id,
+            "model_id": model_id,
+            "model_revision": model_revision,
+            "prompt_sha256": prompt_sha256,
+            "input_sha256": input_sha256,
+        }
+    )
+
+
+def make_signal_id(*, extraction_key: str, signal: EventSignal) -> str:
+    return _canonical_identity(
+        {
+            "extraction_key": extraction_key,
+            "signal": signal.model_dump(mode="json"),
+        }
+    )
+
+
 class SemanticEventRecord(BaseModel):
     """A semantic feature record that cannot contain execution instructions."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    schema_version: str = "1.0"
+    schema_version: str = "1.1"
     signal_id: str = Field(pattern=r"^[0-9a-f]{64}$")
+    extraction_key: str = Field(pattern=r"^[0-9a-f]{64}$")
     document_id: str = Field(pattern=r"^[0-9a-f]{64}$")
-    source_id: str
+    source_id: str = Field(pattern=r"^[a-z0-9][a-z0-9._-]{1,63}$")
     signal: EventSignal
     model_id: str = Field(min_length=1, max_length=200)
     model_revision: str = Field(min_length=1, max_length=200)
     prompt_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     input_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    document_source_quality: float = Field(ge=0, le=1)
+    document_asset_tags: tuple[str, ...] = ()
     document_available_at: datetime
     inference_started_at: datetime
     inference_completed_at: datetime
@@ -55,6 +93,14 @@ class SemanticEventRecord(BaseModel):
             raise ValueError("Semantic event timestamps must be timezone-aware")
         return value.astimezone(UTC)
 
+    @field_validator("document_asset_tags")
+    @classmethod
+    def normalize_asset_tags(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        normalized = tuple(tag.upper().strip() for tag in value)
+        if any(not tag for tag in normalized) or len(set(normalized)) != len(normalized):
+            raise ValueError("document_asset_tags must be unique non-empty values")
+        return normalized
+
     @model_validator(mode="after")
     def validate_timing_and_evidence(self) -> SemanticEventRecord:
         if self.inference_started_at < self.document_available_at:
@@ -63,16 +109,42 @@ class SemanticEventRecord(BaseModel):
             raise ValueError("Inference completion cannot precede inference start")
         if self.available_at != self.inference_completed_at:
             raise ValueError("Semantic features become available at inference completion")
-        if self.document_id not in self.signal.evidence_ids:
-            raise ValueError("Semantic signal must cite its source document")
-        if self.input_sha256 != self.document_id and len(self.input_sha256) != 64:
-            raise ValueError("Invalid semantic input hash")
+        if self.signal.evidence_ids != (self.document_id,):
+            raise ValueError("Single-document extraction must cite exactly its source document")
+        if not math.isclose(
+            self.signal.source_quality,
+            self.document_source_quality,
+            rel_tol=0.0,
+            abs_tol=1e-12,
+        ):
+            raise ValueError("Semantic source_quality must come from the document contract")
+        if self.document_asset_tags:
+            if self.signal.asset not in self.document_asset_tags:
+                raise ValueError("Semantic asset must be one of the document asset tags")
+        elif self.signal.asset != "MARKET":
+            raise ValueError("Documents without asset tags must use the MARKET asset")
+        expected_extraction_key = make_extraction_key(
+            document_id=self.document_id,
+            model_id=self.model_id,
+            model_revision=self.model_revision,
+            prompt_sha256=self.prompt_sha256,
+            input_sha256=self.input_sha256,
+        )
+        if self.extraction_key != expected_extraction_key:
+            raise ValueError("extraction_key does not match semantic provenance")
+        expected_signal_id = make_signal_id(
+            extraction_key=self.extraction_key,
+            signal=self.signal,
+        )
+        if self.signal_id != expected_signal_id:
+            raise ValueError("signal_id does not match semantic content and provenance")
         return self
 
 
-def _canonical_identity(payload: dict[str, Any]) -> str:
-    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode()
-    return hashlib.sha256(encoded).hexdigest()
+def _normalize_inference_time(value: datetime, *, label: str) -> datetime:
+    if value.tzinfo is None:
+        raise ValueError(f"{label} must be timezone-aware")
+    return value.astimezone(UTC)
 
 
 def make_semantic_record(
@@ -85,21 +157,19 @@ def make_semantic_record(
     inference_started_at: datetime,
     inference_completed_at: datetime,
 ) -> SemanticEventRecord:
-    started = inference_started_at.astimezone(UTC)
-    completed = inference_completed_at.astimezone(UTC)
+    started = _normalize_inference_time(inference_started_at, label="inference_started_at")
+    completed = _normalize_inference_time(inference_completed_at, label="inference_completed_at")
     prompt_sha = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
-    identity = {
-        "document_id": envelope.document.document_id,
-        "signal": signal.model_dump(mode="json"),
-        "model_id": model_id,
-        "model_revision": model_revision,
-        "prompt_sha256": prompt_sha,
-        "input_sha256": envelope.document.content_sha256,
-        "inference_started_at": started.isoformat(),
-        "inference_completed_at": completed.isoformat(),
-    }
+    extraction_key = make_extraction_key(
+        document_id=envelope.document.document_id,
+        model_id=model_id,
+        model_revision=model_revision,
+        prompt_sha256=prompt_sha,
+        input_sha256=envelope.document.content_sha256,
+    )
     return SemanticEventRecord(
-        signal_id=_canonical_identity(identity),
+        signal_id=make_signal_id(extraction_key=extraction_key, signal=signal),
+        extraction_key=extraction_key,
         document_id=envelope.document.document_id,
         source_id=envelope.document.source_id,
         signal=signal,
@@ -107,6 +177,8 @@ def make_semantic_record(
         model_revision=model_revision,
         prompt_sha256=prompt_sha,
         input_sha256=envelope.document.content_sha256,
+        document_source_quality=envelope.document.source_quality,
+        document_asset_tags=envelope.document.asset_tags,
         document_available_at=envelope.document.available_at,
         inference_started_at=started,
         inference_completed_at=completed,
@@ -135,6 +207,19 @@ class KeywordSemanticExtractor:
     model_revision = "1.0"
     prompt = KEYWORD_BASELINE_RULES
 
+    @property
+    def prompt_sha256(self) -> str:
+        return hashlib.sha256(self.prompt.encode("utf-8")).hexdigest()
+
+    def extraction_key(self, envelope: DocumentEnvelope) -> str:
+        return make_extraction_key(
+            document_id=envelope.document.document_id,
+            model_id=self.model_id,
+            model_revision=self.model_revision,
+            prompt_sha256=self.prompt_sha256,
+            input_sha256=envelope.document.content_sha256,
+        )
+
     def extract(
         self,
         envelope: DocumentEnvelope,
@@ -142,8 +227,17 @@ class KeywordSemanticExtractor:
         inference_started_at: datetime | None = None,
         inference_completed_at: datetime | None = None,
     ) -> SemanticEventRecord:
-        started = (inference_started_at or datetime.now(UTC)).astimezone(UTC)
-        completed = (inference_completed_at or started).astimezone(UTC)
+        now = datetime.now(UTC)
+        started = (
+            _normalize_inference_time(inference_started_at, label="inference_started_at")
+            if inference_started_at is not None
+            else max(now, envelope.document.available_at)
+        )
+        completed = (
+            _normalize_inference_time(inference_completed_at, label="inference_completed_at")
+            if inference_completed_at is not None
+            else started
+        )
         event_type, severity = _event_type_and_severity(envelope.text)
         signal = EventSignal(
             asset=envelope.document.asset_tags[0] if envelope.document.asset_tags else "MARKET",
@@ -169,11 +263,7 @@ class KeywordSemanticExtractor:
 
 
 class CallableStructuredExtractor:
-    """Adapter for a local or remote JSON-producing model callable.
-
-    The callable receives the immutable prompt and transient document text. Provider
-    credentials, retries and transport are intentionally outside this research core.
-    """
+    """Adapter for a local or remote JSON-producing model callable."""
 
     def __init__(
         self,
@@ -191,7 +281,7 @@ class CallableStructuredExtractor:
         self.inference = inference
 
     def extract(self, envelope: DocumentEnvelope) -> SemanticEventRecord:
-        started = datetime.now(UTC)
+        started = max(datetime.now(UTC), envelope.document.available_at)
         payload = self.inference(self.prompt, envelope.text)
         completed = datetime.now(UTC)
         signal = EventSignal.model_validate(payload)
@@ -202,7 +292,7 @@ class CallableStructuredExtractor:
             model_revision=self.model_revision,
             prompt=self.prompt,
             inference_started_at=started,
-            inference_completed_at=completed,
+            inference_completed_at=max(completed, started),
         )
 
 
@@ -219,15 +309,25 @@ def semantic_record_sha256(record: SemanticEventRecord) -> str:
     return hashlib.sha256(_canonical_line(record)).hexdigest()
 
 
-def verify_semantic_ledger(
-    path: str | Path,
-) -> tuple[str | None, SemanticEventRecord | None, int, frozenset[str]]:
+@dataclass(frozen=True)
+class SemanticLedgerState:
+    head_sha256: str | None
+    previous_record: SemanticEventRecord | None
+    count: int
+    signal_ids: frozenset[str]
+    extraction_keys: frozenset[str]
+    document_ids: frozenset[str]
+
+
+def verify_semantic_ledger(path: str | Path) -> SemanticLedgerState:
     ledger = Path(path)
     if not ledger.exists():
-        return None, None, 0, frozenset()
+        return SemanticLedgerState(None, None, 0, frozenset(), frozenset(), frozenset())
     previous_sha: str | None = None
     previous: SemanticEventRecord | None = None
     signal_ids: set[str] = set()
+    extraction_keys: set[str] = set()
+    document_ids: set[str] = set()
     count = 0
     with ledger.open("rb") as handle:
         for line_number, raw in enumerate(handle, start=1):
@@ -241,16 +341,39 @@ def verify_semantic_ledger(
                 raise ValueError(f"Semantic ledger hash chain breaks at line {line_number}")
             if record.signal_id in signal_ids:
                 raise ValueError(f"Duplicate semantic signal at line {line_number}")
+            if record.extraction_key in extraction_keys:
+                raise ValueError(f"Duplicate semantic extraction at line {line_number}")
             if previous is not None:
-                current_key = (record.available_at, record.source_id, record.signal_id)
-                previous_key = (previous.available_at, previous.source_id, previous.signal_id)
+                current_key = (record.available_at, record.source_id, record.extraction_key)
+                previous_key = (previous.available_at, previous.source_id, previous.extraction_key)
                 if current_key <= previous_key:
                     raise ValueError("Semantic event records must be strictly ordered")
             previous_sha = semantic_record_sha256(record)
             previous = record
             signal_ids.add(record.signal_id)
+            extraction_keys.add(record.extraction_key)
+            document_ids.add(record.document_id)
             count += 1
-    return previous_sha, previous, count, frozenset(signal_ids)
+    return SemanticLedgerState(
+        previous_sha,
+        previous,
+        count,
+        frozenset(signal_ids),
+        frozenset(extraction_keys),
+        frozenset(document_ids),
+    )
+
+
+def _load_semantic_by_extraction_key(path: Path) -> dict[str, SemanticEventRecord]:
+    state = verify_semantic_ledger(path)
+    if state.count == 0:
+        return {}
+    result: dict[str, SemanticEventRecord] = {}
+    with path.open("rb") as handle:
+        for raw in handle:
+            record = SemanticEventRecord.model_validate_json(raw)
+            result[record.extraction_key] = record
+    return result
 
 
 def append_semantic_records(
@@ -259,21 +382,35 @@ def append_semantic_records(
 ) -> tuple[int, str | None]:
     ledger = Path(path)
     ledger.parent.mkdir(parents=True, exist_ok=True)
-    head, previous, _, existing_ids = verify_semantic_ledger(ledger)
-    pending = [record for record in records if record.signal_id not in existing_ids]
-    pending.sort(key=lambda item: (item.available_at, item.source_id, item.signal_id))
+    state = verify_semantic_ledger(ledger)
+    existing = _load_semantic_by_extraction_key(ledger)
+    pending: list[SemanticEventRecord] = []
+    for record in records:
+        stored = existing.get(record.extraction_key)
+        if stored is None:
+            pending.append(record)
+            continue
+        if stored.signal_id != record.signal_id:
+            raise ValueError(
+                "The same document/model/prompt provenance produced conflicting semantic output"
+            )
+    pending.sort(key=lambda item: (item.available_at, item.source_id, item.extraction_key))
     if not pending:
-        return 0, head
+        return 0, state.head_sha256
 
     previous_key = (
-        (previous.available_at, previous.source_id, previous.signal_id)
-        if previous is not None
+        (
+            state.previous_record.available_at,
+            state.previous_record.source_id,
+            state.previous_record.extraction_key,
+        )
+        if state.previous_record is not None
         else None
     )
     payloads: list[bytes] = []
-    next_head = head
+    next_head = state.head_sha256
     for item in pending:
-        current_key = (item.available_at, item.source_id, item.signal_id)
+        current_key = (item.available_at, item.source_id, item.extraction_key)
         if previous_key is not None and current_key <= previous_key:
             raise ValueError("New semantic records are not strictly ordered")
         chained = item.model_copy(update={"previous_record_sha256": next_head})
