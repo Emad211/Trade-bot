@@ -3,7 +3,7 @@ name: phase3b-events
 on:
   workflow_dispatch:
   push:
-    branches: ["agent/phase-3b-prospective-events"]
+    branches: [main]
     paths:
       - "configs/phase3b_event_sources.yaml"
       - "scripts/capture_phase3b_events.py"
@@ -14,7 +14,7 @@ on:
       - ".github/workflows/phase3b-events.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   capture:
@@ -67,78 +67,6 @@ jobs:
         run: |
           printf '%s\n' "$GITHUB_SHA" > artifacts/phase3b-events/source_commit_sha.txt
           printf '%s\n' "$GITHUB_RUN_ID" > artifacts/phase3b-events/workflow_run_id.txt
-      - name: Commit compact prospective evidence
-        if: ${{ github.event_name == 'push' && github.ref_name == 'agent/phase-3b-prospective-events' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          DEST="research/runs/phase3b-events-${GITHUB_RUN_ID}"
-          rm -rf research/runs/phase3b-events-*
-          mkdir -p "$DEST/state"
-          cp artifacts/phase3b-events/state/documents.jsonl "$DEST/state/"
-          cp artifacts/phase3b-events/state/semantic_events.jsonl "$DEST/state/"
-          cp artifacts/phase3b-events/state/prospective_decisions.jsonl "$DEST/state/"
-          cp -a artifacts/phase3b-events/state/captures "$DEST/state/"
-          cp artifacts/phase3b-events/source_commit_sha.txt "$DEST/"
-          cp artifacts/phase3b-events/workflow_run_id.txt "$DEST/"
-          python - <<'PY'
-          import json
-          import os
-          from pathlib import Path
-
-          root = Path("research/runs") / f"phase3b-events-{os.environ['GITHUB_RUN_ID']}"
-          captures = sorted((root / "state" / "captures").iterdir())
-          if len(captures) != 1:
-              raise RuntimeError("Expected exactly one compact capture directory")
-          manifest = json.loads((captures[0] / "capture_manifest.json").read_text())
-          provenance = {
-              "schema_version": "1.0",
-              "workflow_run_id": int(os.environ["GITHUB_RUN_ID"]),
-              "source_commit": os.environ["GITHUB_SHA"],
-              "capture_id": manifest["capture_id"],
-              "document_count": manifest["document_count"],
-              "semantic_record_count": manifest["semantic_record_count"],
-              "prospective_decision_count": 0,
-              "full_feed_files_in_git": False,
-              "raw_payload_storage": "github_actions_artifact",
-              "expected_artifact_name": f"phase3b-events-{os.environ['GITHUB_SHA']}",
-          }
-          (root / "provenance.json").write_text(
-              json.dumps(provenance, sort_keys=True, indent=2) + "\n",
-              encoding="utf-8",
-          )
-          (root / "README.md").write_text(
-              "# Phase 3B prospective event evidence\n\n"
-              f"Workflow run: `{os.environ['GITHUB_RUN_ID']}`. "
-              f"Source commit: `{os.environ['GITHUB_SHA']}`. "
-              f"Capture ID: `{manifest['capture_id']}`.\n\n"
-              f"This credential-free capture recorded `{manifest['document_count']}` documents "
-              f"and `{manifest['semantic_record_count']}` neutral baseline semantic records. "
-              "The prospective decision ledger is empty. Full XML feed payloads remain in the "
-              "GitHub Actions artifact and are not committed to Git.\n",
-              encoding="utf-8",
-          )
-          PY
-          python - <<'PY'
-          import hashlib
-          import os
-          from pathlib import Path
-
-          root = Path("research/runs") / f"phase3b-events-{os.environ['GITHUB_RUN_ID']}"
-          inventory = []
-          for path in sorted(item for item in root.rglob("*") if item.is_file()):
-              if path == root / "SHA256SUMS":
-                  continue
-              digest = hashlib.sha256(path.read_bytes()).hexdigest()
-              inventory.append(f"{digest}  {path.relative_to(root).as_posix()}")
-          (root / "SHA256SUMS").write_text("\n".join(inventory) + "\n", encoding="utf-8")
-          PY
-          test ! -s "$DEST/state/prospective_decisions.jsonl"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A research/runs
-          git commit -m "record final Phase 3B prospective event evidence"
-          git push origin HEAD:agent/phase-3b-prospective-events
       - name: Build checksum inventory
         if: always()
         run: |
