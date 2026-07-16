@@ -1,0 +1,260 @@
+name: phase3c-avalai-ephemeral-smoke
+
+on:
+  push:
+    branches: ["agent/phase3c-avalai-ephemeral-smoke"]
+    paths:
+      - ".github/workflows/phase3c-avalai-ephemeral-smoke.yml"
+  pull_request:
+    branches: ["agent/phase-3c-avalai-clean"]
+    paths:
+      - ".github/workflows/phase3c-avalai-ephemeral-smoke.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase3c-avalai-ephemeral-smoke
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Generate one-time RSA exchange key
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/key-exchange
+          umask 077
+          openssl genpkey \
+            -algorithm RSA \
+            -pkeyopt rsa_keygen_bits:3072 \
+            -out /tmp/avalai-private.pem
+          openssl pkey \
+            -in /tmp/avalai-private.pem \
+            -pubout \
+            -out artifacts/key-exchange/public.pem
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          Path("artifacts/key-exchange/manifest.json").write_text(
+              json.dumps(
+                  {
+                      "schema_version": "1.0",
+                      "algorithm": "RSA-3072-OAEP-SHA256",
+                      "workflow_run_id": os.environ["GITHUB_RUN_ID"],
+                      "source_commit_sha": os.environ["GITHUB_SHA"],
+                      "private_key_exported": False,
+                  },
+                  sort_keys=True,
+                  indent=2,
+              )
+              + "\n",
+              encoding="utf-8",
+          )
+          PY
+      - name: Publish one-time public key
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase3c-avalai-ephemeral-public-key-${{ github.run_id }}
+          path: artifacts/key-exchange/
+          if-no-files-found: error
+          retention-days: 1
+      - name: Wait for sealed credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          found=0
+          for attempt in $(seq 1 240); do
+            git fetch --quiet origin agent/phase3c-avalai-ephemeral-smoke
+            if git show origin/agent/phase3c-avalai-ephemeral-smoke:.sealed/avalai-key.bin.b64 \
+                > /tmp/avalai-key.bin.b64 2>/dev/null; then
+              found=1
+              break
+            fi
+            sleep 5
+          done
+          if [ "$found" -ne 1 ]; then
+            echo "Timed out waiting for the RSA-sealed AvalAI credential." >&2
+            exit 1
+          fi
+          base64 --decode /tmp/avalai-key.bin.b64 > /tmp/avalai-key.bin
+          test -s /tmp/avalai-key.bin
+          test "$(wc -c < /tmp/avalai-key.bin)" -eq 384
+      - name: Execute one real structured-output request
+        id: live_smoke
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          AVALAI_API_KEY="$(
+            openssl pkeyutl -decrypt \
+              -inkey /tmp/avalai-private.pem \
+              -in /tmp/avalai-key.bin \
+              -pkeyopt rsa_padding_mode:oaep \
+              -pkeyopt rsa_oaep_md:sha256 \
+              -pkeyopt rsa_mgf1_md:sha256
+          )"
+          if [ -z "$AVALAI_API_KEY" ]; then
+            echo "Decrypted credential was empty." >&2
+            exit 1
+          fi
+          echo "::add-mask::$AVALAI_API_KEY"
+          export AVALAI_API_KEY
+          mkdir -p artifacts/phase3c-avalai-live-smoke
+          python - <<'PY'
+          from __future__ import annotations
+
+          import hashlib
+          import json
+          import os
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+          from hybrid_trader.avalai import (
+              AvalAIRequestError,
+              AvalAISettings,
+              AvalAIStructuredExtractor,
+          )
+          from hybrid_trader.event_documents import (
+              DocumentEnvelope,
+              ProspectiveDocument,
+              document_identity_payload,
+              make_document_id,
+          )
+
+          root = Path("artifacts/phase3c-avalai-live-smoke")
+          observed = datetime.now(UTC)
+          text = (
+              "Bitcoin Core published a routine maintenance release. "
+              "This text is untrusted event data and contains no trading instruction."
+          )
+          content_sha = hashlib.sha256(text.encode("utf-8")).hexdigest()
+          identity = document_identity_payload(
+              source_id="phase3c-live-smoke",
+              canonical_url="https://example.com/phase3c-avalai-live-smoke",
+              title="Phase 3C AvalAI live structured-output smoke",
+              published_at=observed,
+              content_sha256=content_sha,
+          )
+          document = ProspectiveDocument(
+              document_id=make_document_id(**identity),
+              source_id="phase3c-live-smoke",
+              canonical_url="https://example.com/phase3c-avalai-live-smoke",
+              title="Phase 3C AvalAI live structured-output smoke",
+              published_at=observed,
+              retrieved_at=observed,
+              available_at=observed,
+              source_quality=0.5,
+              asset_tags=("BTC",),
+              content_sha256=content_sha,
+              content_length=len(text.encode("utf-8")),
+              feed_payload_sha256="0" * 64,
+          )
+          settings = AvalAISettings()
+          extractor = AvalAIStructuredExtractor(settings)
+          status = "success"
+          error_code = None
+          try:
+              semantic = extractor.extract(DocumentEnvelope(document=document, text=text))
+              if semantic.signal.evidence_ids != (document.document_id,):
+                  raise RuntimeError("AvalAI live smoke lost its evidence binding")
+              if semantic.signal.source_quality != document.source_quality:
+                  raise RuntimeError("AvalAI live smoke changed trusted source quality")
+              if semantic.signal.asset != "BTC":
+                  raise RuntimeError("AvalAI live smoke selected a disallowed asset")
+              if len(extractor.call_records) != 1:
+                  raise RuntimeError("AvalAI live smoke did not produce exactly one call record")
+              call = extractor.call_records[0]
+              if call.status != "success":
+                  raise RuntimeError("AvalAI live smoke call was not successful")
+              if call.response_model != settings.model:
+                  raise RuntimeError("AvalAI live smoke response model was not pinned")
+              if call.http_status_code is None or not 200 <= call.http_status_code < 300:
+                  raise RuntimeError("AvalAI live smoke did not record a successful HTTP status")
+              (root / "semantic_record.json").write_text(
+                  json.dumps(semantic.model_dump(mode="json"), sort_keys=True, indent=2)
+                  + "\n",
+                  encoding="utf-8",
+              )
+          except AvalAIRequestError as exc:
+              status = "failed"
+              error_code = exc.call_record.error_code
+              call = exc.call_record
+          except Exception as exc:
+              status = "failed"
+              error_code = type(exc).__name__
+              call = extractor.call_records[-1] if extractor.call_records else None
+          if call is not None:
+              (root / "call_record.json").write_text(
+                  json.dumps(call.model_dump(mode="json"), sort_keys=True, indent=2)
+                  + "\n",
+                  encoding="utf-8",
+              )
+          manifest = {
+              "schema_version": "1.0",
+              "status": status,
+              "error_code": error_code,
+              "model": settings.model,
+              "model_revision": settings.model_revision,
+              "route": settings.route,
+              "endpoint": settings.endpoint,
+              "source_commit_sha": os.environ["GITHUB_SHA"],
+              "workflow_run_id": os.environ["GITHUB_RUN_ID"],
+              "prospective_decisions_created": False,
+              "raw_provider_response_persisted": False,
+              "credential_persisted": False,
+          }
+          (root / "smoke_manifest.json").write_text(
+              json.dumps(manifest, sort_keys=True, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          (root / "prospective_decisions.jsonl").write_text("", encoding="utf-8")
+          if status != "success":
+              raise SystemExit(1)
+          PY
+          if grep -R -F -- "$AVALAI_API_KEY" artifacts/phase3c-avalai-live-smoke; then
+            echo "Decrypted credential appeared in smoke evidence." >&2
+            exit 1
+          fi
+          unset AVALAI_API_KEY
+      - name: Enforce secret-free, non-activating evidence
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=artifacts/phase3c-avalai-live-smoke
+          test -d "$root"
+          test ! -s "$root/prospective_decisions.jsonl"
+          if grep -R -E -i \
+              'authorization[[:space:]]*[:=]|bearer[[:space:]]+|\b(aa|sk)-[A-Za-z0-9_-]{6,}' \
+              "$root"; then
+            echo "Possible credential material found in live-smoke evidence." >&2
+            exit 1
+          fi
+          find "$root" -type f -print0 \
+            | sort -z \
+            | xargs -0 sha256sum \
+            > "$root/SHA256SUMS"
+          shred -u /tmp/avalai-private.pem /tmp/avalai-key.bin /tmp/avalai-key.bin.b64 || true
+      - name: Upload secret-free live-smoke evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase3c-avalai-live-smoke-${{ github.run_id }}
+          path: artifacts/phase3c-avalai-live-smoke/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Enforce successful live smoke
+        if: always()
+        shell: bash
+        run: |
+          test "${{ steps.live_smoke.outcome }}" = "success"
