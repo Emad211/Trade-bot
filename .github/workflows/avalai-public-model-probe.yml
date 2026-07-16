@@ -5,6 +5,10 @@ on:
     branches: ["agent/avalai-model-probe"]
     paths:
       - ".github/workflows/avalai-public-model-probe.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/avalai-public-model-probe.yml"
   workflow_dispatch:
 
 permissions:
