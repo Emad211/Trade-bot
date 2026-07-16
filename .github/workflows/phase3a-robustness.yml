@@ -1,0 +1,123 @@
+name: phase3a-robustness
+
+on:
+  workflow_dispatch:
+    inputs:
+      historical_run_id:
+        description: "Successful phase2c-historical run ID"
+        required: true
+        default: "29319905230"
+        type: string
+  workflow_run:
+    workflows: ["phase2c-historical"]
+    types: [completed]
+  push:
+    branches: ["agent/phase-3a-robustness-gate"]
+    paths:
+      - "src/hybrid_trader/*robustness.py"
+      - "scripts/assess_phase3a_robustness.py"
+      - "configs/phase3a_robustness.yaml"
+      - ".github/workflows/phase3a-robustness.yml"
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  robustness:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BRANCH_BOOTSTRAP_RUN_ID: "29319905230"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Resolve immutable historical run
+        id: historical
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            RUN_ID="${{ github.event.workflow_run.id }}"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            RUN_ID="${{ inputs.historical_run_id }}"
+          else
+            RUN_ID="$BRANCH_BOOTSTRAP_RUN_ID"
+          fi
+          test -n "$RUN_ID"
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+      - name: Download historical evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p historical-download
+          gh run download "${{ steps.historical.outputs.run_id }}" --dir historical-download
+          REGISTRY=$(find historical-download -type f -name source_registry.json -print -quit)
+          test -n "$REGISTRY"
+          echo "HISTORICAL_ROOT=$(dirname "$REGISTRY")" >> "$GITHUB_ENV"
+      - name: Install assessment dependencies
+        run: python -m pip install -e .
+      - name: Re-verify upstream historical gates
+        run: |
+          python scripts/verify_phase2c_artifacts.py "$HISTORICAL_ROOT"
+          python scripts/verify_phase2c_artifacts_strict.py \
+            "$HISTORICAL_ROOT" \
+            --spec configs/phase2c_sources_authoritative.yaml
+          python scripts/verify_phase2c_macro_gate.py \
+            "$HISTORICAL_ROOT" \
+            --spec configs/phase2c_sources_authoritative.yaml
+      - name: Execute Phase 3A robustness gate
+        run: |
+          python scripts/assess_phase3a_robustness.py \
+            --predictions "$HISTORICAL_ROOT/benchmark/all_features/predictions.csv.gz" \
+            --cost-stress "$HISTORICAL_ROOT/benchmark/all_features/cost_stress.csv" \
+            --trial-metrics "$HISTORICAL_ROOT/ablation_fold_metrics.csv" \
+            --policy configs/phase3a_robustness.yaml \
+            --output artifacts/phase3a-robustness
+      - name: Enforce non-activation
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("artifacts/phase3a-robustness")
+          assessment = json.loads((root / "robustness_assessment.json").read_text())
+          if assessment["automatic_promotion_allowed"] is not False:
+              raise RuntimeError("Robustness gate attempted automatic promotion")
+          if assessment["prospective_ledger_started"] is not False:
+              raise RuntimeError("Robustness gate started a prospective ledger")
+          if (root / "prospective_decisions.jsonl").read_text().strip():
+              raise RuntimeError("Historical robustness run contains decisions")
+          PY
+      - name: Record provenance
+        run: |
+          printf '%s\n' "${{ steps.historical.outputs.run_id }}" \
+            > artifacts/phase3a-robustness/historical_run_id.txt
+          printf '%s\n' "$GITHUB_SHA" \
+            > artifacts/phase3a-robustness/source_commit_sha.txt
+      - name: Build deterministic archive and checksums
+        if: always()
+        run: |
+          mkdir -p artifacts/distribution
+          if [ -d artifacts/phase3a-robustness ]; then
+            tar --sort=name --mtime='UTC 1970-01-01' \
+              --owner=0 --group=0 --numeric-owner \
+              -czf artifacts/distribution/phase3a-robustness-${GITHUB_SHA}.tar.gz \
+              -C artifacts phase3a-robustness
+          fi
+          find artifacts -type f -not -path 'artifacts/distribution/SHA256SUMS' -print0 \
+            | sort -z | xargs -0 sha256sum > artifacts/distribution/SHA256SUMS || true
+      - name: Upload robustness evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase3a-robustness-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 90
