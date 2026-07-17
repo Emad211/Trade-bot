@@ -1,5 +1,6 @@
 name: dispatch-report-phase3g-final
 
+# Trigger after workflow registration.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
