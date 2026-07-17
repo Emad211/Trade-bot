@@ -1,0 +1,33 @@
+name: capture-phase3d-status
+
+on:
+  push:
+    branches: ["agent/phase3c-hardening-runner"]
+    paths:
+      - ".github/workflows/capture-phase3d-status.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase3c-hardening-runner
+      - name: Capture latest Phase 3D runs
+        shell: bash
+        run: |
+          set -euo pipefail
+          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-3d-avalai-pilot&per_page=100")
+          mkdir -p .status
+          jq '{runs: [.workflow_runs[] | select(.name == "phase3d-format" or .name == "phase3d-avalai-pilot" or .name == "ci") | {name,id,status,conclusion,head_sha,html_url,created_at,updated_at}]}' <<<"$runs" > .status/phase3d-runs.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .status/phase3d-runs.json
+          git commit -m "capture Phase 3D workflow status" || true
+          git push origin HEAD:agent/phase3c-hardening-runner
