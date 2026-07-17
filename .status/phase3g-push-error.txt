@@ -1,0 +1,28 @@
+23:format	Remove one-time files and commit	2026-07-17T14:31:58.0128664Z  ! [remote rejected] HEAD -> agent/phase-3g-maturity-monitor (refusing to allow a GitHub App to create or update workflow `.github/workflows/phase3g-maturity-monitor.yml` without `workflows` permission)
+24:format	Remove one-time files and commit	2026-07-17T14:31:58.0129774Z error: failed to push some refs to 'https://github.com/Emad211/Trade-bot'
+=== tail ===
+format	Remove one-time files and commit	﻿2026-07-17T14:31:56.9023811Z ##[group]Run set -euo pipefail
+format	Remove one-time files and commit	2026-07-17T14:31:56.9024134Z ^[[36;1mset -euo pipefail^[[0m
+format	Remove one-time files and commit	2026-07-17T14:31:56.9024531Z ^[[36;1mrm -f scripts/materialize_phase3g_fixes.py .github/workflows/phase3g-format.yml^[[0m
+format	Remove one-time files and commit	2026-07-17T14:31:56.9025009Z ^[[36;1mgit config user.name "github-actions[bot]"^[[0m
+format	Remove one-time files and commit	2026-07-17T14:31:56.9025440Z ^[[36;1mgit config user.email "41898282+github-actions[bot]@users.noreply.github.com"^[[0m
+format	Remove one-time files and commit	2026-07-17T14:31:56.9025835Z ^[[36;1mgit add -A^[[0m
+format	Remove one-time files and commit	2026-07-17T14:31:56.9026123Z ^[[36;1mgit commit -m "fix and validate Phase 3G maturity monitor"^[[0m
+format	Remove one-time files and commit	2026-07-17T14:31:56.9026526Z ^[[36;1mgit push origin HEAD:agent/phase-3g-maturity-monitor^[[0m
+format	Remove one-time files and commit	2026-07-17T14:31:56.9064379Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+format	Remove one-time files and commit	2026-07-17T14:31:56.9064718Z env:
+format	Remove one-time files and commit	2026-07-17T14:31:56.9064979Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+format	Remove one-time files and commit	2026-07-17T14:31:56.9065390Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+format	Remove one-time files and commit	2026-07-17T14:31:56.9065831Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+format	Remove one-time files and commit	2026-07-17T14:31:56.9066247Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+format	Remove one-time files and commit	2026-07-17T14:31:56.9066610Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+format	Remove one-time files and commit	2026-07-17T14:31:56.9066977Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+format	Remove one-time files and commit	2026-07-17T14:31:56.9067291Z ##[endgroup]
+format	Remove one-time files and commit	2026-07-17T14:31:56.9289878Z [agent/phase-3g-maturity-monitor a30d5f4] fix and validate Phase 3G maturity monitor
+format	Remove one-time files and commit	2026-07-17T14:31:56.9290450Z  4 files changed, 12 insertions(+), 116 deletions(-)
+format	Remove one-time files and commit	2026-07-17T14:31:56.9290807Z  delete mode 100644 .github/workflows/phase3g-format.yml
+format	Remove one-time files and commit	2026-07-17T14:31:56.9291219Z  delete mode 100644 scripts/materialize_phase3g_fixes.py
+format	Remove one-time files and commit	2026-07-17T14:31:58.0127545Z To https://github.com/Emad211/Trade-bot
+format	Remove one-time files and commit	2026-07-17T14:31:58.0128664Z  ! [remote rejected] HEAD -> agent/phase-3g-maturity-monitor (refusing to allow a GitHub App to create or update workflow `.github/workflows/phase3g-maturity-monitor.yml` without `workflows` permission)
+format	Remove one-time files and commit	2026-07-17T14:31:58.0129774Z error: failed to push some refs to 'https://github.com/Emad211/Trade-bot'
+format	Remove one-time files and commit	2026-07-17T14:31:58.0153112Z ##[error]Process completed with exit code 1.
