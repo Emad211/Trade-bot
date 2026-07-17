@@ -18,6 +18,7 @@ def main() -> None:
     )
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--maximum-new-semantic-records", type=int)
     args = parser.parse_args()
 
     if not os.environ.get("AVALAI_API_KEY"):
@@ -25,6 +26,7 @@ def main() -> None:
     result = capture_avalai_events(
         load_phase3c_avalai_config(args.config),
         args.output,
+        maximum_new_semantic_records=args.maximum_new_semantic_records,
     )
     verification = verify_phase3c_avalai_root(args.output)
     if verification["prospective_decision_count"] != 0:

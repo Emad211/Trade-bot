@@ -158,6 +158,7 @@ def capture_avalai_events(
     feed_factory: FeedFactory | None = None,
     transport: AvalAITransport | None = None,
     extractor_factory: Callable[[], AvalAIStructuredExtractor] | None = None,
+    maximum_new_semantic_records: int | None = None,
 ) -> Phase3CAvalAIResult:
     """Run a real-time AvalAI capture and persist only secret-free provider metadata."""
 
@@ -181,6 +182,8 @@ def capture_avalai_events(
         capture_kwargs: dict[str, Any] = {"extractor_factory": lambda: extractor}
         if feed_factory is not None:
             capture_kwargs["feed_factory"] = feed_factory
+        if maximum_new_semantic_records is not None:
+            capture_kwargs["maximum_new_semantic_records"] = maximum_new_semantic_records
         capture_manifest = capture_events(config.capture, root, **capture_kwargs)
     except EventCaptureFailure as exc:
         capture_failure = exc
