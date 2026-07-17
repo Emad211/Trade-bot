@@ -1,0 +1,55 @@
+name: dispatch-report-phase3g-final
+
+on:
+  push:
+    branches: ["agent/phase3c-hardening-runner"]
+    paths:
+      - ".github/workflows/dispatch-report-phase3g-final.yml"
+
+permissions:
+  actions: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGET_BRANCH: agent/phase-3g-maturity-monitor
+      TARGET_SHA: 6b8bcba076f0ca6a3ea2b5f006a3609fc3151710
+    steps:
+      - name: Dispatch and verify final Phase 3G monitor
+        shell: bash
+        run: |
+          set -euo pipefail
+          before=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          gh workflow run phase3g-maturity-monitor.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref "$TARGET_BRANCH"
+          run=""
+          for attempt in $(seq 1 360); do
+            run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=${TARGET_BRANCH}&per_page=100" \
+              --jq --arg sha "$TARGET_SHA" --arg before "$before" '[.workflow_runs[] | select(.name == "phase3g-maturity-monitor" and .event == "workflow_dispatch" and .head_sha == $sha and .created_at >= $before)][0]')
+            if [ "$(jq -r '.status // empty' <<<"$run")" = "completed" ]; then
+              break
+            fi
+            sleep 10
+          done
+          test -n "$run"
+          run_id=$(jq -r .id <<<"$run")
+          conclusion=$(jq -r .conclusion <<<"$run")
+          jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
+          artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts?per_page=100")
+          {
+            echo '## Final dispatched Phase 3G monitor'
+            echo
+            echo "- run: $(jq -r .html_url <<<"$run")"
+            echo "- conclusion: $conclusion"
+            echo "- head: \`$(jq -r .head_sha <<<"$run")\`"
+            jq -r '.jobs[] as $job | $job.steps[]? | "- \($job.name) / \(.name): \(.status) / \(.conclusion)"' <<<"$jobs"
+            jq -r '.artifacts[] | "- artifact `\(.name)` — ID \(.id) — \(.size_in_bytes) bytes — `\(.digest)`"' <<<"$artifacts"
+          } > /tmp/phase3g-final.md
+          gh pr comment 31 --repo "$GITHUB_REPOSITORY" --body-file /tmp/phase3g-final.md
+          test "$conclusion" = "success"
