@@ -1,6 +1,6 @@
 name: report-phase3f-head
 
-# Trigger after workflow registration.
+# Generation 3: report final fixed-evidence run on the exact human head.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
@@ -15,19 +15,19 @@ permissions:
 jobs:
   report:
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 60
     env:
       GH_TOKEN: ${{ github.token }}
-      TARGET_SHA: 521ff5b967ac88aeb12274b4ce59ecf863e25971
+      TARGET_SHA: c1248daadb0313261c565c88291a77bb5b1926d6
     steps:
-      - name: Wait for formatter on exact Phase 3F head
+      - name: Wait for fixed evidence on exact Phase 3F head
         shell: bash
         run: |
           set -euo pipefail
           run=""
-          for attempt in $(seq 1 240); do
+          for attempt in $(seq 1 300); do
             run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-3f-semantic-dataset&per_page=100" \
-              --jq --arg sha "$TARGET_SHA" '[.workflow_runs[] | select(.name == "phase3f-format" and .head_sha == $sha)][0]')
+              --jq --arg sha "$TARGET_SHA" '[.workflow_runs[] | select(.name == "phase3f-semantic-dataset" and .head_sha == $sha)][0]')
             if [ "$(jq -r '.status // empty' <<<"$run")" = "completed" ]; then
               break
             fi
@@ -36,12 +36,14 @@ jobs:
           test -n "$run"
           run_id=$(jq -r .id <<<"$run")
           jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
+          artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts?per_page=100")
           {
-            echo '## Phase 3F exact-head formatter status'
+            echo '## Phase 3F exact-head evidence status'
             echo
             echo "- run: $(jq -r .html_url <<<"$run")"
             echo "- conclusion: $(jq -r .conclusion <<<"$run")"
             echo "- head: \`$(jq -r .head_sha <<<"$run")\`"
             jq -r '.jobs[] as $job | $job.steps[]? | "- \($job.name) / \(.name): \(.status) / \(.conclusion)"' <<<"$jobs"
+            jq -r '.artifacts[] | "- artifact `\(.name)` — \(.size_in_bytes) bytes — `\(.digest)`"' <<<"$artifacts"
           } > /tmp/phase3f-head.md
           gh pr comment 29 --repo "$GITHUB_REPOSITORY" --body-file /tmp/phase3f-head.md
