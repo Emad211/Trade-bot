@@ -1,5 +1,6 @@
 name: report-phase3c-live-smoke
 
+# Trigger revision after workflow registration.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
