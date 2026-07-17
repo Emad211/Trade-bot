@@ -1,0 +1,55 @@
+name: report-phase3f
+
+on:
+  push:
+    branches: ["agent/phase3c-hardening-runner"]
+    paths:
+      - ".github/workflows/report-phase3f.yml"
+
+permissions:
+  actions: read
+  pull-requests: write
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Wait for Phase 3F workflows and report
+        shell: bash
+        run: |
+          set -euo pipefail
+          report=/tmp/phase3f-status.md
+          echo '## Phase 3F workflow status' > "$report"
+          for workflow in phase3f-format phase3f-semantic-dataset; do
+            run=""
+            for attempt in $(seq 1 300); do
+              run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-3f-semantic-dataset&per_page=100" \
+                --jq "[.workflow_runs[] | select(.name == \"${workflow}\")][0]")
+              status=$(jq -r '.status // empty' <<<"$run")
+              if [ "$status" = "completed" ]; then
+                break
+              fi
+              sleep 10
+            done
+            if [ -z "$run" ]; then
+              echo "- ${workflow}: not found" >> "$report"
+              continue
+            fi
+            run_id=$(jq -r .id <<<"$run")
+            jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
+            artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts?per_page=100")
+            {
+              echo
+              echo "### ${workflow}"
+              echo "- run: $(jq -r .html_url <<<"$run")"
+              echo "- conclusion: $(jq -r .conclusion <<<"$run")"
+              echo "- head: \`$(jq -r .head_sha <<<"$run")\`"
+              jq -r '.jobs[] as $job | $job.steps[]? | "- \($job.name) / \(.name): \(.status) / \(.conclusion)"' <<<"$jobs"
+              jq -r '.artifacts[] | "- artifact `\(.name)` — \(.size_in_bytes) bytes — `\(.digest)`"' <<<"$artifacts"
+            } >> "$report"
+          done
+          gh pr comment 29 --repo "$GITHUB_REPOSITORY" --body-file "$report"
