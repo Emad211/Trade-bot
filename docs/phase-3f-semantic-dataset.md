@@ -101,3 +101,40 @@ historical backfill leakage and causes the workflow to fail.
 
 The expected first verdict is insufficient prospective sample. No model is fitted,
 no threshold is selected and the prospective decision ledger remains untouched.
+
+## First verified result
+
+Workflow run `29576654860` produced artifact `8405288031` with digest:
+
+```text
+sha256:a78c1d880a42854614428b902479e6d9bf8ae545584c0ef71a11f64a73c07d0b
+```
+
+Independent post-download verification established:
+
+- dataset ID `semantic-157007b0519c`;
+- dataset content SHA-256
+  `157007b0519c122d4a2851c5d4164e5dbcc3d828a5bfcd8067a3a840e7d6d3f6`;
+- 7,632 candidate and matured labeled rows;
+- 3,915 positive and 3,717 negative targets;
+- eight relevant prospective semantic records;
+- one semantic availability date and one source;
+- zero decision rows containing an observable semantic event;
+- zero total semantic event counts across every market row;
+- finite values across all 42 semantic feature columns;
+- no model fitting and no prospective decision.
+
+The maturity assessment correctly returned:
+
+```text
+status = insufficient_prospective_sample
+research_model_fitting_allowed = false
+paper_or_live_trading_allowed = false
+```
+
+The artifact was generated on commit `33ad4c0c368ca576ff5b5c62206810e8df7f77be`.
+The completed implementation, including Ruff formatting and the canonical round-trip
+index contract, passed the full Python 3.11/3.12 CI matrix on commit
+`c1248daadb0313261c565c88291a77bb5b1926d6`. The cleanup did not alter the
+point-in-time inclusion or maturity semantics. Compact evidence is retained under
+`research/runs/phase3f-semantic-dataset-29576654860/`.
