@@ -1,0 +1,28 @@
+20:format	Format and validate Phase 3D	2026-07-17T10:21:05.6466714Z src/hybrid_trader/phase3d.py:159: error: No overload variant of "int" matches argument type "object"  [call-overload]
+24:format	Format and validate Phase 3D	2026-07-17T10:21:09.3674058Z Found 1 error in 1 file (checked 67 source files)
+=== tail ===
+format	Format and validate Phase 3D	﻿2026-07-17T10:20:57.4380263Z ##[group]Run ruff format src/hybrid_trader/phase3d.py scripts/assess_phase3d_avalai_pilot.py tests/test_phase3d_quality_gate.py
+format	Format and validate Phase 3D	2026-07-17T10:20:57.4381273Z ^[[36;1mruff format src/hybrid_trader/phase3d.py scripts/assess_phase3d_avalai_pilot.py tests/test_phase3d_quality_gate.py^[[0m
+format	Format and validate Phase 3D	2026-07-17T10:20:57.4382125Z ^[[36;1mruff check --fix src/hybrid_trader/phase3d.py scripts/assess_phase3d_avalai_pilot.py tests/test_phase3d_quality_gate.py^[[0m
+format	Format and validate Phase 3D	2026-07-17T10:20:57.4382738Z ^[[36;1mmypy --python-version 3.12 src^[[0m
+format	Format and validate Phase 3D	2026-07-17T10:20:57.4383335Z ^[[36;1mpytest tests/test_phase3d_quality_gate.py -q^[[0m
+format	Format and validate Phase 3D	2026-07-17T10:20:57.4383706Z ^[[36;1mpytest -m 'not optional_ml' -q^[[0m
+format	Format and validate Phase 3D	2026-07-17T10:20:57.4384007Z ^[[36;1mpytest -m optional_ml -q^[[0m
+format	Format and validate Phase 3D	2026-07-17T10:20:57.4384317Z ^[[36;1mpython -m pip check^[[0m
+format	Format and validate Phase 3D	2026-07-17T10:20:57.4458517Z shell: /usr/bin/bash -e {0}
+format	Format and validate Phase 3D	2026-07-17T10:20:57.4458840Z env:
+format	Format and validate Phase 3D	2026-07-17T10:20:57.4459148Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+format	Format and validate Phase 3D	2026-07-17T10:20:57.4459608Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+format	Format and validate Phase 3D	2026-07-17T10:20:57.4460121Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+format	Format and validate Phase 3D	2026-07-17T10:20:57.4460525Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+format	Format and validate Phase 3D	2026-07-17T10:20:57.4460923Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+format	Format and validate Phase 3D	2026-07-17T10:20:57.4461322Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+format	Format and validate Phase 3D	2026-07-17T10:20:57.4461678Z ##[endgroup]
+format	Format and validate Phase 3D	2026-07-17T10:20:57.4629400Z 1 file reformatted, 2 files left unchanged
+format	Format and validate Phase 3D	2026-07-17T10:20:57.4723667Z All checks passed!
+format	Format and validate Phase 3D	2026-07-17T10:21:05.6466714Z src/hybrid_trader/phase3d.py:159: error: No overload variant of "int" matches argument type "object"  [call-overload]
+format	Format and validate Phase 3D	2026-07-17T10:21:05.6467808Z src/hybrid_trader/phase3d.py:159: note: Possible overload variants:
+format	Format and validate Phase 3D	2026-07-17T10:21:05.6468783Z src/hybrid_trader/phase3d.py:159: note:     def int(str | Buffer | SupportsInt | SupportsIndex | SupportsTrunc = ..., /) -> int
+format	Format and validate Phase 3D	2026-07-17T10:21:05.6469909Z src/hybrid_trader/phase3d.py:159: note:     def int(str | bytes | bytearray, /, base: SupportsIndex) -> int
+format	Format and validate Phase 3D	2026-07-17T10:21:09.3674058Z Found 1 error in 1 file (checked 67 source files)
+format	Format and validate Phase 3D	2026-07-17T10:21:09.3945978Z ##[error]Process completed with exit code 1.
