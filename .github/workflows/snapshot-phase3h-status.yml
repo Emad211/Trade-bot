@@ -1,6 +1,6 @@
 name: snapshot-phase3h-status
 
-# Generation 2: snapshot exact live-probe head.
+# Generation 3: snapshot the self-reporting live-probe head.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
-      TARGET_SHA: a1d39b013623f8a1576660a6d37b1d7d8edf104a
+      TARGET_SHA: 3e86d0218a5b61d7bd56aa6a1c2c0185dfef8846
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,5 +30,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .status/phase3h-exact-status.json
-          git commit -m "snapshot exact Phase 3H status" || true
+          git commit -m "snapshot self-reporting Phase 3H status" || true
           git push origin HEAD:agent/phase3c-hardening-runner
