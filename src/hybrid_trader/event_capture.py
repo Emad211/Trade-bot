@@ -94,11 +94,14 @@ def capture_events(
     captured_at: datetime | None = None,
     feed_factory: FeedFactory = _default_feed_factory,
     extractor_factory: ExtractorFactory = _default_extractor_factory,
+    maximum_new_semantic_records: int | None = None,
 ) -> EventCaptureManifest:
     """Capture public feeds, append compact state, and never emit decisions."""
 
     if captured_at is not None and captured_at.tzinfo is None:
         raise ValueError("captured_at must be timezone-aware")
+    if maximum_new_semantic_records is not None and maximum_new_semantic_records < 1:
+        raise ValueError("maximum_new_semantic_records must be positive")
     root = Path(output_dir)
     state_root = root / "state"
     raw_root = root / "raw"
@@ -209,6 +212,11 @@ def capture_events(
                 extraction_key = extractor.extraction_key(envelope)
                 if extraction_key in semantic_state.extraction_keys:
                     continue
+                if (
+                    maximum_new_semantic_records is not None
+                    and len(records_to_append) >= maximum_new_semantic_records
+                ):
+                    break
                 if envelope.document.document_id in existing_document_ids:
                     recovered_semantic_count += 1
                 records_to_append.append(

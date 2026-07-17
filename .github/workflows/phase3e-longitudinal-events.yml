@@ -1,0 +1,167 @@
+name: phase3e-longitudinal-events
+
+# Trigger the first feature-branch longitudinal run after workflow registration.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 6 * * 1"
+  push:
+    branches: ["agent/phase-3e-longitudinal-events"]
+    paths:
+      - ".github/workflows/phase3e-longitudinal-events.yml"
+      - "src/hybrid_trader/phase3e.py"
+      - "src/hybrid_trader/event_capture.py"
+      - "src/hybrid_trader/avalai_capture.py"
+      - "scripts/capture_phase3c_avalai_events.py"
+      - "scripts/assess_phase3e_longitudinal.py"
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      AVALAI_API_KEY: ${{ secrets.AVALAI_API_KEY }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Require and mask repository secret
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${AVALAI_API_KEY:-}"
+          echo "::add-mask::$AVALAI_API_KEY"
+      - name: Install the research package
+        run: python -m pip install -e .
+      - name: Restore and verify the latest successful compact state
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=artifacts/phase3e-longitudinal
+          mkdir -p "$root"
+          previous_run_id=""
+          previous_artifact_id=""
+          previous_artifact_digest=""
+          state_restored=false
+
+          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?status=success&per_page=100")
+          previous_run_id=$(jq -r --arg current "$GITHUB_RUN_ID" '
+            [.workflow_runs[]
+              | select(.name == "phase3e-longitudinal-events")
+              | select((.id | tostring) != $current)
+            ][0].id // empty
+          ' <<<"$runs")
+
+          if [ -n "$previous_run_id" ]; then
+            artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${previous_run_id}/artifacts?per_page=100")
+            artifact=$(jq -c '
+              [.artifacts[]
+                | select(.expired == false)
+                | select(.name | startswith("phase3e-longitudinal-state-"))
+              ][0] // empty
+            ' <<<"$artifacts")
+            if [ -z "$artifact" ]; then
+              echo "Previous successful run has no longitudinal state artifact." >&2
+              exit 1
+            fi
+            previous_artifact_id=$(jq -r .id <<<"$artifact")
+            previous_artifact_digest=$(jq -r .digest <<<"$artifact")
+            artifact_name=$(jq -r .name <<<"$artifact")
+            mkdir -p /tmp/phase3e-previous
+            gh run download "$previous_run_id" --name "$artifact_name" --dir /tmp/phase3e-previous
+            state_dir=$(find /tmp/phase3e-previous -type d -name state -print -quit)
+            if [ -z "$state_dir" ]; then
+              echo "Downloaded artifact contains no compact state directory." >&2
+              exit 1
+            fi
+            cp -a "$state_dir" "$root/state"
+            rm -f "$root/state/.capture.lock"
+            python scripts/verify_phase3c_provider.py "$root"
+            state_restored=true
+          fi
+
+          export PHASE3E_ROOT="$root"
+          export PREVIOUS_RUN_ID="$previous_run_id"
+          export PREVIOUS_ARTIFACT_ID="$previous_artifact_id"
+          export PREVIOUS_ARTIFACT_DIGEST="$previous_artifact_digest"
+          export STATE_RESTORED="$state_restored"
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["PHASE3E_ROOT"])
+          previous_run_id = os.environ.get("PREVIOUS_RUN_ID") or None
+          previous_artifact_id = os.environ.get("PREVIOUS_ARTIFACT_ID") or None
+          previous_artifact_digest = os.environ.get("PREVIOUS_ARTIFACT_DIGEST") or None
+          payload = {
+              "schema_version": "1.0",
+              "workflow_run_id": os.environ["GITHUB_RUN_ID"],
+              "source_commit_sha": os.environ["GITHUB_SHA"],
+              "previous_workflow_run_id": previous_run_id,
+              "previous_artifact_id": int(previous_artifact_id) if previous_artifact_id else None,
+              "previous_artifact_digest": previous_artifact_digest,
+              "state_restored": os.environ["STATE_RESTORED"] == "true",
+          }
+          (root / "phase3e_run_context.json").write_text(
+              json.dumps(payload, sort_keys=True, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+      - name: Capture at most four new semantic records
+        run: |
+          python scripts/capture_phase3c_avalai_events.py \
+            --config configs/phase3c_avalai_event_sources.yaml \
+            --output artifacts/phase3e-longitudinal \
+            --maximum-new-semantic-records 4
+      - name: Verify full longitudinal state
+        run: python scripts/verify_phase3c_provider.py artifacts/phase3e-longitudinal
+      - name: Assess the latest run delta
+        run: |
+          python scripts/assess_phase3e_longitudinal.py \
+            artifacts/phase3e-longitudinal \
+            --max-new-calls-per-run 4 \
+            --max-total-tokens-per-run 8000 \
+            --max-failed-calls-per-run 0 \
+            --max-attempts-per-call 4 \
+            --minimum-successful-sources 1
+      - name: Enforce credential and non-activation boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=artifacts/phase3e-longitudinal
+          test ! -s "$root/state/prospective_decisions.jsonl"
+          if grep -R -F -- "$AVALAI_API_KEY" "$root"; then
+            echo "The repository secret appeared in longitudinal evidence." >&2
+            exit 1
+          fi
+          if grep -R -E -i \
+              'authorization[[:space:]]*[:=]|bearer[[:space:]]+|\b(aa|sk)-[A-Za-z0-9_-]{6,}' \
+              "$root/state"; then
+            echo "Credential-shaped material appeared in compact state." >&2
+            exit 1
+          fi
+          unset AVALAI_API_KEY
+      - name: Record provenance and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=artifacts/phase3e-longitudinal
+          printf '%s\n' "$GITHUB_SHA" > "$root/source_commit_sha.txt"
+          printf '%s\n' "$GITHUB_RUN_ID" > "$root/workflow_run_id.txt"
+          find "$root" -type f ! -name SHA256SUMS -print0 \
+            | sort -z | xargs -0 sha256sum > "$root/SHA256SUMS"
+      - name: Upload longitudinal compact state and raw evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase3e-longitudinal-state-${{ github.run_id }}
+          path: artifacts/phase3e-longitudinal/
+          if-no-files-found: error
+          retention-days: 90
