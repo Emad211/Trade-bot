@@ -1,5 +1,6 @@
 name: phase3f-format
 
+# Trigger after workflow registration.
 on:
   push:
     branches: ["agent/phase-3f-semantic-dataset"]
