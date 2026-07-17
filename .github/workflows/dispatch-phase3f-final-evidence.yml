@@ -1,0 +1,23 @@
+name: dispatch-phase3f-final-evidence
+
+on:
+  push:
+    branches: ["agent/phase3c-hardening-runner"]
+    paths:
+      - ".github/workflows/dispatch-phase3f-final-evidence.yml"
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Dispatch Phase 3F fixed evidence on the final branch
+        run: |
+          gh workflow run phase3f-semantic-dataset.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref agent/phase-3f-semantic-dataset
