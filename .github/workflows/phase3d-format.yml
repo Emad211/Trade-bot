@@ -1,6 +1,6 @@
 name: phase3d-format
 
-# Trigger after workflow registration.
+# Apply the reviewed type-contract fix, format, validate, and remove this workflow.
 on:
   push:
     branches: ["agent/phase-3d-avalai-pilot"]
@@ -23,6 +23,24 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+      - name: Apply fail-closed decision-count typing
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/hybrid_trader/phase3d.py")
+          text = path.read_text(encoding="utf-8")
+          before = '    decision_count = int(verification["prospective_decision_count"])\n'
+          after = '''    raw_decision_count = verification.get("prospective_decision_count")
+              if not isinstance(raw_decision_count, int):
+                  raise TypeError("Phase 3C verifier returned a non-integer decision count")
+              decision_count = raw_decision_count
+          '''
+          if text.count(before) != 1:
+              raise RuntimeError("Expected one Phase 3D decision-count conversion")
+          path.write_text(text.replace(before, after, 1), encoding="utf-8")
+          PY
       - name: Install development dependencies
         run: python -m pip install -e '.[dev,ml]'
       - name: Format and validate Phase 3D
