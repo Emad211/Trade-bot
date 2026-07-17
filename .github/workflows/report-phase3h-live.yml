@@ -1,0 +1,48 @@
+name: report-phase3h-live
+
+on:
+  push:
+    branches: ["agent/phase3c-hardening-runner"]
+    paths:
+      - ".github/workflows/report-phase3h-live.yml"
+
+permissions:
+  actions: read
+  pull-requests: write
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGET_SHA: a1d39b013623f8a1576660a6d37b1d7d8edf104a
+    steps:
+      - name: Wait for exact-head Phase 3H probe and report
+        shell: bash
+        run: |
+          set -euo pipefail
+          run=""
+          for attempt in $(seq 1 240); do
+            run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-3h-source-admission&per_page=100" \
+              --jq --arg sha "$TARGET_SHA" '[.workflow_runs[] | select(.name == "phase3h-source-admission" and .head_sha == $sha)][0]')
+            if [ "$(jq -r '.status // empty' <<<"$run")" = "completed" ]; then
+              break
+            fi
+            sleep 10
+          done
+          test -n "$run"
+          run_id=$(jq -r .id <<<"$run")
+          jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
+          artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts?per_page=100")
+          {
+            echo '## Phase 3H exact-head live probe'
+            echo
+            echo "- run: $(jq -r .html_url <<<"$run")"
+            echo "- conclusion: $(jq -r .conclusion <<<"$run")"
+            echo "- head: \`$(jq -r .head_sha <<<"$run")\`"
+            jq -r '.jobs[] as $job | $job.steps[]? | "- \($job.name) / \(.name): \(.status) / \(.conclusion)"' <<<"$jobs"
+            jq -r '.artifacts[] | "- artifact `\(.name)` — ID \(.id) — \(.size_in_bytes) bytes — `\(.digest)`"' <<<"$artifacts"
+          } > /tmp/phase3h-live.md
+          gh pr comment 33 --repo "$GITHUB_REPOSITORY" --body-file /tmp/phase3h-live.md
