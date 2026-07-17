@@ -1,0 +1,198 @@
+name: phase3g-maturity-monitor
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 8 * * 1"
+  push:
+    branches: ["agent/phase-3g-maturity-monitor"]
+    paths:
+      - ".github/workflows/phase3g-maturity-monitor.yml"
+      - "src/hybrid_trader/semantic_monitor.py"
+      - "scripts/record_phase3g_maturity.py"
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install public-data research dependencies
+        run: python -m pip install -e '.[exchange]'
+      - name: Resolve observation cutoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          as_of=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          echo "PHASE3G_AS_OF=$as_of" >> "$GITHUB_ENV"
+      - name: Restore the latest verified prospective event state
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/phase3g-events artifacts/phase3g
+          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?status=success&per_page=100")
+          selected=""
+          artifact=""
+          while IFS= read -r run_id; do
+            artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts?per_page=100")
+            candidate=$(jq -c '
+              [.artifacts[]
+                | select(.expired == false)
+                | select(.name | startswith("phase3e-longitudinal-state-"))
+              ][0] // empty
+            ' <<<"$artifacts")
+            if [ -n "$candidate" ]; then
+              selected="$run_id"
+              artifact="$candidate"
+              break
+            fi
+          done < <(jq -r '[.workflow_runs[] | select(.name == "phase3e-longitudinal-events")][].id' <<<"$runs")
+          if [ -z "$selected" ] || [ -z "$artifact" ]; then
+            echo "No successful Phase 3E longitudinal artifact is available." >&2
+            exit 1
+          fi
+          artifact_name=$(jq -r .name <<<"$artifact")
+          artifact_id=$(jq -r .id <<<"$artifact")
+          artifact_digest=$(jq -r .digest <<<"$artifact")
+          gh run download "$selected" --name "$artifact_name" --dir /tmp/phase3g-events
+          document_ledger=$(find /tmp/phase3g-events -path '*/state/documents.jsonl' -print -quit)
+          semantic_ledger=$(find /tmp/phase3g-events -path '*/state/semantic_events.jsonl' -print -quit)
+          state_dir=$(dirname "$document_ledger")
+          event_root=$(dirname "$state_dir")
+          test -n "$document_ledger"
+          test -n "$semantic_ledger"
+          python scripts/verify_phase3c_provider.py "$event_root"
+          echo "PHASE3G_DOCUMENT_LEDGER=$document_ledger" >> "$GITHUB_ENV"
+          echo "PHASE3G_SEMANTIC_LEDGER=$semantic_ledger" >> "$GITHUB_ENV"
+          echo "PHASE3G_EVENT_RUN_ID=$selected" >> "$GITHUB_ENV"
+          echo "PHASE3G_EVENT_ARTIFACT_ID=$artifact_id" >> "$GITHUB_ENV"
+          echo "PHASE3G_EVENT_ARTIFACT_DIGEST=$artifact_digest" >> "$GITHUB_ENV"
+      - name: Restore prior maturity registry when available
+        shell: bash
+        run: |
+          set -euo pipefail
+          registry=artifacts/phase3g/registry/maturity.jsonl
+          mkdir -p "$(dirname "$registry")" /tmp/phase3g-prior
+          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?status=success&per_page=100")
+          selected=""
+          artifact=""
+          while IFS= read -r run_id; do
+            if [ "$run_id" = "$GITHUB_RUN_ID" ]; then
+              continue
+            fi
+            artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts?per_page=100")
+            candidate=$(jq -c '
+              [.artifacts[]
+                | select(.expired == false)
+                | select(.name | startswith("phase3g-maturity-monitor-"))
+              ][0] // empty
+            ' <<<"$artifacts")
+            if [ -n "$candidate" ]; then
+              selected="$run_id"
+              artifact="$candidate"
+              break
+            fi
+          done < <(jq -r '[.workflow_runs[] | select(.name == "phase3g-maturity-monitor")][].id' <<<"$runs")
+          if [ -n "$selected" ] && [ -n "$artifact" ]; then
+            artifact_name=$(jq -r .name <<<"$artifact")
+            gh run download "$selected" --name "$artifact_name" --dir /tmp/phase3g-prior
+            prior_registry=$(find /tmp/phase3g-prior -path '*/registry/maturity.jsonl' -print -quit)
+            if [ -n "$prior_registry" ]; then
+              cp "$prior_registry" "$registry"
+            fi
+          fi
+      - name: Download a fresh public BTC 4h market snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          hybrid-trader download-real-snapshot \
+            --output artifacts/phase3g/market_snapshot \
+            --config-path configs/phase2c_btc_4h.yaml \
+            --global-exchange kraken \
+            --global-symbol BTC/USD \
+            --since 2025-01-01T00:00:00Z \
+            --as-of "$PHASE3G_AS_OF" \
+            --max-pages 40
+      - name: Rebuild the Phase 3F semantic dataset
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/build_phase3f_semantic_dataset.py \
+            --snapshot artifacts/phase3g/market_snapshot \
+            --document-ledger "$PHASE3G_DOCUMENT_LEDGER" \
+            --semantic-ledger "$PHASE3G_SEMANTIC_LEDGER" \
+            --config configs/phase2c_btc_4h.yaml \
+            --as-of "$PHASE3G_AS_OF" \
+            --output artifacts/phase3g/semantic_dataset \
+            --source-commit-sha "$GITHUB_SHA"
+      - name: Append the maturity observation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/record_phase3g_maturity.py \
+            --dataset artifacts/phase3g/semantic_dataset \
+            --registry artifacts/phase3g/registry/maturity.jsonl \
+            --output artifacts/phase3g/current.json \
+            --observed-at "$PHASE3G_AS_OF" \
+            --workflow-run-id "$GITHUB_RUN_ID" \
+            --source-commit-sha "$GITHUB_SHA"
+      - name: Enforce governance-only boundaries
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          current = json.loads(Path("artifacts/phase3g/current.json").read_text())
+          if current["model_fitting_executed"]:
+              raise RuntimeError("Phase 3G executed model fitting")
+          if current["threshold_selection_executed"]:
+              raise RuntimeError("Phase 3G selected a threshold")
+          if current["prospective_decisions_created"]:
+              raise RuntimeError("Phase 3G created a prospective decision")
+          observation = current["observation"]
+          if observation["paper_or_live_trading_allowed"]:
+              raise RuntimeError("Phase 3G permitted trading")
+          if observation["maturity"]["status"] == "mature_for_research":
+              expected = "open_separate_predeclared_research_protocol"
+          else:
+              expected = "continue_prospective_collection"
+          if observation["next_action"] != expected:
+              raise RuntimeError("Phase 3G next action is inconsistent")
+          PY
+      - name: Record source provenance and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=artifacts/phase3g
+          cat > "$root/inputs.json" <<JSON
+          {
+            "event_workflow_run_id": "$PHASE3G_EVENT_RUN_ID",
+            "event_artifact_id": $PHASE3G_EVENT_ARTIFACT_ID,
+            "event_artifact_digest": "$PHASE3G_EVENT_ARTIFACT_DIGEST",
+            "market_source": "ccxt:kraken:BTC/USD",
+            "observed_at": "$PHASE3G_AS_OF",
+            "source_commit_sha": "$GITHUB_SHA",
+            "model_fitting_executed": false,
+            "prospective_decisions_created": false
+          }
+          JSON
+          find "$root" -type f ! -name SHA256SUMS -print0 \
+            | sort -z | xargs -0 sha256sum > "$root/SHA256SUMS"
+      - name: Upload maturity monitoring evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase3g-maturity-monitor-${{ github.run_id }}
+          path: artifacts/phase3g/
+          if-no-files-found: error
+          retention-days: 90
