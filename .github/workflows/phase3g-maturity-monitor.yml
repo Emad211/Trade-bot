@@ -117,7 +117,7 @@ jobs:
           set -euo pipefail
           hybrid-trader download-real-snapshot \
             --output artifacts/phase3g/market_snapshot \
-            --config-path configs/phase2c_btc_4h.yaml \
+            --config configs/phase2c_btc_4h.yaml \
             --global-exchange kraken \
             --global-symbol BTC/USD \
             --since 2025-01-01T00:00:00Z \
