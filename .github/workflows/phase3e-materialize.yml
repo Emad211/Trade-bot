@@ -1,5 +1,6 @@
 name: phase3e-materialize
 
+# Trigger after workflow registration.
 on:
   push:
     branches: ["agent/phase-3e-longitudinal-events"]
