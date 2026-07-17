@@ -1,6 +1,6 @@
 name: phase3g-format
 
-# Generation 2: apply reviewed focused fixes, then format and validate.
+# Generation 3: commit only source/test changes; workflow edits are connector-managed.
 on:
   push:
     branches: ["agent/phase-3g-maturity-monitor"]
@@ -23,8 +23,29 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - name: Apply focused Phase 3G fixes
-        run: python scripts/materialize_phase3g_fixes.py
+      - name: Apply the reviewed deficit-integrity fix
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/hybrid_trader/semantic_monitor.py")
+          text = path.read_text(encoding="utf-8")
+          before = '''        if self.maturity.paper_or_live_trading_allowed:
+              raise ValueError("Embedded maturity assessment permits trading")
+          expected_id = maturity_observation_id(
+          '''
+          after = '''        if self.maturity.paper_or_live_trading_allowed:
+              raise ValueError("Embedded maturity assessment permits trading")
+          expected_deficits = maturity_deficits(self.maturity)
+          if self.deficits != expected_deficits:
+              raise ValueError("Maturity deficits do not match the frozen policy")
+          expected_id = maturity_observation_id(
+          '''
+          if text.count(before) != 1:
+              raise RuntimeError("Phase 3G deficit-integrity anchor is not unique")
+          path.write_text(text.replace(before, after, 1), encoding="utf-8")
+          PY
       - name: Install development dependencies
         run: python -m pip install -e '.[dev,ml]'
       - name: Format and validate Phase 3G
@@ -36,13 +57,13 @@ jobs:
           pytest -m 'not optional_ml' -q
           pytest -m optional_ml -q
           python -m pip check
-      - name: Remove one-time files and commit
+      - name: Commit source and tests only
         shell: bash
         run: |
           set -euo pipefail
-          rm -f scripts/materialize_phase3g_fixes.py .github/workflows/phase3g-format.yml
+          rm -f scripts/materialize_phase3g_fixes.py
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "fix and validate Phase 3G maturity monitor"
+          git add src/hybrid_trader/semantic_monitor.py scripts/record_phase3g_maturity.py tests/test_phase3g_maturity_monitor.py scripts/materialize_phase3g_fixes.py
+          git commit -m "enforce and validate Phase 3G maturity integrity"
           git push origin HEAD:agent/phase-3g-maturity-monitor
