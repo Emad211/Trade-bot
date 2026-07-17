@@ -20,9 +20,7 @@ from hybrid_trader.event_capture_models import EventCaptureManifest
 from hybrid_trader.event_capture_state import canonical_sha256
 from hybrid_trader.semantic_extraction import verify_semantic_ledger
 
-_SECRET_BYTES = re.compile(
-    rb"(?i)(?:authorization\s*[:=]|bearer\s+|\b(?:aa|sk)-[A-Za-z0-9_-]{6,})"
-)
+_SECRET_BYTES = re.compile(rb"(?i)(?:authorization\s*[:=]|bearer\s+|\b(?:aa|sk)-[A-Za-z0-9_-]{6,})")
 
 
 class Phase3ERunContext(BaseModel):
