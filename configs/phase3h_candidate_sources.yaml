@@ -1,0 +1,49 @@
+schema_version: "1.0"
+
+policy:
+  minimum_documents: 1
+  minimum_published_timestamp_ratio: 0.50
+  maximum_skipped_fraction: 0.25
+  maximum_duplicate_count: 5
+  maximum_truncated_count: 1000
+  rejected_warnings:
+    - entry_domain_not_allowed
+    - published_time_beyond_clock_skew
+  allowed_asset_tags: [BTC, MARKET]
+
+candidates:
+  - required_for_integration: true
+    source:
+      source_id: bitcoin-optech
+      feed_url: https://bitcoinops.org/feed.xml
+      allowed_domains: [bitcoinops.org]
+      source_quality: 0.90
+      asset_tags: [BTC]
+      required: false
+      max_items: 50
+      maximum_payload_bytes: 5000000
+      maximum_clock_skew_seconds: 900
+
+  - required_for_integration: true
+    source:
+      source_id: federal-reserve-press-releases
+      feed_url: https://www.federalreserve.gov/feeds/press_all.xml
+      allowed_domains: [federalreserve.gov]
+      source_quality: 0.98
+      asset_tags: [MARKET]
+      required: false
+      max_items: 50
+      maximum_payload_bytes: 5000000
+      maximum_clock_skew_seconds: 900
+
+  - required_for_integration: false
+    source:
+      source_id: sec-press-releases
+      feed_url: https://www.sec.gov/news/pressreleases.rss
+      allowed_domains: [sec.gov]
+      source_quality: 0.95
+      asset_tags: [MARKET]
+      required: false
+      max_items: 50
+      maximum_payload_bytes: 5000000
+      maximum_clock_skew_seconds: 900
