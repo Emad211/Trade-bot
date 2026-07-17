@@ -70,6 +70,35 @@ Artifacts contain the complete current compact state plus only the current run's
 feed payloads. Git stores source code and compact reviewed evidence, not longitudinal
 raw payload archives.
 
+## First restored-state result
+
+Workflow run `29575275480` passed all restoration, budget, quality and security gates.
+
+- current artifact ID: `8404763802`;
+- current artifact digest:
+  `sha256:41a4afc354faecd4cbbad2a7ef55e6f00e21d48eb904bf4b0f8d8d5cf0f05ba8`;
+- assessment ID:
+  `699688ed9c5ded3b6393558b33bc5ec6eb2703b0bfaf63e4d1514907c60217ee`;
+- restored previous run/artifact: `29575162946` / `8404720372`;
+- restored artifact digest:
+  `sha256:b93be811eaa753d1da5e0286ebd6d97fc79d215c60ab9acbb8bf53b7379ddf83`;
+- previous/total calls: 4 / 8;
+- new successful/failed calls: 4 / 0;
+- latest token use: 2,873 of 8,000;
+- maximum attempts: 1;
+- mean/maximum latency: 4.10 / 6.58 seconds;
+- source success/failure: 2 / 0;
+- new semantic records: 4;
+- pending semantic documents: 12;
+- duplicate extraction keys called: 0;
+- prospective decisions: 0;
+- credential-pattern findings: 0.
+
+Independent post-download inspection verified every top-level and nested checksum.
+The pending documents are intentional deferred work under the hard per-run budget and
+will be recovery candidates in later scheduled runs. Compact evidence is committed
+under `research/runs/phase3e-longitudinal-29575275480/`.
+
 ## Safety boundary
 
 Phase 3E cannot write a prospective paper decision or construct an order, exposure,
