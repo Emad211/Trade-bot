@@ -1,6 +1,6 @@
 name: report-phase3f
 
-# Trigger after workflow registration.
+# Generation 2: report the corrected formatter and rebuilt fixed evidence.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
@@ -24,7 +24,7 @@ jobs:
         run: |
           set -euo pipefail
           report=/tmp/phase3f-status.md
-          echo '## Phase 3F workflow status' > "$report"
+          echo '## Corrected Phase 3F workflow status' > "$report"
           for workflow in phase3f-format phase3f-semantic-dataset; do
             run=""
             for attempt in $(seq 1 300); do
