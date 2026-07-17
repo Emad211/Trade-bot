@@ -107,4 +107,5 @@ def test_semantic_budget_must_be_positive_before_state_mutation(tmp_path: Path) 
             feed_factory=_factory,
             maximum_new_semantic_records=0,
         )
-    assert not tmp_path.exists()
+    assert not (tmp_path / "state").exists()
+    assert not (tmp_path / "raw").exists()
