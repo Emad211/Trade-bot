@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -29,9 +28,7 @@ def _utc(value: str, *, label: str) -> pd.Timestamp:
 
 def _source_commit(value: str | None) -> str:
     resolved = value or os.environ.get("GITHUB_SHA", "")
-    if len(resolved) != 40 or any(
-        character not in "0123456789abcdef" for character in resolved
-    ):
+    if len(resolved) != 40 or any(character not in "0123456789abcdef" for character in resolved):
         raise ValueError("A lowercase 40-character source commit SHA is required")
     return resolved
 

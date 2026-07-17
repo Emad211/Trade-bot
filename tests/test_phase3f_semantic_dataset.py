@@ -138,9 +138,7 @@ def test_semantic_dataset_excludes_labels_not_mature_at_as_of() -> None:
     assert result.candidate_row_count == 2
     assert result.excluded_unmatured_label_count == 1
     assert len(result.frame) == 1
-    assert result.frame["label_available_at"].max() <= pd.Timestamp(
-        "2026-07-17T18:00:00Z"
-    )
+    assert result.frame["label_available_at"].max() <= pd.Timestamp("2026-07-17T18:00:00Z")
 
 
 def test_maturity_gate_fails_current_small_sample_and_can_pass_low_test_policy() -> None:

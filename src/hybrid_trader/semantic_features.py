@@ -184,9 +184,7 @@ def _window_features(
     weights = selected["weight"].to_numpy(dtype=float)
     weight_sum = float(weights.sum())
     if weight_sum > 0:
-        result[f"{label}_weighted_direction"] = float(
-            np.dot(directions, weights) / weight_sum
-        )
+        result[f"{label}_weighted_direction"] = float(np.dot(directions, weights) / weight_sum)
     for column in ("severity", "novelty"):
         values = selected[column].to_numpy(dtype=float)
         result[f"{label}_{column}_mean"] = float(values.mean())

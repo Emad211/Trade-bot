@@ -83,12 +83,8 @@ class SemanticDatasetManifest(BaseModel):
     dataset_id: str = Field(pattern=r"^semantic-[0-9a-f]{12}$")
     content_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     market_snapshot_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-    document_ledger_head_sha256: str | None = Field(
-        default=None, pattern=r"^[0-9a-f]{64}$"
-    )
-    semantic_ledger_head_sha256: str | None = Field(
-        default=None, pattern=r"^[0-9a-f]{64}$"
-    )
+    document_ledger_head_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    semantic_ledger_head_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     semantic_record_count: int = Field(ge=0)
     relevant_semantic_record_count: int = Field(ge=0)
     as_of: datetime
@@ -280,9 +276,7 @@ def assess_semantic_maturity(
 
     declared_policy = policy or SemanticMaturityPolicy()
     records = result.relevant_records
-    dates = {
-        pd.Timestamp(record.available_at).tz_convert("UTC").date() for record in records
-    }
+    dates = {pd.Timestamp(record.available_at).tz_convert("UTC").date() for record in records}
     sources = {record.source_id for record in records}
     largest_window = max(
         int(column.split("_")[-3][:-1])
@@ -294,9 +288,7 @@ def assess_semantic_maturity(
         for column in result.semantic_feature_columns
         if column.endswith(f"_{largest_window}h_event_count")
     )
-    active_rows = (
-        int((result.frame[active_column] > 0).sum()) if not result.frame.empty else 0
-    )
+    active_rows = int((result.frame[active_column] > 0).sum()) if not result.frame.empty else 0
     target = (
         result.frame["target_positive"].to_numpy(dtype=float)
         if not result.frame.empty
@@ -319,9 +311,9 @@ def assess_semantic_maturity(
     if declared_policy.require_both_target_classes and (positives == 0 or negatives == 0):
         reasons.append("target_classes_not_both_observed")
 
-    status: Literal[
-        "mature_for_research", "insufficient_prospective_sample"
-    ] = ("mature_for_research" if not reasons else "insufficient_prospective_sample")
+    status: Literal["mature_for_research", "insufficient_prospective_sample"] = (
+        "mature_for_research" if not reasons else "insufficient_prospective_sample"
+    )
     identity = {
         "policy": declared_policy.model_dump(mode="json"),
         "relevant_signal_ids": [record.signal_id for record in records],
@@ -421,9 +413,7 @@ def write_semantic_dataset(
             pd.Timestamp(frame["decision_time"].iloc[-1]).to_pydatetime() if len(frame) else None
         ),
         label_availability_end=(
-            pd.Timestamp(frame["label_available_at"].max()).to_pydatetime()
-            if len(frame)
-            else None
+            pd.Timestamp(frame["label_available_at"].max()).to_pydatetime() if len(frame) else None
         ),
         maturity=maturity,
         created_at=timestamp,
@@ -453,9 +443,7 @@ def write_semantic_dataset(
 
 
 def re_full_sha256(value: str) -> bool:
-    return len(value) == 64 and all(
-        character in "0123456789abcdef" for character in value
-    )
+    return len(value) == 64 and all(character in "0123456789abcdef" for character in value)
 
 
 def read_semantic_dataset(
@@ -505,9 +493,7 @@ def read_semantic_dataset(
         or (frame["label_available_at"] > pd.Timestamp(manifest.as_of)).any()
     ):
         raise ValueError("Semantic dataset contains rows unavailable at as_of")
-    expected_feature_sha = canonical_json_sha256(
-        manifest.feature_spec.model_dump(mode="json")
-    )
+    expected_feature_sha = canonical_json_sha256(manifest.feature_spec.model_dump(mode="json"))
     if expected_feature_sha != manifest.feature_spec_sha256:
         raise ValueError("Semantic feature specification hash does not match manifest")
     return frame, manifest
