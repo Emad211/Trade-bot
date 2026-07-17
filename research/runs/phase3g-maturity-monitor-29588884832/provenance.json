@@ -1,0 +1,18 @@
+{
+  "artifact_digest": "sha256:878dcf408e0ec8b68f2320259b570ab5cba1a68743c2792bca1138960117f22b",
+  "artifact_id": 8410201462,
+  "artifact_name": "phase3g-maturity-monitor-29588884832",
+  "artifact_size_bytes": 96173,
+  "artifact_source_commit_sha": "ef8c910ae1844bab122de34d5db5b851b92cb498",
+  "event_artifact_digest": "sha256:41a4afc354faecd4cbbad2a7ef55e6f00e21d48eb904bf4b0f8d8d5cf0f05ba8",
+  "event_artifact_id": 8404763802,
+  "event_workflow_run_id": "29575275480",
+  "final_validated_implementation_commit_sha": "6b8bcba076f0ca6a3ea2b5f006a3609fc3151710",
+  "final_validation_ci_run_id": "29589388420",
+  "final_validation_ci_success": true,
+  "independent_zip_digest_verified": true,
+  "nested_checksum_inventory_verified": true,
+  "schema_version": "1.0",
+  "workflow_run_id": "29588884832",
+  "workflow_url": "https://github.com/Emad211/Trade-bot/actions/runs/29588884832"
+}
