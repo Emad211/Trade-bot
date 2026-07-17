@@ -1,5 +1,6 @@
 name: capture-phase3f-format-error
 
+# Trigger after workflow registration.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
