@@ -1,0 +1,185 @@
+200:materialize	Install and validate	2026-07-17T10:45:37.6876027Z         with pytest.raises(ValueError, match="maximum_new_semantic_records must be positive"):
+209:materialize	Install and validate	2026-07-17T10:45:37.6879175Z E       AssertionError: assert not True
+213:materialize	Install and validate	2026-07-17T10:45:37.6880735Z tests/test_phase3e_semantic_budget.py:110: AssertionError
+215:materialize	Install and validate	2026-07-17T10:45:37.6881853Z FAILED tests/test_phase3e_semantic_budget.py::test_semantic_budget_must_be_positive_before_state_mutation - AssertionError: assert not True
+=== tail ===
+materialize	Install and validate	2026-07-17T10:44:55.1306349Z   Using cached scikit_learn-1.9.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (11 kB)
+materialize	Install and validate	2026-07-17T10:44:55.1567373Z Collecting typer<1,>=0.12 (from hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:55.2057875Z   Downloading typer-0.27.0-py3-none-any.whl.metadata (15 kB)
+materialize	Install and validate	2026-07-17T10:44:55.3011377Z Collecting mypy<2,>=1.11 (from hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:55.3024801Z   Using cached mypy-1.20.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+materialize	Install and validate	2026-07-17T10:44:55.3239153Z Collecting pandas-stubs>=2.2 (from hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:55.3251479Z   Using cached pandas_stubs-3.0.3.260530-py3-none-any.whl.metadata (11 kB)
+materialize	Install and validate	2026-07-17T10:44:55.3376186Z Collecting pytest-cov<8,>=5 (from hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:55.3403549Z   Downloading pytest_cov-7.1.0-py3-none-any.whl.metadata (32 kB)
+materialize	Install and validate	2026-07-17T10:44:55.3724664Z Collecting pytest<10,>=8.3 (from hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:55.3752561Z   Downloading pytest-9.1.1-py3-none-any.whl.metadata (7.6 kB)
+materialize	Install and validate	2026-07-17T10:44:55.7036597Z Collecting ruff<1,>=0.8 (from hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:55.7068330Z   Downloading ruff-0.15.22-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (26 kB)
+materialize	Install and validate	2026-07-17T10:44:55.7271086Z Collecting types-pyyaml>=6.0 (from hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:55.7283049Z   Using cached types_pyyaml-6.0.12.20260518-py3-none-any.whl.metadata (1.7 kB)
+materialize	Install and validate	2026-07-17T10:44:55.7932466Z Collecting catboost<2,>=1.2 (from hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:55.7961374Z   Downloading catboost-1.2.10-cp312-cp312-manylinux2014_x86_64.whl.metadata (1.2 kB)
+materialize	Install and validate	2026-07-17T10:44:55.8135085Z Collecting lightgbm<5,>=4.5 (from hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:55.8171507Z   Downloading lightgbm-4.6.0-py3-none-manylinux_2_28_x86_64.whl.metadata (17 kB)
+materialize	Install and validate	2026-07-17T10:44:55.8353084Z Collecting graphviz (from catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:55.8382110Z   Downloading graphviz-0.21-py3-none-any.whl.metadata (12 kB)
+materialize	Install and validate	2026-07-17T10:44:55.9601023Z Collecting matplotlib (from catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:55.9631260Z   Downloading matplotlib-3.11.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (80 kB)
+materialize	Install and validate	2026-07-17T10:44:56.0941256Z Collecting scipy (from catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:56.0954556Z   Using cached scipy-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (62 kB)
+materialize	Install and validate	2026-07-17T10:44:56.1377570Z Collecting plotly (from catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:56.1408400Z   Downloading plotly-6.9.0-py3-none-any.whl.metadata (9.0 kB)
+materialize	Install and validate	2026-07-17T10:44:56.1590230Z Collecting six (from catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:56.1602615Z   Using cached six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+materialize	Install and validate	2026-07-17T10:44:56.1755944Z Collecting typing_extensions>=4.6.0 (from mypy<2,>=1.11->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:56.1769261Z   Using cached typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+materialize	Install and validate	2026-07-17T10:44:56.1837648Z Collecting mypy_extensions>=1.0.0 (from mypy<2,>=1.11->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:56.1851027Z   Using cached mypy_extensions-1.1.0-py3-none-any.whl.metadata (1.1 kB)
+materialize	Install and validate	2026-07-17T10:44:56.1936071Z Collecting pathspec>=1.0.0 (from mypy<2,>=1.11->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:56.1949078Z   Using cached pathspec-1.1.1-py3-none-any.whl.metadata (14 kB)
+materialize	Install and validate	2026-07-17T10:44:56.3171996Z Collecting librt>=0.8.0 (from mypy<2,>=1.11->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:56.3186280Z   Using cached librt-0.13.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (1.3 kB)
+materialize	Install and validate	2026-07-17T10:44:56.3283887Z Collecting python-dateutil>=2.8.2 (from pandas<3,>=2.2->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:56.3295682Z   Using cached python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+materialize	Install and validate	2026-07-17T10:44:56.3582623Z Collecting pytz>=2020.1 (from pandas<3,>=2.2->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:56.3594365Z   Using cached pytz-2026.2-py2.py3-none-any.whl.metadata (22 kB)
+materialize	Install and validate	2026-07-17T10:44:56.3702952Z Collecting tzdata>=2022.7 (from pandas<3,>=2.2->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:56.3714800Z   Using cached tzdata-2026.3-py2.py3-none-any.whl.metadata (1.4 kB)
+materialize	Install and validate	2026-07-17T10:44:56.3793501Z Collecting annotated-types>=0.6.0 (from pydantic<3,>=2.8->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:56.3805444Z   Using cached annotated_types-0.7.0-py3-none-any.whl.metadata (15 kB)
+materialize	Install and validate	2026-07-17T10:44:57.0037661Z Collecting pydantic-core==2.46.4 (from pydantic<3,>=2.8->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:57.0051931Z   Using cached pydantic_core-2.46.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.6 kB)
+materialize	Install and validate	2026-07-17T10:44:57.0137247Z Collecting typing-inspection>=0.4.2 (from pydantic<3,>=2.8->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:57.0148862Z   Using cached typing_inspection-0.4.2-py3-none-any.whl.metadata (2.6 kB)
+materialize	Install and validate	2026-07-17T10:44:57.0229101Z Collecting iniconfig>=1.0.1 (from pytest<10,>=8.3->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:57.0240884Z   Using cached iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+materialize	Install and validate	2026-07-17T10:44:57.0350989Z Collecting packaging>=22 (from pytest<10,>=8.3->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:57.0362509Z   Using cached packaging-26.2-py3-none-any.whl.metadata (3.5 kB)
+materialize	Install and validate	2026-07-17T10:44:57.0445701Z Collecting pluggy<2,>=1.5 (from pytest<10,>=8.3->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:57.0457588Z   Using cached pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+materialize	Install and validate	2026-07-17T10:44:57.0593711Z Collecting pygments>=2.7.2 (from pytest<10,>=8.3->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:57.0605897Z   Using cached pygments-2.20.0-py3-none-any.whl.metadata (2.5 kB)
+materialize	Install and validate	2026-07-17T10:44:57.4075405Z Collecting coverage>=7.10.6 (from coverage[toml]>=7.10.6->pytest-cov<8,>=5->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:57.4107490Z   Downloading coverage-7.15.2-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (8.6 kB)
+materialize	Install and validate	2026-07-17T10:44:57.4287532Z Collecting markdown-it-py>=2.2.0 (from rich<15,>=13.7->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:57.4300117Z   Using cached markdown_it_py-4.2.0-py3-none-any.whl.metadata (7.4 kB)
+materialize	Install and validate	2026-07-17T10:44:57.4546574Z Collecting joblib>=1.4.0 (from scikit-learn<2,>=1.5->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:57.4558342Z   Using cached joblib-1.5.3-py3-none-any.whl.metadata (5.5 kB)
+materialize	Install and validate	2026-07-17T10:44:57.4830671Z Collecting narwhals>=2.0.1 (from scikit-learn<2,>=1.5->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:57.4842717Z   Using cached narwhals-2.24.0-py3-none-any.whl.metadata (15 kB)
+materialize	Install and validate	2026-07-17T10:44:57.4936761Z Collecting threadpoolctl>=3.5.0 (from scikit-learn<2,>=1.5->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:57.4948246Z   Using cached threadpoolctl-3.6.0-py3-none-any.whl.metadata (13 kB)
+materialize	Install and validate	2026-07-17T10:44:57.5051932Z Collecting shellingham>=1.3.0 (from typer<1,>=0.12->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:57.5063581Z   Using cached shellingham-1.5.4-py2.py3-none-any.whl.metadata (3.5 kB)
+materialize	Install and validate	2026-07-17T10:44:57.5151373Z Collecting annotated-doc>=0.0.2 (from typer<1,>=0.12->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:57.5163045Z   Using cached annotated_doc-0.0.4-py3-none-any.whl.metadata (6.6 kB)
+materialize	Install and validate	2026-07-17T10:44:57.5268639Z Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich<15,>=13.7->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:57.5280053Z   Using cached mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+materialize	Install and validate	2026-07-17T10:44:57.5989288Z Collecting contourpy>=1.0.1 (from matplotlib->catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:57.6023516Z   Downloading contourpy-1.3.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (5.5 kB)
+materialize	Install and validate	2026-07-17T10:44:57.6138495Z Collecting cycler>=0.10 (from matplotlib->catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:57.6169184Z   Downloading cycler-0.12.1-py3-none-any.whl.metadata (3.8 kB)
+materialize	Install and validate	2026-07-17T10:44:57.7818350Z Collecting fonttools>=4.22.0 (from matplotlib->catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:57.7849801Z   Downloading fonttools-4.63.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (118 kB)
+materialize	Install and validate	2026-07-17T10:44:57.8519196Z Collecting kiwisolver>=1.3.1 (from matplotlib->catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:57.8548208Z   Downloading kiwisolver-1.5.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (5.1 kB)
+materialize	Install and validate	2026-07-17T10:44:58.0124926Z Collecting pillow>=9 (from matplotlib->catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:58.0156814Z   Downloading pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (9.1 kB)
+materialize	Install and validate	2026-07-17T10:44:58.0392113Z Collecting pyparsing>=3 (from matplotlib->catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate	2026-07-17T10:44:58.0424543Z   Downloading pyparsing-3.3.2-py3-none-any.whl.metadata (5.8 kB)
+materialize	Install and validate	2026-07-17T10:44:58.0600260Z Downloading catboost-1.2.10-cp312-cp312-manylinux2014_x86_64.whl (97.1 MB)
+materialize	Install and validate	2026-07-17T10:44:58.4995547Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 97.1/97.1 MB 222.8 MB/s  0:00:00
+materialize	Install and validate	2026-07-17T10:44:58.5025809Z Downloading lightgbm-4.6.0-py3-none-manylinux_2_28_x86_64.whl (3.6 MB)
+materialize	Install and validate	2026-07-17T10:44:58.5146546Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.6/3.6 MB 345.8 MB/s  0:00:00
+materialize	Install and validate	2026-07-17T10:44:58.5159267Z Using cached mypy-1.20.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (14.7 MB)
+materialize	Install and validate	2026-07-17T10:44:58.5223470Z Using cached numpy-2.5.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.7 MB)
+materialize	Install and validate	2026-07-17T10:44:58.5294912Z Using cached pandas-2.3.3-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (12.4 MB)
+materialize	Install and validate	2026-07-17T10:44:58.5350982Z Using cached pydantic-2.13.4-py3-none-any.whl (472 kB)
+materialize	Install and validate	2026-07-17T10:44:58.5364904Z Using cached pydantic_core-2.46.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+materialize	Install and validate	2026-07-17T10:44:58.5401073Z Downloading pytest-9.1.1-py3-none-any.whl (386 kB)
+materialize	Install and validate	2026-07-17T10:44:58.5442677Z Using cached pluggy-1.6.0-py3-none-any.whl (20 kB)
+materialize	Install and validate	2026-07-17T10:44:58.5471319Z Downloading pytest_cov-7.1.0-py3-none-any.whl (22 kB)
+materialize	Install and validate	2026-07-17T10:44:58.5505655Z Using cached pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (807 kB)
+materialize	Install and validate	2026-07-17T10:44:58.5519633Z Using cached rich-14.3.4-py3-none-any.whl (310 kB)
+materialize	Install and validate	2026-07-17T10:44:58.5532120Z Using cached pygments-2.20.0-py3-none-any.whl (1.2 MB)
+materialize	Install and validate	2026-07-17T10:44:58.5568241Z Downloading ruff-0.15.22-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (11.4 MB)
+materialize	Install and validate	2026-07-17T10:44:58.5966323Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 11.4/11.4 MB 299.0 MB/s  0:00:00
+materialize	Install and validate	2026-07-17T10:44:58.5980318Z Using cached scikit_learn-1.9.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (9.1 MB)
+materialize	Install and validate	2026-07-17T10:44:58.6042077Z Downloading typer-0.27.0-py3-none-any.whl (122 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9403548Z Using cached annotated_doc-0.0.4-py3-none-any.whl (5.3 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9414762Z Using cached annotated_types-0.7.0-py3-none-any.whl (13 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9444990Z Downloading coverage-7.15.2-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (256 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9482279Z Using cached iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9493606Z Using cached joblib-1.5.3-py3-none-any.whl (309 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9506685Z Using cached librt-0.13.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (531 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9519594Z Using cached markdown_it_py-4.2.0-py3-none-any.whl (91 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9531081Z Using cached mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9542410Z Using cached mypy_extensions-1.1.0-py3-none-any.whl (5.0 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9553399Z Using cached narwhals-2.24.0-py3-none-any.whl (461 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9566618Z Using cached packaging-26.2-py3-none-any.whl (100 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9578061Z Using cached pandas_stubs-3.0.3.260530-py3-none-any.whl (173 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9589497Z Using cached pathspec-1.1.1-py3-none-any.whl (57 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9600903Z Using cached python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9612578Z Using cached pytz-2026.2-py2.py3-none-any.whl (510 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9626277Z Using cached scipy-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (35.3 MB)
+materialize	Install and validate	2026-07-17T10:44:58.9778726Z Using cached shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9789723Z Using cached six-1.17.0-py2.py3-none-any.whl (11 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9800916Z Using cached threadpoolctl-3.6.0-py3-none-any.whl (18 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9812106Z Using cached types_pyyaml-6.0.12.20260518-py3-none-any.whl (20 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9823395Z Using cached typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9834998Z Using cached typing_inspection-0.4.2-py3-none-any.whl (14 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9846172Z Using cached tzdata-2026.3-py2.py3-none-any.whl (348 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9881478Z Downloading graphviz-0.21-py3-none-any.whl (47 kB)
+materialize	Install and validate	2026-07-17T10:44:58.9988655Z Downloading matplotlib-3.11.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (10.0 MB)
+materialize	Install and validate	2026-07-17T10:44:59.0391533Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.0/10.0 MB 258.4 MB/s  0:00:00
+materialize	Install and validate	2026-07-17T10:44:59.0423292Z Downloading contourpy-1.3.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (362 kB)
+materialize	Install and validate	2026-07-17T10:44:59.0480594Z Downloading cycler-0.12.1-py3-none-any.whl (8.3 kB)
+materialize	Install and validate	2026-07-17T10:44:59.0532992Z Downloading fonttools-4.63.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (5.0 MB)
+materialize	Install and validate	2026-07-17T10:44:59.0825886Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.0/5.0 MB 177.9 MB/s  0:00:00
+materialize	Install and validate	2026-07-17T10:44:59.0866207Z Downloading kiwisolver-1.5.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (1.5 MB)
+materialize	Install and validate	2026-07-17T10:44:59.0937904Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.5/1.5 MB 245.3 MB/s  0:00:00
+materialize	Install and validate	2026-07-17T10:44:59.0968090Z Downloading pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (6.9 MB)
+materialize	Install and validate	2026-07-17T10:44:59.1203468Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.9/6.9 MB 316.4 MB/s  0:00:00
+materialize	Install and validate	2026-07-17T10:44:59.1231736Z Downloading pyparsing-3.3.2-py3-none-any.whl (122 kB)
+materialize	Install and validate	2026-07-17T10:44:59.1291048Z Downloading plotly-6.9.0-py3-none-any.whl (9.9 MB)
+materialize	Install and validate	2026-07-17T10:44:59.1668998Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 9.9/9.9 MB 272.7 MB/s  0:00:00
+materialize	Install and validate	2026-07-17T10:44:59.4250944Z Building wheels for collected packages: hybrid-trader
+materialize	Install and validate	2026-07-17T10:44:59.4259591Z   Building editable for hybrid-trader (pyproject.toml): started
+materialize	Install and validate	2026-07-17T10:44:59.4647541Z   Building editable for hybrid-trader (pyproject.toml): finished with status 'done'
+materialize	Install and validate	2026-07-17T10:44:59.4652681Z   Created wheel for hybrid-trader: filename=hybrid_trader-0.2.0-py3-none-any.whl size=10670 sha256=20529b5d891fe4e0848047b920cbc81b606a61871ab511e76f5e3a733e024b22
+materialize	Install and validate	2026-07-17T10:44:59.4655116Z   Stored in directory: /tmp/pip-ephem-wheel-cache-g8bvnils/wheels/89/8e/db/230672a5aba40d3707ad89333259c67c18a35c997ef208082b
+materialize	Install and validate	2026-07-17T10:44:59.4677921Z Successfully built hybrid-trader
+materialize	Install and validate	2026-07-17T10:44:59.6298253Z Installing collected packages: pytz, tzdata, typing_extensions, types-pyyaml, threadpoolctl, six, shellingham, ruff, pyyaml, pyparsing, pygments, pluggy, pillow, pathspec, packaging, numpy, narwhals, mypy_extensions, mdurl, librt, kiwisolver, joblib, iniconfig, graphviz, fonttools, cycler, coverage, annotated-types, annotated-doc, typing-inspection, scipy, python-dateutil, pytest, pydantic-core, plotly, pandas-stubs, mypy, markdown-it-py, contourpy, scikit-learn, rich, pytest-cov, pydantic, pandas, matplotlib, lightgbm, typer, catboost, hybrid-trader
+materialize	Install and validate	2026-07-17T10:45:24.1600205Z 
+materialize	Install and validate	2026-07-17T10:45:24.1645256Z Successfully installed annotated-doc-0.0.4 annotated-types-0.7.0 catboost-1.2.10 contourpy-1.3.3 coverage-7.15.2 cycler-0.12.1 fonttools-4.63.0 graphviz-0.21 hybrid-trader-0.2.0 iniconfig-2.3.0 joblib-1.5.3 kiwisolver-1.5.0 librt-0.13.0 lightgbm-4.6.0 markdown-it-py-4.2.0 matplotlib-3.11.0 mdurl-0.1.2 mypy-1.20.2 mypy_extensions-1.1.0 narwhals-2.24.0 numpy-2.5.1 packaging-26.2 pandas-2.3.3 pandas-stubs-3.0.3.260530 pathspec-1.1.1 pillow-12.3.0 plotly-6.9.0 pluggy-1.6.0 pydantic-2.13.4 pydantic-core-2.46.4 pygments-2.20.0 pyparsing-3.3.2 pytest-9.1.1 pytest-cov-7.1.0 python-dateutil-2.9.0.post0 pytz-2026.2 pyyaml-6.0.3 rich-14.3.4 ruff-0.15.22 scikit-learn-1.9.0 scipy-1.18.0 shellingham-1.5.4 six-1.17.0 threadpoolctl-3.6.0 typer-0.27.0 types-pyyaml-6.0.12.20260518 typing-inspection-0.4.2 typing_extensions-4.16.0 tzdata-2026.3
+materialize	Install and validate	2026-07-17T10:45:24.3449619Z 4 files left unchanged
+materialize	Install and validate	2026-07-17T10:45:24.3535198Z All checks passed!
+materialize	Install and validate	2026-07-17T10:45:36.6400756Z Success: no issues found in 67 source files
+materialize	Install and validate	2026-07-17T10:45:37.6870862Z .F                                                                       [100%]
+materialize	Install and validate	2026-07-17T10:45:37.6872151Z =================================== FAILURES ===================================
+materialize	Install and validate	2026-07-17T10:45:37.6872756Z _________ test_semantic_budget_must_be_positive_before_state_mutation __________
+materialize	Install and validate	2026-07-17T10:45:37.6873149Z 
+materialize	Install and validate	2026-07-17T10:45:37.6873473Z tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-0/test_semantic_budget_must_be_p0')
+materialize	Install and validate	2026-07-17T10:45:37.6874430Z 
+materialize	Install and validate	2026-07-17T10:45:37.6874799Z     def test_semantic_budget_must_be_positive_before_state_mutation(tmp_path: Path) -> None:
+materialize	Install and validate	2026-07-17T10:45:37.6875425Z         spec = EventCaptureSpec(sources=(_source(),))
+materialize	Install and validate	2026-07-17T10:45:37.6876027Z         with pytest.raises(ValueError, match="maximum_new_semantic_records must be positive"):
+materialize	Install and validate	2026-07-17T10:45:37.6876581Z             capture_events(
+materialize	Install and validate	2026-07-17T10:45:37.6876862Z                 spec,
+materialize	Install and validate	2026-07-17T10:45:37.6877115Z                 tmp_path,
+materialize	Install and validate	2026-07-17T10:45:37.6877452Z                 captured_at=datetime(2026, 7, 17, 8, tzinfo=UTC),
+materialize	Install and validate	2026-07-17T10:45:37.6877867Z                 feed_factory=_factory,
+materialize	Install and validate	2026-07-17T10:45:37.6878218Z                 maximum_new_semantic_records=0,
+materialize	Install and validate	2026-07-17T10:45:37.6878557Z             )
+materialize	Install and validate	2026-07-17T10:45:37.6878814Z >       assert not tmp_path.exists()
+materialize	Install and validate	2026-07-17T10:45:37.6879175Z E       AssertionError: assert not True
+materialize	Install and validate	2026-07-17T10:45:37.6879479Z E        +  where True = exists()
+materialize	Install and validate	2026-07-17T10:45:37.6880167Z E        +    where exists = PosixPath('/tmp/pytest-of-runner/pytest-0/test_semantic_budget_must_be_p0').exists
+materialize	Install and validate	2026-07-17T10:45:37.6880585Z 
+materialize	Install and validate	2026-07-17T10:45:37.6880735Z tests/test_phase3e_semantic_budget.py:110: AssertionError
+materialize	Install and validate	2026-07-17T10:45:37.6881125Z =========================== short test summary info ============================
+materialize	Install and validate	2026-07-17T10:45:37.6881853Z FAILED tests/test_phase3e_semantic_budget.py::test_semantic_budget_must_be_positive_before_state_mutation - AssertionError: assert not True
+materialize	Install and validate	2026-07-17T10:45:37.6882475Z  +  where True = exists()
+materialize	Install and validate	2026-07-17T10:45:37.6882922Z  +    where exists = PosixPath('/tmp/pytest-of-runner/pytest-0/test_semantic_budget_must_be_p0').exists
+materialize	Install and validate	2026-07-17T10:45:37.7542836Z ##[error]Process completed with exit code 1.
