@@ -90,6 +90,9 @@ class SemanticMaturityObservation(BaseModel):
             raise ValueError("Embedded maturity permission is inconsistent")
         if self.maturity.paper_or_live_trading_allowed:
             raise ValueError("Embedded maturity assessment permits trading")
+        expected_deficits = maturity_deficits(self.maturity)
+        if self.deficits != expected_deficits:
+            raise ValueError("Maturity deficits do not match the frozen policy")
         expected_id = maturity_observation_id(
             observed_at=self.observed_at,
             workflow_run_id=self.workflow_run_id,
@@ -128,8 +131,7 @@ def maturity_deficits(
             0,
         ),
         availability_dates=max(
-            policy.minimum_unique_availability_dates
-            - assessment.unique_availability_date_count,
+            policy.minimum_unique_availability_dates - assessment.unique_availability_date_count,
             0,
         ),
         active_decision_rows=max(
@@ -144,9 +146,7 @@ def maturity_deficits(
             policy.minimum_matured_labeled_rows - assessment.matured_labeled_row_count,
             0,
         ),
-        missing_target_classes=(
-            missing_classes if policy.require_both_target_classes else 0
-        ),
+        missing_target_classes=(missing_classes if policy.require_both_target_classes else 0),
     )
 
 
@@ -235,27 +235,17 @@ def verify_maturity_registry(path: str | Path) -> SemanticMaturityRegistryState:
     with registry.open("rb") as handle:
         for line_number, raw in enumerate(handle, start=1):
             if not raw.endswith(b"\n"):
-                raise ValueError(
-                    f"Maturity registry line {line_number} is not newline-terminated"
-                )
+                raise ValueError(f"Maturity registry line {line_number} is not newline-terminated")
             try:
                 record = SemanticMaturityObservation.model_validate_json(raw)
             except Exception as exc:
-                raise ValueError(
-                    f"Invalid maturity registry line {line_number}"
-                ) from exc
+                raise ValueError(f"Invalid maturity registry line {line_number}") from exc
             if record.previous_record_sha256 != previous_sha:
-                raise ValueError(
-                    f"Maturity registry hash chain breaks at line {line_number}"
-                )
+                raise ValueError(f"Maturity registry hash chain breaks at line {line_number}")
             if record.observation_id in observation_ids:
-                raise ValueError(
-                    f"Duplicate maturity observation at line {line_number}"
-                )
+                raise ValueError(f"Duplicate maturity observation at line {line_number}")
             if record.workflow_run_id in workflow_run_ids:
-                raise ValueError(
-                    f"Duplicate maturity workflow run at line {line_number}"
-                )
+                raise ValueError(f"Duplicate maturity workflow run at line {line_number}")
             if previous is not None and record.observed_at <= previous.observed_at:
                 raise ValueError("Maturity observation times must be strictly increasing")
             previous_sha = maturity_record_sha256(record)
@@ -289,9 +279,7 @@ def append_maturity_observation(
         observation.observed_at <= state.previous_record.observed_at
     ):
         raise ValueError("New maturity observation does not advance time")
-    chained = observation.model_copy(
-        update={"previous_record_sha256": state.head_sha256}
-    )
+    chained = observation.model_copy(update={"previous_record_sha256": state.head_sha256})
     payload = _canonical_line(chained)
     descriptor = os.open(
         registry,
