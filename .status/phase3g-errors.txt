@@ -1,0 +1,97 @@
+=== formatter ===
+42:format	Format and validate Phase 3G	2026-07-17T14:24:17.7290896Z         with pytest.raises(ValueError, match="Workflow run already exists"):
+49:format	Format and validate Phase 3G	2026-07-17T14:24:17.7293212Z >       with pytest.raises(ValueError, match="Invalid maturity registry line"):
+51:format	Format and validate Phase 3G	2026-07-17T14:24:17.7294089Z E       Failed: DID NOT RAISE ValueError
+55:format	Format and validate Phase 3G	2026-07-17T14:24:17.7295397Z FAILED tests/test_phase3g_maturity_monitor.py::test_duplicate_workflow_run_and_registry_tamper_fail_closed - Failed: DID NOT RAISE ValueError
+format	Format and validate Phase 3G	﻿2026-07-17T14:24:08.2544213Z ##[group]Run ruff format src/hybrid_trader/semantic_monitor.py scripts/record_phase3g_maturity.py tests/test_phase3g_maturity_monitor.py
+format	Format and validate Phase 3G	2026-07-17T14:24:08.2545004Z ^[[36;1mruff format src/hybrid_trader/semantic_monitor.py scripts/record_phase3g_maturity.py tests/test_phase3g_maturity_monitor.py^[[0m
+format	Format and validate Phase 3G	2026-07-17T14:24:08.2545726Z ^[[36;1mruff check --fix src/hybrid_trader/semantic_monitor.py scripts/record_phase3g_maturity.py tests/test_phase3g_maturity_monitor.py^[[0m
+format	Format and validate Phase 3G	2026-07-17T14:24:08.2546249Z ^[[36;1mmypy --python-version 3.12 src^[[0m
+format	Format and validate Phase 3G	2026-07-17T14:24:08.2546877Z ^[[36;1mpytest tests/test_phase3g_maturity_monitor.py -q^[[0m
+format	Format and validate Phase 3G	2026-07-17T14:24:08.2547401Z ^[[36;1mpytest -m 'not optional_ml' -q^[[0m
+format	Format and validate Phase 3G	2026-07-17T14:24:08.2547801Z ^[[36;1mpytest -m optional_ml -q^[[0m
+format	Format and validate Phase 3G	2026-07-17T14:24:08.2548107Z ^[[36;1mpython -m pip check^[[0m
+format	Format and validate Phase 3G	2026-07-17T14:24:08.2582727Z shell: /usr/bin/bash -e {0}
+format	Format and validate Phase 3G	2026-07-17T14:24:08.2583041Z env:
+format	Format and validate Phase 3G	2026-07-17T14:24:08.2583345Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+format	Format and validate Phase 3G	2026-07-17T14:24:08.2583892Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+format	Format and validate Phase 3G	2026-07-17T14:24:08.2584303Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+format	Format and validate Phase 3G	2026-07-17T14:24:08.2584669Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+format	Format and validate Phase 3G	2026-07-17T14:24:08.2585017Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+format	Format and validate Phase 3G	2026-07-17T14:24:08.2585405Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+format	Format and validate Phase 3G	2026-07-17T14:24:08.2585723Z ##[endgroup]
+format	Format and validate Phase 3G	2026-07-17T14:24:08.2712119Z 1 file reformatted, 2 files left unchanged
+format	Format and validate Phase 3G	2026-07-17T14:24:08.2788374Z All checks passed!
+format	Format and validate Phase 3G	2026-07-17T14:24:16.5611757Z Success: no issues found in 71 source files
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7282891Z ..F.                                                                     [100%]
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7283471Z =================================== FAILURES ===================================
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7283925Z _________ test_duplicate_workflow_run_and_registry_tamper_fail_closed __________
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7284365Z 
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7284635Z tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-0/test_duplicate_workflow_run_an0')
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7284918Z 
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7285260Z     def test_duplicate_workflow_run_and_registry_tamper_fail_closed(tmp_path: Path) -> None:
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7285727Z         registry = tmp_path / "maturity.jsonl"
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7286062Z         observed = datetime(2026, 7, 17, 12, tzinfo=UTC)
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7286414Z         first = _observation(run_id="run-1", observed_at=observed)
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7286879Z         append_maturity_observation(registry, first)
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7287464Z     
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7287801Z         conflicting = make_maturity_observation(
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7288170Z             observed_at=observed + timedelta(hours=1),
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7288523Z             workflow_run_id="run-1",
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7288838Z             source_commit_sha="c" * 40,
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7289124Z             market_snapshot_sha256="9" * 64,
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7289452Z             semantic_dataset_sha256="8" * 64,
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7290042Z             semantic_ledger_head_sha256="1" * 64,
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7290313Z             maturity=_assessment(mature=False),
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7290596Z         )
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7290896Z         with pytest.raises(ValueError, match="Workflow run already exists"):
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7291267Z             append_maturity_observation(registry, conflicting)
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7291586Z     
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7291832Z         lines = registry.read_text(encoding="utf-8").splitlines()
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7292173Z         payload = json.loads(lines[0])
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7292472Z         payload["deficits"]["semantic_records"] = 0
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7292811Z         registry.write_text(json.dumps(payload) + "\n", encoding="utf-8")
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7293212Z >       with pytest.raises(ValueError, match="Invalid maturity registry line"):
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7293600Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7294089Z E       Failed: DID NOT RAISE ValueError
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7294236Z 
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7294386Z tests/test_phase3g_maturity_monitor.py:155: Failed
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7294750Z =========================== short test summary info ============================
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7295397Z FAILED tests/test_phase3g_maturity_monitor.py::test_duplicate_workflow_run_and_registry_tamper_fail_closed - Failed: DID NOT RAISE ValueError
+format	Format and validate Phase 3G	2026-07-17T14:24:17.7970904Z ##[error]Process completed with exit code 1.
+=== monitor ===
+27:monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:39.6062566Z ^[[1;33mUsage: ^[[0m^[[1mhybrid-trader download-real-snapshot [OPTIONS]^[[0m
+29:monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:39.6099935Z ^[[31m╭─^[[0m^[[31m Error ^[[0m^[[31m─────────────────────────────────────────────────────────────────────^[[0m^[[31m─╮^[[0m
+30:monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:39.6101359Z ^[[31m│^[[0m No such option: ^[[1;36m-^[[0m^[[1;36m-config^[[0m^[[1;36m-path^[[0m (Possible options: ^[[1;36m-^[[0m^[[1;36m-config^[[0m)                   ^[[31m│^[[0m
+monitor	Download a fresh public BTC 4h market snapshot	﻿2026-07-17T14:21:37.3368785Z ##[group]Run set -euo pipefail
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3369143Z ^[[36;1mset -euo pipefail^[[0m
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3369457Z ^[[36;1mhybrid-trader download-real-snapshot \^[[0m
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3369829Z ^[[36;1m  --output artifacts/phase3g/market_snapshot \^[[0m
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3370200Z ^[[36;1m  --config-path configs/phase2c_btc_4h.yaml \^[[0m
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3370525Z ^[[36;1m  --global-exchange kraken \^[[0m
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3370810Z ^[[36;1m  --global-symbol BTC/USD \^[[0m
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3371089Z ^[[36;1m  --since 2025-01-01T00:00:00Z \^[[0m
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3371370Z ^[[36;1m  --as-of "$PHASE3G_AS_OF" \^[[0m
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3371904Z ^[[36;1m  --max-pages 40^[[0m
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3436995Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3437361Z env:
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3440028Z   GH_TOKEN: ***
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3440337Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3440778Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3441275Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3442054Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3442428Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3442804Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3443145Z   PHASE3G_AS_OF: 2026-07-17T14:21:29Z
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3443516Z   PHASE3G_DOCUMENT_LEDGER: /tmp/phase3g-events/state/documents.jsonl
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3443973Z   PHASE3G_SEMANTIC_LEDGER: /tmp/phase3g-events/state/semantic_events.jsonl
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3444357Z   PHASE3G_EVENT_RUN_ID: 29575275480
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3444626Z   PHASE3G_EVENT_ARTIFACT_ID: 8404763802
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3445114Z   PHASE3G_EVENT_ARTIFACT_DIGEST: sha256:41a4afc354faecd4cbbad2a7ef55e6f00e21d48eb904bf4b0f8d8d5cf0f05ba8
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:37.3445599Z ##[endgroup]
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:39.6062566Z ^[[1;33mUsage: ^[[0m^[[1mhybrid-trader download-real-snapshot [OPTIONS]^[[0m
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:39.6093614Z ^[[2mTry ^[[0m^[[2;34m'hybrid-trader download-real-snapshot ^[[0m^[[1;2;34m-^[[0m^[[1;2;34m-help^[[0m^[[2;34m'^[[0m^[[2m for help.^[[0m
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:39.6099935Z ^[[31m╭─^[[0m^[[31m Error ^[[0m^[[31m─────────────────────────────────────────────────────────────────────^[[0m^[[31m─╮^[[0m
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:39.6101359Z ^[[31m│^[[0m No such option: ^[[1;36m-^[[0m^[[1;36m-config^[[0m^[[1;36m-path^[[0m (Possible options: ^[[1;36m-^[[0m^[[1;36m-config^[[0m)                   ^[[31m│^[[0m
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:39.6102721Z ^[[31m╰──────────────────────────────────────────────────────────────────────────────╯^[[0m
+monitor	Download a fresh public BTC 4h market snapshot	2026-07-17T14:21:39.8411989Z ##[error]Process completed with exit code 2.
