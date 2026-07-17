@@ -1,5 +1,6 @@
 name: phase3d-avalai-pilot
 
+# Trigger the first bounded real-feed pilot after workflow registration.
 on:
   workflow_dispatch:
   push:
