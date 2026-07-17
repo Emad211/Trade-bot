@@ -1,0 +1,14 @@
+{
+  "artifact_digest": "sha256:a40d047652fc1b477663b237f7677fbd7b08f202d902123d080f557a0c109b03",
+  "artifact_id": 8403257104,
+  "artifact_name": "phase3c-avalai-smoke-29571472843",
+  "checksums_verified": true,
+  "credential_persisted": false,
+  "prospective_decisions_created": false,
+  "raw_provider_response_persisted": false,
+  "schema_version": "1.0",
+  "secret_patterns_detected": false,
+  "source_commit_sha": "1ed3bc52bf3cd9f35d5882d3b818a1c2d875e8c2",
+  "workflow_run_id": "29571472843",
+  "workflow_url": "https://github.com/Emad211/Trade-bot/actions/runs/29571472843"
+}
