@@ -1,3 +1,5 @@
+"""Record one governance-only Phase 3G maturity observation."""
+
 from __future__ import annotations
 
 import argparse
