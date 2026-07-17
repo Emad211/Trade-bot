@@ -147,7 +147,7 @@ jobs:
             echo "Possible credential material found in smoke evidence." >&2
             exit 1
           fi
-          find "$root" -type f -print0 \
+          find "$root" -type f ! -name SHA256SUMS -print0 \
             | sort -z | xargs -0 sha256sum \
             > "$root/SHA256SUMS"
       - name: Upload secret-free smoke evidence
