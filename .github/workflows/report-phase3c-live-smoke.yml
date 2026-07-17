@@ -1,6 +1,6 @@
 name: report-phase3c-live-smoke
 
-# Trigger revision after workflow registration.
+# Generation 2: report the checksum-corrected live smoke.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
@@ -37,7 +37,7 @@ jobs:
           jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
           artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts?per_page=100")
           {
-            echo '## Live AvalAI smoke evidence'
+            echo '## Final live AvalAI smoke evidence'
             echo
             echo "- run: $(jq -r .html_url <<<"$run")"
             echo "- status: $(jq -r .status <<<"$run")"
