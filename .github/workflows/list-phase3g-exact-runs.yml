@@ -1,0 +1,33 @@
+name: list-phase3g-exact-runs
+
+on:
+  push:
+    branches: ["agent/phase3c-hardening-runner"]
+    paths:
+      - ".github/workflows/list-phase3g-exact-runs.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  list:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGET_SHA: 6b8bcba076f0ca6a3ea2b5f006a3609fc3151710
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase3c-hardening-runner
+      - name: Write exact-head run list
+        run: |
+          mkdir -p .status
+          gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-3g-maturity-monitor&per_page=100" \
+            --jq --arg sha "$TARGET_SHA" '{runs: [.workflow_runs[] | select(.head_sha == $sha) | {id,name,event,status,conclusion,head_sha,html_url,created_at,updated_at}]}' \
+            > .status/phase3g-exact-runs.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .status/phase3g-exact-runs.json
+          git commit -m "list final Phase 3G runs" || true
+          git push origin HEAD:agent/phase3c-hardening-runner
