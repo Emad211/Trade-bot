@@ -29,16 +29,5 @@ def patch_registry_validation() -> None:
     )
 
 
-def patch_monitor_workflow() -> None:
-    path = Path(".github/workflows/phase3g-maturity-monitor.yml")
-    replace_once(
-        path,
-        "            --config-path configs/phase2c_btc_4h.yaml \\\n",
-        "            --config configs/phase2c_btc_4h.yaml \\\n",
-        label="download-real-snapshot config option",
-    )
-
-
 if __name__ == "__main__":
     patch_registry_validation()
-    patch_monitor_workflow()
