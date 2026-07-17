@@ -1,6 +1,6 @@
 name: report-phase3d-pilot
 
-# Trigger after workflow registration.
+# Generation 2: report the corrected formatter and latest bounded pilot.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
@@ -24,7 +24,7 @@ jobs:
         run: |
           set -euo pipefail
           report=/tmp/phase3d-status.md
-          echo '## Phase 3D workflow status' > "$report"
+          echo '## Phase 3D corrected workflow status' > "$report"
           for workflow in phase3d-format phase3d-avalai-pilot; do
             run=""
             for attempt in $(seq 1 240); do
