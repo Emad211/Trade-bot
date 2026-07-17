@@ -1,0 +1,123 @@
+name: phase3f-semantic-dataset
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["agent/phase-3f-semantic-dataset"]
+    paths:
+      - ".github/workflows/phase3f-semantic-dataset.yml"
+      - "src/hybrid_trader/semantic_features.py"
+      - "src/hybrid_trader/semantic_dataset.py"
+      - "scripts/build_phase3f_semantic_dataset.py"
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the research package
+        run: python -m pip install -e .
+      - name: Download fixed market and prospective semantic evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/phase3f-market /tmp/phase3f-events
+          gh run download 29319905230 --dir /tmp/phase3f-market
+          gh run download 29575275480 --dir /tmp/phase3f-events
+          market_manifest=$(find /tmp/phase3f-market -path '*/combined_snapshot/manifest.json' -print -quit)
+          document_ledger=$(find /tmp/phase3f-events -path '*/state/documents.jsonl' -print -quit)
+          semantic_ledger=$(find /tmp/phase3f-events -path '*/state/semantic_events.jsonl' -print -quit)
+          test -n "$market_manifest"
+          test -n "$document_ledger"
+          test -n "$semantic_ledger"
+          echo "MARKET_SNAPSHOT=$(dirname "$market_manifest")" >> "$GITHUB_ENV"
+          echo "DOCUMENT_LEDGER=$document_ledger" >> "$GITHUB_ENV"
+          echo "SEMANTIC_LEDGER=$semantic_ledger" >> "$GITHUB_ENV"
+      - name: Build immutable point-in-time semantic dataset
+        run: |
+          python scripts/build_phase3f_semantic_dataset.py \
+            --snapshot "$MARKET_SNAPSHOT" \
+            --document-ledger "$DOCUMENT_LEDGER" \
+            --semantic-ledger "$SEMANTIC_LEDGER" \
+            --config configs/phase2c_btc_4h.yaml \
+            --as-of 2026-07-17T11:00:00Z \
+            --output artifacts/phase3f-semantic-dataset \
+            --source-commit-sha "$GITHUB_SHA"
+      - name: Verify immaturity and absence of semantic backfill
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          from hybrid_trader.semantic_dataset import read_semantic_dataset
+
+          root = Path("artifacts/phase3f-semantic-dataset")
+          frame, manifest = read_semantic_dataset(root)
+          if manifest.maturity.status != "insufficient_prospective_sample":
+              raise RuntimeError("The first prospective semantic sample unexpectedly passed maturity")
+          if manifest.maturity.research_model_fitting_allowed:
+              raise RuntimeError("Immature Phase 3F data permitted model fitting")
+          if manifest.maturity.paper_or_live_trading_allowed:
+              raise RuntimeError("Phase 3F permitted paper or live trading")
+          event_columns = [
+              column for column in manifest.semantic_feature_columns
+              if column.endswith("_event_count")
+          ]
+          if frame[event_columns].to_numpy(dtype=float).sum() != 0.0:
+              raise RuntimeError(
+                  "Semantic events observed after the market snapshot were backfilled"
+              )
+          expected_reasons = {
+              "insufficient_semantic_records",
+              "insufficient_unique_availability_dates",
+              "insufficient_active_decision_rows",
+          }
+          missing = expected_reasons.difference(manifest.maturity.failure_reasons)
+          if missing:
+              raise RuntimeError(f"Phase 3F maturity reasons are incomplete: {sorted(missing)}")
+          summary = {
+              "dataset_id": manifest.dataset_id,
+              "content_sha256": manifest.content_sha256,
+              "market_snapshot_sha256": manifest.market_snapshot_sha256,
+              "semantic_ledger_head_sha256": manifest.semantic_ledger_head_sha256,
+              "row_count": manifest.row_count,
+              "candidate_row_count": manifest.candidate_row_count,
+              "relevant_semantic_record_count": manifest.relevant_semantic_record_count,
+              "maturity": manifest.maturity.model_dump(mode="json"),
+              "semantic_event_sum": 0,
+              "model_fitting_executed": False,
+              "prospective_decisions_created": False,
+          }
+          (root / "verification.json").write_text(
+              json.dumps(summary, sort_keys=True, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+      - name: Record provenance and checksum inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=artifacts/phase3f-semantic-dataset
+          printf '%s\n' "$GITHUB_SHA" > "$root/source_commit_sha.txt"
+          printf '%s\n' "$GITHUB_RUN_ID" > "$root/workflow_run_id.txt"
+          find "$root" -type f ! -name SHA256SUMS -print0 \
+            | sort -z | xargs -0 sha256sum > "$root/SHA256SUMS"
+      - name: Upload Phase 3F dataset evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase3f-semantic-dataset-${{ github.run_id }}
+          path: artifacts/phase3f-semantic-dataset/
+          if-no-files-found: error
+          retention-days: 90
