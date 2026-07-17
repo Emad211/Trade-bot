@@ -1,5 +1,6 @@
 name: phase3e-longitudinal-events
 
+# Trigger the first feature-branch longitudinal run after workflow registration.
 on:
   workflow_dispatch:
   schedule:
