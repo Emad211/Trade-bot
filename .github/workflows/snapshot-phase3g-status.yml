@@ -1,6 +1,6 @@
 name: snapshot-phase3g-status
 
-# Generation 2: snapshot the stabilized Phase 3G head.
+# Generation 3: snapshot exact final Phase 3G head.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
@@ -16,18 +16,19 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
+      TARGET_SHA: 6b8bcba076f0ca6a3ea2b5f006a3609fc3151710
     steps:
       - uses: actions/checkout@v4
         with:
           ref: agent/phase3c-hardening-runner
-      - name: Snapshot latest Phase 3G runs
+      - name: Snapshot exact Phase 3G runs
         run: |
           mkdir -p .status
           gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-3g-maturity-monitor&per_page=100" \
-            --jq '{runs: [.workflow_runs[] | select(.name == "phase3g-format" or .name == "phase3g-maturity-monitor" or .name == "ci") | {id,name,status,conclusion,head_sha,html_url,created_at,updated_at}][0:16]}' \
-            > .status/phase3g-status.json
+            --jq --arg sha "$TARGET_SHA" '{runs: [.workflow_runs[] | select(.head_sha == $sha) | {id,name,status,conclusion,head_sha,html_url,created_at,updated_at}]}' \
+            > .status/phase3g-final-head-status.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .status/phase3g-status.json
-          git commit -m "snapshot stabilized Phase 3G status" || true
+          git add .status/phase3g-final-head-status.json
+          git commit -m "snapshot final Phase 3G head status" || true
           git push origin HEAD:agent/phase3c-hardening-runner
