@@ -1,0 +1,34 @@
+{
+  "artifact_checksum_inventory_verified": true,
+  "candidate_row_count": 7632,
+  "content_sha256": "157007b0519c122d4a2851c5d4164e5dbcc3d828a5bfcd8067a3a840e7d6d3f6",
+  "dataset_id": "semantic-157007b0519c",
+  "final_validation_commit_sha": "c1248daadb0313261c565c88291a77bb5b1926d6",
+  "market_snapshot_sha256": "fa8c7f3ddc75baa7fccc8b835b47c4bb75ca3e8dbdc208a27428d513da40f144",
+  "maturity": {
+    "active_decision_row_count": 0,
+    "assessment_id": "ab74a228d570318b59f9c748d336d53f318bc58672e66709541ccabe3472d6a6",
+    "failure_reasons": [
+      "insufficient_semantic_records",
+      "insufficient_unique_availability_dates",
+      "insufficient_active_decision_rows",
+      "insufficient_source_diversity"
+    ],
+    "matured_labeled_row_count": 7632,
+    "negative_target_count": 3717,
+    "paper_or_live_trading_allowed": false,
+    "positive_target_count": 3915,
+    "relevant_semantic_record_count": 8,
+    "research_model_fitting_allowed": false,
+    "status": "insufficient_prospective_sample",
+    "unique_availability_date_count": 1,
+    "unique_source_count": 1
+  },
+  "model_fitting_executed": false,
+  "prospective_decisions_created": false,
+  "row_count": 7632,
+  "semantic_event_sum": 0,
+  "semantic_features_finite": true,
+  "semantic_ledger_head_sha256": "91cc8de3811bbf70e37c99b3d7de087d3562966333b65bbb58fc3c698a969b99",
+  "source_artifact_commit_sha": "33ad4c0c368ca576ff5b5c62206810e8df7f77be"
+}
