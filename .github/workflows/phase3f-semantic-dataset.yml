@@ -1,5 +1,6 @@
 name: phase3f-semantic-dataset
 
+# Trigger final fixed-evidence rebuild after formatting and index-contract repair.
 on:
   workflow_dispatch:
   push:
