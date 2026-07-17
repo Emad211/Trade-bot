@@ -221,7 +221,9 @@ def test_semantic_dataset_artifact_is_idempotent_and_tamper_evident(
     second = write_semantic_dataset(result, tmp_path / "dataset", **kwargs)
     assert first == second
     loaded, manifest = read_semantic_dataset(tmp_path / "dataset")
-    pd.testing.assert_frame_equal(loaded, result.frame, check_freq=False)
+    expected = result.frame.copy()
+    expected.index.name = "timestamp"
+    pd.testing.assert_frame_equal(loaded, expected, check_freq=False)
     assert manifest.content_sha256 == first.content_sha256
 
     manifest_path = tmp_path / "dataset" / "manifest.json"
