@@ -1,6 +1,6 @@
 name: phase3h-source-admission
 
-# Trigger the first live candidate probe after workflow registration.
+# Report the exact live admission verdict on PR #33.
 on:
   workflow_dispatch:
   push:
@@ -13,11 +13,14 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   probe:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -57,6 +60,30 @@ jobs:
           printf '%s\n' "$GITHUB_RUN_ID" > "$root/workflow_run_id.txt"
           find "$root" -type f ! -name SHA256SUMS -print0 \
             | sort -z | xargs -0 sha256sum > "$root/SHA256SUMS"
+      - name: Report exact admission verdict on PR
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=artifacts/phase3h-source-admission
+          {
+            echo '## Phase 3H live source-admission verdict'
+            echo
+            echo "- workflow run: ${GITHUB_RUN_ID}"
+            echo "- source commit: \`${GITHUB_SHA}\`"
+            echo "- probe outcome: \`${{ steps.admission.outcome }}\`"
+            if [ -f "$root/summary.json" ]; then
+              echo "- accepted: \`$(jq -c .accepted_source_ids "$root/summary.json")\`"
+              echo "- rejected: \`$(jq -c .rejected_source_ids "$root/summary.json")\`"
+              echo "- required failures: \`$(jq -c .required_integration_failures "$root/summary.json")\`"
+              echo
+              echo '### Per-source verdicts'
+              jq -r '.results[] | "- `\(.source_id)`: **\(.status)** — documents=\(.parsed_documents), published_ratio=\(.published_timestamp_ratio), skipped_fraction=\(.skipped_fraction), reasons=\(.failure_reasons | join(",") // "")"' "$root/summary.json"
+            else
+              echo '- summary: missing'
+            fi
+          } > /tmp/phase3h-verdict.md
+          gh pr comment 33 --repo "$GITHUB_REPOSITORY" --body-file /tmp/phase3h-verdict.md
       - name: Upload source-admission evidence
         if: always()
         uses: actions/upload-artifact@v4
