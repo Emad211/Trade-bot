@@ -60,9 +60,9 @@ For GitHub Actions, the repository secret name is exactly:
 AVALAI_API_KEY
 ```
 
-The live smoke workflow is deliberately manual. It must not be run until that secret
-exists. The workflow masks the value before any network request and scans all produced
-evidence for credential-shaped strings before upload.
+The smoke workflow supports manual execution and a branch-scoped review trigger. It
+masks the secret before the network request and scans all produced evidence for
+credential-shaped strings before upload.
 
 Optional non-secret environment overrides:
 
@@ -169,12 +169,26 @@ python scripts/capture_phase3c_avalai_events.py \
 python scripts/verify_phase3c_provider.py artifacts/phase3c-avalai
 ```
 
-## Validation status
+## Live validation result
 
-The provider has passed deterministic transport, retry, schema, provenance,
-redaction, tamper-evidence and non-activation tests. A real AvalAI network call is a
-separate release gate. Until the manual smoke workflow succeeds with secret-free
-evidence, Phase 3C remains a draft provider integration and cannot be merged.
+The final live strict structured-output smoke succeeded on 2026-07-17 using the
+repository secret and the pinned model.
+
+- workflow run: `29571472843`;
+- source commit: `1ed3bc52bf3cd9f35d5882d3b818a1c2d875e8c2`;
+- artifact ID: `8403257104`;
+- artifact digest:
+  `sha256:a40d047652fc1b477663b237f7677fbd7b08f202d902123d080f557a0c109b03`;
+- HTTP status: `200` in one attempt;
+- response model: `gpt-5-mini-2025-08-07`;
+- token usage: 546 input, 100 output, 646 total.
+
+The strict schema, model identity, asset allow-list, evidence binding and trusted
+source quality checks all passed. Independent artifact inspection confirmed that all
+checksums matched, the prospective decision ledger was empty, and no API-key-shaped,
+Authorization or Bearer credential appeared in the evidence. Compact provenance is
+committed under `research/runs/phase3c-avalai-smoke-29571472843/`; trace-level details
+remain only in the digest-addressed Actions artifact.
 
 ## Promotion rule
 
