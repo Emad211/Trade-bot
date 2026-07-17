@@ -1,0 +1,48 @@
+name: snapshot-phase3f-final-evidence
+
+on:
+  push:
+    branches: ["agent/phase3c-hardening-runner"]
+    paths:
+      - ".github/workflows/snapshot-phase3f-final-evidence.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGET_SHA: c1248daadb0313261c565c88291a77bb5b1926d6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase3c-hardening-runner
+      - name: Capture final Phase 3F evidence run
+        shell: bash
+        run: |
+          set -euo pipefail
+          run=""
+          for attempt in $(seq 1 300); do
+            run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-3f-semantic-dataset&per_page=100" \
+              --jq --arg sha "$TARGET_SHA" '[.workflow_runs[] | select(.name == "phase3f-semantic-dataset" and .head_sha == $sha)][0]')
+            if [ "$(jq -r '.status // empty' <<<"$run")" = "completed" ]; then
+              break
+            fi
+            sleep 10
+          done
+          test -n "$run"
+          run_id=$(jq -r .id <<<"$run")
+          artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts?per_page=100")
+          mkdir -p .status
+          jq -n --argjson run "$run" --argjson artifacts "$artifacts" \
+            '{run: {id: $run.id, status: $run.status, conclusion: $run.conclusion, head_sha: $run.head_sha, html_url: $run.html_url}, artifacts: [$artifacts.artifacts[] | {id,name,size_in_bytes,digest,expired,archive_download_url}]}' \
+            > .status/phase3f-final-evidence.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .status/phase3f-final-evidence.json
+          git commit -m "snapshot final Phase 3F evidence" || true
+          git push origin HEAD:agent/phase3c-hardening-runner
