@@ -1,0 +1,13 @@
+{
+  "artifact_checksums_verified": true,
+  "artifact_digest": "sha256:541a2390427af6917214a5053747f7d64a284a1ba02ab71a730e58bd796bdb3f",
+  "artifact_id": 8403844430,
+  "artifact_name": "phase3d-avalai-pilot-29572947781",
+  "credential_pattern_detected": false,
+  "prospective_decisions_created": false,
+  "raw_feed_payloads_committed_to_git": false,
+  "schema_version": "1.0",
+  "source_commit_sha": "0f9a035f0aff8699cee350762d70b1c305bf0515",
+  "workflow_run_id": "29572947781",
+  "workflow_url": "https://github.com/Emad211/Trade-bot/actions/runs/29572947781"
+}

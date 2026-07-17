@@ -1,0 +1,44 @@
+{
+  "assessment_id": "26c5d094b8184051b3fd518455b676c15c941a1c193be3fe2feb3bce6fae1a7b",
+  "call_count": 2,
+  "capture_count": 2,
+  "credential_pattern_detected": false,
+  "direction_counts": {
+    "bullish": 1,
+    "neutral": 1
+  },
+  "failed_call_count": 0,
+  "failure_reasons": [],
+  "first_run_new_call_count": 2,
+  "latest_run_new_call_count": 0,
+  "maximum_attempts": 1,
+  "maximum_latency_seconds": 4.418879,
+  "mean_confidence": 0.6,
+  "mean_latency_seconds": 3.4885395,
+  "mean_novelty": 0.3,
+  "mean_severity": 0.2,
+  "policy": {
+    "max_attempts_per_call": 4,
+    "max_failed_calls": 0,
+    "max_new_calls": 2,
+    "max_total_tokens": 4000,
+    "minimum_provider_runs": 2,
+    "minimum_successful_sources": 2
+  },
+  "prospective_decision_count": 0,
+  "provider_run_count": 2,
+  "recommended_action": "continue_data_collection",
+  "repeat_capture_zero_new_calls": true,
+  "schema_version": "1.0",
+  "semantic_record_count": 2,
+  "source_document_counts": {
+    "bitcoin-core-releases": 1,
+    "geth-releases": 1
+  },
+  "status": "pass",
+  "successful_call_count": 2,
+  "successful_source_count": 2,
+  "total_input_tokens": 2246,
+  "total_output_tokens": 189,
+  "total_tokens": 2435
+}
