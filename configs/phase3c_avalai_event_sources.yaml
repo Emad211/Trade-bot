@@ -1,0 +1,36 @@
+schema_version: "1.0"
+
+capture:
+  schema_version: "1.2"
+  extractor: avalai_structured
+  timeout_seconds: 30
+  minimum_successful_sources: 1
+  sources:
+    - source_id: bitcoin-core-releases
+      feed_url: https://github.com/bitcoin/bitcoin/releases.atom
+      allowed_domains: [github.com]
+      source_quality: 0.95
+      asset_tags: [BTC]
+      required: true
+      max_items: 50
+
+    - source_id: geth-releases
+      feed_url: https://github.com/ethereum/go-ethereum/releases.atom
+      allowed_domains: [github.com]
+      source_quality: 0.90
+      asset_tags: [ETH]
+      required: false
+      max_items: 50
+
+avalai:
+  base_url: https://api.avalai.ir/v1
+  model: gpt-5-mini-2025-08-07
+  model_revision: gpt-5-mini-2025-08-07
+  route: responses
+  timeout_seconds: 60
+  max_retries: 3
+  initial_backoff_seconds: 1
+  max_backoff_seconds: 20
+  max_output_tokens: 512
+  max_document_chars: 12000
+  reasoning_effort: minimal

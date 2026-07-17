@@ -14,9 +14,9 @@ from hybrid_trader.event_documents import FeedSourceSpec
 class EventCaptureSpec(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    schema_version: str = "1.1"
+    schema_version: str = "1.2"
     sources: tuple[FeedSourceSpec, ...]
-    extractor: Literal["keyword_baseline"] = "keyword_baseline"
+    extractor: Literal["keyword_baseline", "avalai_structured"] = "keyword_baseline"
     timeout_seconds: int = Field(default=30, ge=1, le=300)
     minimum_successful_sources: int = Field(default=1, ge=1)
 
