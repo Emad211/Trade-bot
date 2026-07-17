@@ -1,0 +1,112 @@
+name: phase3d-avalai-pilot
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["agent/phase-3d-avalai-pilot"]
+    paths:
+      - ".github/workflows/phase3d-avalai-pilot.yml"
+      - "src/hybrid_trader/phase3d.py"
+      - "scripts/assess_phase3d_avalai_pilot.py"
+      - "scripts/capture_phase3c_avalai_events.py"
+      - "scripts/verify_phase3c_provider.py"
+      - "configs/phase3c_avalai_event_sources.yaml"
+
+permissions:
+  contents: read
+
+jobs:
+  pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      AVALAI_API_KEY: ${{ secrets.AVALAI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Require and mask repository secret
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${AVALAI_API_KEY:-}"
+          echo "::add-mask::$AVALAI_API_KEY"
+      - name: Install the research package
+        run: python -m pip install -e .
+      - name: Derive the bounded pilot policy from the canonical provider config
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/phase3d-avalai-pilot
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+
+          source = Path("configs/phase3c_avalai_event_sources.yaml")
+          target = Path("artifacts/phase3d-avalai-pilot/pilot-config.yaml")
+          payload = yaml.safe_load(source.read_text(encoding="utf-8"))
+          payload["capture"]["minimum_successful_sources"] = 2
+          for item in payload["capture"]["sources"]:
+              item["max_items"] = 1
+              item["required"] = True
+          target.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+          PY
+      - name: Run the first bounded prospective capture
+        run: |
+          python scripts/capture_phase3c_avalai_events.py \
+            --config artifacts/phase3d-avalai-pilot/pilot-config.yaml \
+            --output artifacts/phase3d-avalai-pilot
+      - name: Verify first capture before repeat
+        run: python scripts/verify_phase3c_provider.py artifacts/phase3d-avalai-pilot
+      - name: Repeat capture against persistent state
+        run: |
+          python scripts/capture_phase3c_avalai_events.py \
+            --config artifacts/phase3d-avalai-pilot/pilot-config.yaml \
+            --output artifacts/phase3d-avalai-pilot
+      - name: Verify repeated capture and provider linkage
+        run: python scripts/verify_phase3c_provider.py artifacts/phase3d-avalai-pilot
+      - name: Apply the predeclared Phase 3D quality and budget gate
+        run: |
+          python scripts/assess_phase3d_avalai_pilot.py \
+            artifacts/phase3d-avalai-pilot \
+            --max-new-calls 2 \
+            --max-total-tokens 4000 \
+            --max-failed-calls 0 \
+            --max-attempts-per-call 4 \
+            --minimum-provider-runs 2 \
+            --minimum-successful-sources 2
+      - name: Enforce credential and non-activation boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=artifacts/phase3d-avalai-pilot
+          test ! -s "$root/state/prospective_decisions.jsonl"
+          if grep -R -F -- "$AVALAI_API_KEY" "$root"; then
+            echo "The repository secret appeared in pilot evidence." >&2
+            exit 1
+          fi
+          if grep -R -E -i \
+              'authorization[[:space:]]*[:=]|bearer[[:space:]]+|\b(aa|sk)-[A-Za-z0-9_-]{6,}' \
+              "$root/state"; then
+            echo "Credential-shaped material appeared in compact state." >&2
+            exit 1
+          fi
+          unset AVALAI_API_KEY
+      - name: Record workflow provenance and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=artifacts/phase3d-avalai-pilot
+          printf '%s\n' "$GITHUB_SHA" > "$root/source_commit_sha.txt"
+          printf '%s\n' "$GITHUB_RUN_ID" > "$root/workflow_run_id.txt"
+          find "$root" -type f ! -name SHA256SUMS -print0 \
+            | sort -z | xargs -0 sha256sum > "$root/SHA256SUMS"
+      - name: Upload bounded prospective pilot evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase3d-avalai-pilot-${{ github.run_id }}
+          path: artifacts/phase3d-avalai-pilot/
+          if-no-files-found: error
+          retention-days: 90
