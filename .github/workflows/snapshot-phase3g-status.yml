@@ -1,6 +1,6 @@
 name: snapshot-phase3g-status
 
-# Trigger after workflow registration.
+# Generation 2: snapshot the stabilized Phase 3G head.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
@@ -24,10 +24,10 @@ jobs:
         run: |
           mkdir -p .status
           gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-3g-maturity-monitor&per_page=100" \
-            --jq '{runs: [.workflow_runs[] | select(.name == "phase3g-format" or .name == "phase3g-maturity-monitor" or .name == "ci") | {id,name,status,conclusion,head_sha,html_url,created_at,updated_at}][0:12]}' \
+            --jq '{runs: [.workflow_runs[] | select(.name == "phase3g-format" or .name == "phase3g-maturity-monitor" or .name == "ci") | {id,name,status,conclusion,head_sha,html_url,created_at,updated_at}][0:16]}' \
             > .status/phase3g-status.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .status/phase3g-status.json
-          git commit -m "snapshot Phase 3G status" || true
+          git commit -m "snapshot stabilized Phase 3G status" || true
           git push origin HEAD:agent/phase3c-hardening-runner
