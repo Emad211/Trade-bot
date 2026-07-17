@@ -1,6 +1,6 @@
 name: report-phase3e-materialize
 
-# Trigger after workflow registration.
+# Generation 2: report the corrected Phase 3E materializer run.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
@@ -36,7 +36,7 @@ jobs:
           run_id=$(jq -r .id <<<"$run")
           jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
           {
-            echo '## Phase 3E materializer status'
+            echo '## Corrected Phase 3E materializer status'
             echo
             echo "- run: $(jq -r .html_url <<<"$run")"
             echo "- conclusion: $(jq -r .conclusion <<<"$run")"
