@@ -1,0 +1,17 @@
+{
+  "artifact_checksums_verified": true,
+  "artifact_digest": "sha256:41a4afc354faecd4cbbad2a7ef55e6f00e21d48eb904bf4b0f8d8d5cf0f05ba8",
+  "artifact_id": 8404763802,
+  "artifact_name": "phase3e-longitudinal-state-29575275480",
+  "credential_pattern_detected": false,
+  "nested_checksums_verified": true,
+  "previous_artifact_digest": "sha256:b93be811eaa753d1da5e0286ebd6d97fc79d215c60ab9acbb8bf53b7379ddf83",
+  "previous_artifact_id": 8404720372,
+  "previous_workflow_run_id": "29575162946",
+  "prospective_decisions_created": false,
+  "schema_version": "1.0",
+  "source_commit_sha": "a931137a0509b13818ddff39b90a009150b44503",
+  "state_restored": true,
+  "workflow_run_id": "29575275480",
+  "workflow_url": "https://github.com/Emad211/Trade-bot/actions/runs/29575275480"
+}
