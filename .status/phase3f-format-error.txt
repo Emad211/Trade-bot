@@ -1,0 +1,79 @@
+19:format	Format and validate Phase 3F	2026-07-17T11:26:17.7878080Z Found 2 errors (2 fixed, 0 remaining).
+61:format	Format and validate Phase 3F	2026-07-17T11:26:32.3037457Z E       AssertionError: DataFrame.index are different
+67:format	Format and validate Phase 3F	2026-07-17T11:26:32.3039543Z tests/test_phase3f_semantic_dataset.py:222: AssertionError
+69:format	Format and validate Phase 3F	2026-07-17T11:26:32.3041374Z FAILED tests/test_phase3f_semantic_dataset.py::test_semantic_dataset_artifact_is_idempotent_and_tamper_evident - AssertionError: DataFrame.index are different
+=== tail ===
+format	Format and validate Phase 3F	﻿2026-07-17T11:26:17.7550769Z ##[group]Run ruff format src/hybrid_trader/semantic_features.py src/hybrid_trader/semantic_dataset.py scripts/build_phase3f_semantic_dataset.py tests/test_phase3f_semantic_dataset.py
+format	Format and validate Phase 3F	2026-07-17T11:26:17.7552152Z ^[[36;1mruff format src/hybrid_trader/semantic_features.py src/hybrid_trader/semantic_dataset.py scripts/build_phase3f_semantic_dataset.py tests/test_phase3f_semantic_dataset.py^[[0m
+format	Format and validate Phase 3F	2026-07-17T11:26:17.7553393Z ^[[36;1mruff check --fix src/hybrid_trader/semantic_features.py src/hybrid_trader/semantic_dataset.py scripts/build_phase3f_semantic_dataset.py tests/test_phase3f_semantic_dataset.py^[[0m
+format	Format and validate Phase 3F	2026-07-17T11:26:17.7554175Z ^[[36;1mmypy --python-version 3.12 src^[[0m
+format	Format and validate Phase 3F	2026-07-17T11:26:17.7554524Z ^[[36;1mpytest tests/test_phase3f_semantic_dataset.py -q^[[0m
+format	Format and validate Phase 3F	2026-07-17T11:26:17.7554872Z ^[[36;1mpytest -m 'not optional_ml' -q^[[0m
+format	Format and validate Phase 3F	2026-07-17T11:26:17.7555163Z ^[[36;1mpytest -m optional_ml -q^[[0m
+format	Format and validate Phase 3F	2026-07-17T11:26:17.7555451Z ^[[36;1mpython -m pip check^[[0m
+format	Format and validate Phase 3F	2026-07-17T11:26:17.7619790Z shell: /usr/bin/bash -e {0}
+format	Format and validate Phase 3F	2026-07-17T11:26:17.7620123Z env:
+format	Format and validate Phase 3F	2026-07-17T11:26:17.7620414Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+format	Format and validate Phase 3F	2026-07-17T11:26:17.7620876Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+format	Format and validate Phase 3F	2026-07-17T11:26:17.7621323Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+format	Format and validate Phase 3F	2026-07-17T11:26:17.7621727Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+format	Format and validate Phase 3F	2026-07-17T11:26:17.7622129Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+format	Format and validate Phase 3F	2026-07-17T11:26:17.7622518Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+format	Format and validate Phase 3F	2026-07-17T11:26:17.7622889Z ##[endgroup]
+format	Format and validate Phase 3F	2026-07-17T11:26:17.7790238Z 4 files reformatted
+format	Format and validate Phase 3F	2026-07-17T11:26:17.7878080Z Found 2 errors (2 fixed, 0 remaining).
+format	Format and validate Phase 3F	2026-07-17T11:26:31.2906499Z Success: no issues found in 70 source files
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3013204Z ...F                                                                     [100%]
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3014440Z =================================== FAILURES ===================================
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3015544Z _______ test_semantic_dataset_artifact_is_idempotent_and_tamper_evident ________
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3016197Z 
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3016664Z tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-0/test_semantic_dataset_artifact0')
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3017617Z 
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3017967Z     def test_semantic_dataset_artifact_is_idempotent_and_tamper_evident(
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3018632Z         tmp_path: Path,
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3019033Z     ) -> None:
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3019375Z         frame = _market_frame()
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3019809Z         record = _record(
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3020369Z             source_id="source-a",
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3020895Z             title="event a",
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3021376Z             direction="neutral",
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3021929Z             event_time=datetime(2026, 7, 17, 7, tzinfo=UTC),
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3022585Z             available_at=datetime(2026, 7, 17, 9, tzinfo=UTC),
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3023172Z         )
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3023741Z         spec = SemanticFeatureSpec(windows_hours=(24,), allowed_assets=("BTC",))
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3024884Z         result = build_semantic_dataset(
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3025363Z             frame,
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3025724Z             [record],
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3026197Z             as_of=pd.Timestamp("2026-07-18T08:00:00Z"),
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3026792Z             market_feature_columns=("market_feature",),
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3027581Z             feature_spec=spec,
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3028012Z         )
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3028343Z         kwargs = {
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3028743Z             "market_snapshot_sha256": "a" * 64,
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3029289Z             "document_ledger_head_sha256": "b" * 64,
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3029850Z             "semantic_ledger_head_sha256": "c" * 64,
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3030422Z             "semantic_record_count": 1,
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3030984Z             "as_of": pd.Timestamp("2026-07-18T08:00:00Z"),
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3031551Z             "feature_spec": spec,
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3032341Z             "source_commit_sha": "d" * 40,
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3032897Z             "created_at": datetime(2026, 7, 18, 8, tzinfo=UTC),
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3033364Z         }
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3033816Z         first = write_semantic_dataset(result, tmp_path / "dataset", **kwargs)
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3034578Z         second = write_semantic_dataset(result, tmp_path / "dataset", **kwargs)
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3035172Z         assert first == second
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3035680Z         loaded, manifest = read_semantic_dataset(tmp_path / "dataset")
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3036410Z >       pd.testing.assert_frame_equal(loaded, result.frame, check_freq=False)
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3037457Z E       AssertionError: DataFrame.index are different
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3037923Z E       
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3038297Z E       Attribute "names" are different
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3038727Z E       [left]:  ['timestamp']
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3039085Z E       [right]: [None]
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3039303Z 
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3039543Z tests/test_phase3f_semantic_dataset.py:222: AssertionError
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3040150Z =========================== short test summary info ============================
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3041374Z FAILED tests/test_phase3f_semantic_dataset.py::test_semantic_dataset_artifact_is_idempotent_and_tamper_evident - AssertionError: DataFrame.index are different
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3042318Z 
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3042471Z Attribute "names" are different
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3042852Z [left]:  ['timestamp']
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3043173Z [right]: [None]
+format	Format and validate Phase 3F	2026-07-17T11:26:32.3741326Z ##[error]Process completed with exit code 1.
