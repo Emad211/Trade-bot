@@ -1,5 +1,6 @@
 name: phase3h-source-admission
 
+# Trigger the first live candidate probe after workflow registration.
 on:
   workflow_dispatch:
   push:
