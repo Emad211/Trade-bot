@@ -21,9 +21,7 @@ from hybrid_trader.event_capture_models import EventCaptureManifest
 from hybrid_trader.event_capture_state import canonical_sha256
 from hybrid_trader.semantic_extraction import SemanticEventRecord
 
-_SECRET_BYTES = re.compile(
-    rb"(?i)(?:authorization\s*[:=]|bearer\s+|\b(?:aa|sk)-[A-Za-z0-9_-]{6,})"
-)
+_SECRET_BYTES = re.compile(rb"(?i)(?:authorization\s*[:=]|bearer\s+|\b(?:aa|sk)-[A-Za-z0-9_-]{6,})")
 
 
 class Phase3DPolicy(BaseModel):
@@ -147,9 +145,7 @@ def assess_phase3d_pilot(
     output_tokens = sum(record.output_tokens or 0 for record in calls)
     total_tokens = sum(record.total_tokens or 0 for record in calls)
     attempts = [record.attempts for record in calls]
-    latencies = [
-        (record.completed_at - record.started_at).total_seconds() for record in calls
-    ]
+    latencies = [(record.completed_at - record.started_at).total_seconds() for record in calls]
     directions = Counter(record.signal.direction for record in semantic)
     source_documents = Counter(record.source_id for record in semantic)
     confidence = [record.signal.confidence for record in semantic]
@@ -160,7 +156,10 @@ def assess_phase3d_pilot(
     latest_new_calls = runs[-1][1].new_call_count if runs else 0
     successful_sources = len(runs[-1][0].successful_sources) if runs else 0
     credential_pattern = _contains_secret_pattern(capture_root)
-    decision_count = int(verification["prospective_decision_count"])
+    raw_decision_count = verification.get("prospective_decision_count")
+    if not isinstance(raw_decision_count, int):
+        raise TypeError("Phase 3C verifier returned a non-integer decision count")
+    decision_count = raw_decision_count
 
     reasons: list[str] = []
     if len(runs) < declared_policy.minimum_provider_runs:
