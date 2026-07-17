@@ -1,5 +1,6 @@
 name: list-phase3g-exact-runs
 
+# Trigger after workflow registration.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
