@@ -1,0 +1,32 @@
+name: snapshot-phase3h-status
+
+on:
+  push:
+    branches: ["agent/phase3c-hardening-runner"]
+    paths:
+      - ".github/workflows/snapshot-phase3h-status.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase3c-hardening-runner
+      - name: Snapshot Phase 3H branch runs
+        run: |
+          mkdir -p .status
+          gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-3h-source-admission&per_page=100" \
+            --jq '{runs: [.workflow_runs[] | select(.name == "phase3h-format" or .name == "ci" or .name == "phase3h-source-admission") | {id,name,event,status,conclusion,head_sha,html_url,created_at,updated_at}][0:16]}' \
+            > .status/phase3h-status.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .status/phase3h-status.json
+          git commit -m "snapshot Phase 3H status" || true
+          git push origin HEAD:agent/phase3c-hardening-runner
