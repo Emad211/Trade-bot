@@ -1,0 +1,214 @@
+{
+  "runs": [
+    {
+      "name": "ci",
+      "id": 29573624894,
+      "status": "completed",
+      "conclusion": "action_required",
+      "head_sha": "5790992c0baa2b46208dbed4c577ea6913d223d7",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29573624894",
+      "created_at": "2026-07-17T10:29:20Z",
+      "updated_at": "2026-07-17T10:29:20Z"
+    },
+    {
+      "name": "ci",
+      "id": 29573558300,
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "c4bd4b6b4ec13cceb368b25cdc87280acba20e9d",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29573558300",
+      "created_at": "2026-07-17T10:28:03Z",
+      "updated_at": "2026-07-17T10:28:51Z"
+    },
+    {
+      "name": "phase3d-format",
+      "id": 29573556153,
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "c4bd4b6b4ec13cceb368b25cdc87280acba20e9d",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29573556153",
+      "created_at": "2026-07-17T10:28:01Z",
+      "updated_at": "2026-07-17T10:29:18Z"
+    },
+    {
+      "name": "ci",
+      "id": 29573556144,
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "c4bd4b6b4ec13cceb368b25cdc87280acba20e9d",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29573556144",
+      "created_at": "2026-07-17T10:28:01Z",
+      "updated_at": "2026-07-17T10:28:46Z"
+    },
+    {
+      "name": "ci",
+      "id": 29573121673,
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "f7911c3fa52f68d0190ffdca37a315d03e005ade",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29573121673",
+      "created_at": "2026-07-17T10:20:14Z",
+      "updated_at": "2026-07-17T10:21:03Z"
+    },
+    {
+      "name": "ci",
+      "id": 29573118887,
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "f7911c3fa52f68d0190ffdca37a315d03e005ade",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29573118887",
+      "created_at": "2026-07-17T10:20:11Z",
+      "updated_at": "2026-07-17T10:21:02Z"
+    },
+    {
+      "name": "phase3d-format",
+      "id": 29573118937,
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "f7911c3fa52f68d0190ffdca37a315d03e005ade",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29573118937",
+      "created_at": "2026-07-17T10:20:11Z",
+      "updated_at": "2026-07-17T10:21:12Z"
+    },
+    {
+      "name": "ci",
+      "id": 29573093776,
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "d0fa92824d29a940824be051b62cfbdf524ef924",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29573093776",
+      "created_at": "2026-07-17T10:19:45Z",
+      "updated_at": "2026-07-17T10:20:43Z"
+    },
+    {
+      "name": "phase3d-format",
+      "id": 29573091269,
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "d0fa92824d29a940824be051b62cfbdf524ef924",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29573091269",
+      "created_at": "2026-07-17T10:19:43Z",
+      "updated_at": "2026-07-17T10:20:37Z"
+    },
+    {
+      "name": "ci",
+      "id": 29573091249,
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "d0fa92824d29a940824be051b62cfbdf524ef924",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29573091249",
+      "created_at": "2026-07-17T10:19:43Z",
+      "updated_at": "2026-07-17T10:20:32Z"
+    },
+    {
+      "name": "ci",
+      "id": 29572949357,
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "0f9a035f0aff8699cee350762d70b1c305bf0515",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29572949357",
+      "created_at": "2026-07-17T10:17:08Z",
+      "updated_at": "2026-07-17T10:17:49Z"
+    },
+    {
+      "name": "ci",
+      "id": 29572947769,
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "0f9a035f0aff8699cee350762d70b1c305bf0515",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29572947769",
+      "created_at": "2026-07-17T10:17:07Z",
+      "updated_at": "2026-07-17T10:17:51Z"
+    },
+    {
+      "name": "phase3d-avalai-pilot",
+      "id": 29572947781,
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "0f9a035f0aff8699cee350762d70b1c305bf0515",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29572947781",
+      "created_at": "2026-07-17T10:17:07Z",
+      "updated_at": "2026-07-17T10:17:57Z"
+    },
+    {
+      "name": "ci",
+      "id": 29572891818,
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "2f499ffe25d4b4e59976e45be8a95f82c207cefc",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29572891818",
+      "created_at": "2026-07-17T10:16:07Z",
+      "updated_at": "2026-07-17T10:16:58Z"
+    },
+    {
+      "name": "ci",
+      "id": 29572875299,
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "2f499ffe25d4b4e59976e45be8a95f82c207cefc",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29572875299",
+      "created_at": "2026-07-17T10:15:50Z",
+      "updated_at": "2026-07-17T10:16:37Z"
+    },
+    {
+      "name": "ci",
+      "id": 29572854055,
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "12dbb89818fc12c9620cfeb7adc22c925a092c0d",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29572854055",
+      "created_at": "2026-07-17T10:15:30Z",
+      "updated_at": "2026-07-17T10:16:16Z"
+    },
+    {
+      "name": "phase3d-avalai-pilot",
+      "id": 29572854063,
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "12dbb89818fc12c9620cfeb7adc22c925a092c0d",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29572854063",
+      "created_at": "2026-07-17T10:15:30Z",
+      "updated_at": "2026-07-17T10:16:18Z"
+    },
+    {
+      "name": "ci",
+      "id": 29572807774,
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "61fd6b78072bf41f7735260f52fbb3c18b306755",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29572807774",
+      "created_at": "2026-07-17T10:14:43Z",
+      "updated_at": "2026-07-17T10:15:27Z"
+    },
+    {
+      "name": "ci",
+      "id": 29572598480,
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "06aea57317e1cadddcb1f1fec9fed3bedadbb2ff",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29572598480",
+      "created_at": "2026-07-17T10:11:03Z",
+      "updated_at": "2026-07-17T10:11:52Z"
+    },
+    {
+      "name": "ci",
+      "id": 29572580939,
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "e7d8ff4d83f5f0c915a0458235034daa52c83df1",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29572580939",
+      "created_at": "2026-07-17T10:10:44Z",
+      "updated_at": "2026-07-17T10:11:28Z"
+    },
+    {
+      "name": "ci",
+      "id": 29572458714,
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "bd57c396c18a55fb9d92793da8ce2a7f21342f91",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29572458714",
+      "created_at": "2026-07-17T10:08:37Z",
+      "updated_at": "2026-07-17T10:09:57Z"
+    }
+  ]
+}
