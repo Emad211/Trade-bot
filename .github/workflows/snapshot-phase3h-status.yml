@@ -1,6 +1,6 @@
 name: snapshot-phase3h-status
 
-# Trigger after workflow registration.
+# Generation 2: snapshot exact live-probe head.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
@@ -16,18 +16,19 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
+      TARGET_SHA: a1d39b013623f8a1576660a6d37b1d7d8edf104a
     steps:
       - uses: actions/checkout@v4
         with:
           ref: agent/phase3c-hardening-runner
-      - name: Snapshot Phase 3H branch runs
+      - name: Snapshot exact Phase 3H branch runs
         run: |
           mkdir -p .status
           gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-3h-source-admission&per_page=100" \
-            --jq '{runs: [.workflow_runs[] | select(.name == "phase3h-format" or .name == "ci" or .name == "phase3h-source-admission") | {id,name,event,status,conclusion,head_sha,html_url,created_at,updated_at}][0:16]}' \
-            > .status/phase3h-status.json
+            --jq --arg sha "$TARGET_SHA" '{runs: [.workflow_runs[] | select(.head_sha == $sha) | {id,name,event,status,conclusion,head_sha,html_url,created_at,updated_at}]}' \
+            > .status/phase3h-exact-status.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .status/phase3h-status.json
-          git commit -m "snapshot Phase 3H status" || true
+          git add .status/phase3h-exact-status.json
+          git commit -m "snapshot exact Phase 3H status" || true
           git push origin HEAD:agent/phase3c-hardening-runner
