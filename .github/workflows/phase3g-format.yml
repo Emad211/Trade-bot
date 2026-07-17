@@ -1,6 +1,6 @@
 name: phase3g-format
 
-# Trigger after workflow registration.
+# Generation 2: apply reviewed focused fixes, then format and validate.
 on:
   push:
     branches: ["agent/phase-3g-maturity-monitor"]
@@ -23,6 +23,8 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+      - name: Apply focused Phase 3G fixes
+        run: python scripts/materialize_phase3g_fixes.py
       - name: Install development dependencies
         run: python -m pip install -e '.[dev,ml]'
       - name: Format and validate Phase 3G
@@ -34,13 +36,13 @@ jobs:
           pytest -m 'not optional_ml' -q
           pytest -m optional_ml -q
           python -m pip check
-      - name: Remove one-time formatter and commit
+      - name: Remove one-time files and commit
         shell: bash
         run: |
           set -euo pipefail
-          rm -f .github/workflows/phase3g-format.yml
+          rm -f scripts/materialize_phase3g_fixes.py .github/workflows/phase3g-format.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "format and validate Phase 3G maturity monitor"
+          git commit -m "fix and validate Phase 3G maturity monitor"
           git push origin HEAD:agent/phase-3g-maturity-monitor
