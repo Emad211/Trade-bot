@@ -1,0 +1,52 @@
+name: report-phase3c-live-smoke
+
+on:
+  push:
+    branches: ["agent/phase3c-hardening-runner"]
+    paths:
+      - ".github/workflows/report-phase3c-live-smoke.yml"
+
+permissions:
+  actions: read
+  pull-requests: write
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Wait for live AvalAI smoke and report evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          run=""
+          for attempt in $(seq 1 180); do
+            run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-3c-avalai-clean&per_page=100" \
+              --jq '[.workflow_runs[] | select(.name == "phase3c-avalai-smoke")][0]')
+            if [ "$(jq -r '.status // empty' <<<"$run")" = "completed" ]; then
+              break
+            fi
+            sleep 10
+          done
+          test -n "$run"
+          run_id=$(jq -r .id <<<"$run")
+          jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
+          artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts?per_page=100")
+          {
+            echo '## Live AvalAI smoke evidence'
+            echo
+            echo "- run: $(jq -r .html_url <<<"$run")"
+            echo "- status: $(jq -r .status <<<"$run")"
+            echo "- conclusion: $(jq -r .conclusion <<<"$run")"
+            echo "- head: \`$(jq -r .head_sha <<<"$run")\`"
+            echo
+            echo '### Steps'
+            jq -r '.jobs[] as $job | $job.steps[]? | "- \($job.name) / \(.name): \(.status) / \(.conclusion)"' <<<"$jobs"
+            echo
+            echo '### Artifacts'
+            jq -r '.artifacts[] | "- `\(.name)` — \(.size_in_bytes) bytes — `\(.digest)`"' <<<"$artifacts"
+          } > /tmp/phase3c-live-smoke.md
+          gh pr comment 20 --repo "$GITHUB_REPOSITORY" --body-file /tmp/phase3c-live-smoke.md
