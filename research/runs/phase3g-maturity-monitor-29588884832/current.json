@@ -1,0 +1,60 @@
+{
+  "appended": true,
+  "model_fitting_executed": false,
+  "observation": {
+    "deficits": {
+      "active_decision_rows": 50,
+      "availability_dates": 29,
+      "matured_labeled_rows": 0,
+      "missing_target_classes": 0,
+      "semantic_records": 92,
+      "unique_sources": 1
+    },
+    "market_snapshot_sha256": "a93c5b23616c649cb97e0e0dd55626c269e6707e2a203f10ad458bd3fbfdd587",
+    "maturity": {
+      "active_decision_row_count": 0,
+      "assessment_id": "5c08394290f7d9a2a99539919fc3d035d0805728b0aeed6a1879e75c54b6f541",
+      "failure_reasons": [
+        "insufficient_semantic_records",
+        "insufficient_unique_availability_dates",
+        "insufficient_active_decision_rows",
+        "insufficient_source_diversity"
+      ],
+      "matured_labeled_row_count": 618,
+      "negative_target_count": 313,
+      "paper_or_live_trading_allowed": false,
+      "policy": {
+        "minimum_active_decision_rows": 50,
+        "minimum_matured_labeled_rows": 500,
+        "minimum_semantic_records": 100,
+        "minimum_unique_availability_dates": 30,
+        "minimum_unique_sources": 2,
+        "require_both_target_classes": true
+      },
+      "positive_target_count": 305,
+      "relevant_semantic_record_count": 8,
+      "research_model_fitting_allowed": false,
+      "schema_version": "1.0",
+      "status": "insufficient_prospective_sample",
+      "unique_availability_date_count": 1,
+      "unique_source_count": 1
+    },
+    "model_fitting_executed": false,
+    "next_action": "continue_prospective_collection",
+    "observation_id": "a0df08cd7eaeffafbd5bee601d8df069f8e0914620b574a3780103bb19e66c28",
+    "observed_at": "2026-07-17T14:40:02Z",
+    "paper_or_live_trading_allowed": false,
+    "previous_record_sha256": null,
+    "prospective_decisions_created": false,
+    "schema_version": "1.0",
+    "semantic_dataset_sha256": "0e303db3bd9dda8447e588a2d619fc4eb3a42796e4519718354184202ff110ff",
+    "semantic_ledger_head_sha256": "91cc8de3811bbf70e37c99b3d7de087d3562966333b65bbb58fc3c698a969b99",
+    "source_commit_sha": "ef8c910ae1844bab122de34d5db5b851b92cb498",
+    "threshold_selection_executed": false,
+    "workflow_run_id": "29588884832"
+  },
+  "prospective_decisions_created": false,
+  "registry_count": 1,
+  "registry_head_sha256": "9e434a1d6d9ea25a6816ff1fcc22ab2650b824a0f63b96037fccd34b515c2b19",
+  "threshold_selection_executed": false
+}
