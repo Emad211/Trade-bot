@@ -158,9 +158,10 @@ def test_retrieval_failure_is_audited_and_secret_free() -> None:
     assert result.status == "rejected"
     assert result.failure_reasons == ("retrieval_or_parse_failed",)
     assert result.error_type == "RuntimeError"
-    assert result.error_message == f"offline {secret}"
+    assert result.error_message == "Public feed retrieval or parsing failed"
     assert payload is None
     serialized = result.model_dump_json()
+    assert secret not in serialized
     assert "authorization" not in serialized.lower()
 
 

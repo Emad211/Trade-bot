@@ -198,7 +198,7 @@ def probe_source(
     except Exception as exc:
         reasons.append("retrieval_or_parse_failed")
         error_type = type(exc).__name__
-        error_message = str(exc)[:1000]
+        error_message = "Public feed retrieval or parsing failed"
 
     payload: bytes | None = None
     payload_sha: str | None = None
@@ -223,21 +223,15 @@ def probe_source(
         published_count = sum(
             envelope.document.published_at is not None for envelope in parsed.documents
         )
-        published_ratio = (
-            published_count / parsed_documents if parsed_documents else 0.0
-        )
+        published_ratio = published_count / parsed_documents if parsed_documents else 0.0
         duplicate_count = parsed.duplicate_count
         skipped_count = parsed.skipped_count
         truncated_count = parsed.truncated_count
         denominator = parsed_documents + skipped_count + duplicate_count
         skipped_fraction = skipped_count / denominator if denominator else 0.0
         warnings = _warning_counts(parsed.warnings)
-        unique_document_ids = len(
-            {envelope.document.document_id for envelope in parsed.documents}
-        )
-        unique_urls = len(
-            {envelope.document.canonical_url for envelope in parsed.documents}
-        )
+        unique_document_ids = len({envelope.document.document_id for envelope in parsed.documents})
+        unique_urls = len({envelope.document.canonical_url for envelope in parsed.documents})
 
         if result.source_id != spec.source_id or result.feed_url != spec.feed_url:
             reasons.append("fetch_identity_mismatch")
