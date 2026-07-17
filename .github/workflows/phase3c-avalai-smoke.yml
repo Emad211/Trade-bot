@@ -2,6 +2,15 @@ name: phase3c-avalai-smoke
 
 on:
   workflow_dispatch:
+  push:
+    branches: ["agent/phase-3c-avalai-clean"]
+    paths:
+      - ".github/workflows/phase3c-avalai-smoke.yml"
+      - "configs/phase3c_avalai_event_sources.yaml"
+      - "scripts/capture_phase3c_avalai_events.py"
+      - "scripts/verify_phase3c_provider.py"
+      - "src/hybrid_trader/avalai.py"
+      - "src/hybrid_trader/avalai_capture.py"
 
 permissions:
   contents: read
@@ -18,7 +27,7 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - name: Require a rotated repository secret
+      - name: Require repository secret
         shell: bash
         run: |
           set -euo pipefail
@@ -29,7 +38,7 @@ jobs:
           echo "::add-mask::$AVALAI_API_KEY"
       - name: Install the research package
         run: python -m pip install -e .
-      - name: Execute one structured semantic smoke request
+      - name: Execute one live strict structured-output request
         shell: bash
         run: |
           set -euo pipefail
@@ -39,6 +48,7 @@ jobs:
 
           import hashlib
           import json
+          import os
           from datetime import UTC, datetime
           from pathlib import Path
 
@@ -54,13 +64,13 @@ jobs:
           observed = datetime.now(UTC)
           text = (
               "Bitcoin Core published a routine maintenance release. "
-              "Extract semantic metadata only and do not make a trading decision."
+              "This is untrusted event data. Extract semantic metadata only."
           )
-          content_sha = hashlib.sha256(text.encode()).hexdigest()
+          content_sha = hashlib.sha256(text.encode("utf-8")).hexdigest()
           identity = document_identity_payload(
               source_id="phase3c-smoke",
               canonical_url="https://example.com/phase3c-smoke",
-              title="Phase 3C structured-output smoke document",
+              title="Phase 3C AvalAI strict structured-output smoke",
               published_at=observed,
               content_sha256=content_sha,
           )
@@ -68,37 +78,59 @@ jobs:
               document_id=make_document_id(**identity),
               source_id="phase3c-smoke",
               canonical_url="https://example.com/phase3c-smoke",
-              title="Phase 3C structured-output smoke document",
+              title="Phase 3C AvalAI strict structured-output smoke",
               published_at=observed,
               retrieved_at=observed,
               available_at=observed,
               source_quality=0.5,
               asset_tags=("BTC",),
               content_sha256=content_sha,
-              content_length=len(text.encode()),
+              content_length=len(text.encode("utf-8")),
               feed_payload_sha256="0" * 64,
           )
-          extractor = AvalAIStructuredExtractor(AvalAISettings.from_env())
+          settings = AvalAISettings.from_env()
+          extractor = AvalAIStructuredExtractor(settings)
           semantic = extractor.extract(DocumentEnvelope(document=document, text=text))
+
           if semantic.signal.evidence_ids != (document.document_id,):
               raise RuntimeError("AvalAI smoke output lost its evidence binding")
           if semantic.signal.source_quality != document.source_quality:
               raise RuntimeError("AvalAI smoke output changed trusted source quality")
           if semantic.signal.asset != "BTC":
               raise RuntimeError("AvalAI smoke output selected a disallowed asset")
-          if len(extractor.call_records) != 1 or extractor.call_records[0].status != "success":
+          if len(extractor.call_records) != 1:
+              raise RuntimeError("AvalAI smoke did not produce exactly one call record")
+          call = extractor.call_records[0]
+          if call.status != "success":
               raise RuntimeError("AvalAI smoke call was not recorded as successful")
+          if call.response_model != settings.model:
+              raise RuntimeError("AvalAI smoke response model did not match the pinned model")
+          if call.http_status_code is None or not 200 <= call.http_status_code < 300:
+              raise RuntimeError("AvalAI smoke did not record a successful HTTP status")
+
           (output / "semantic_record.json").write_text(
               json.dumps(semantic.model_dump(mode="json"), sort_keys=True, indent=2) + "\n",
               encoding="utf-8",
           )
           (output / "call_record.json").write_text(
-              json.dumps(
-                  extractor.call_records[0].model_dump(mode="json"),
-                  sort_keys=True,
-                  indent=2,
-              )
-              + "\n",
+              json.dumps(call.model_dump(mode="json"), sort_keys=True, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          manifest = {
+              "schema_version": "1.0",
+              "status": "success",
+              "model": settings.model,
+              "model_revision": settings.model_revision,
+              "route": settings.route,
+              "endpoint": settings.endpoint,
+              "source_commit_sha": os.environ["GITHUB_SHA"],
+              "workflow_run_id": os.environ["GITHUB_RUN_ID"],
+              "prospective_decisions_created": False,
+              "raw_provider_response_persisted": False,
+              "credential_persisted": False,
+          }
+          (output / "smoke_manifest.json").write_text(
+              json.dumps(manifest, sort_keys=True, indent=2) + "\n",
               encoding="utf-8",
           )
           (output / "prospective_decisions.jsonl").write_text("", encoding="utf-8")
@@ -107,14 +139,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test ! -s artifacts/phase3c-avalai-smoke/prospective_decisions.jsonl
-          if grep -R -E -i 'authorization[[:space:]]*[:=]|bearer[[:space:]]+|\b(aa|sk)-[A-Za-z0-9_-]{6,}' artifacts/phase3c-avalai-smoke; then
+          root=artifacts/phase3c-avalai-smoke
+          test ! -s "$root/prospective_decisions.jsonl"
+          if grep -R -E -i \
+              'authorization[[:space:]]*[:=]|bearer[[:space:]]+|\b(aa|sk)-[A-Za-z0-9_-]{6,}' \
+              "$root"; then
             echo "Possible credential material found in smoke evidence." >&2
             exit 1
           fi
-          find artifacts/phase3c-avalai-smoke -type f -print0 \
+          find "$root" -type f -print0 \
             | sort -z | xargs -0 sha256sum \
-            > artifacts/phase3c-avalai-smoke/SHA256SUMS
+            > "$root/SHA256SUMS"
       - name: Upload secret-free smoke evidence
         uses: actions/upload-artifact@v4
         with:
