@@ -21,14 +21,14 @@
       "url": "https://api.github.com/users/Emad211",
       "user_view_type": "public"
     },
-    "artifacts_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29641684148/artifacts",
-    "cancel_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29641684148/cancel",
-    "check_suite_id": 80273590883,
-    "check_suite_node_id": "CS_kwDOSjXKWc8AAAASsK3KYw",
-    "check_suite_url": "https://api.github.com/repos/Emad211/Trade-bot/check-suites/80273590883",
-    "conclusion": "failure",
-    "created_at": "2026-07-18T10:56:01Z",
-    "display_title": "publish validated Phase 3G overlap workflow",
+    "artifacts_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29641882329/artifacts",
+    "cancel_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29641882329/cancel",
+    "check_suite_id": 80274107639,
+    "check_suite_node_id": "CS_kwDOSjXKWc8AAAASsLWs9w",
+    "check_suite_url": "https://api.github.com/repos/Emad211/Trade-bot/check-suites/80274107639",
+    "conclusion": null,
+    "created_at": "2026-07-18T11:02:44Z",
+    "display_title": "discover Phase 3E and Phase 3G runs by workflow endpoint",
     "event": "push",
     "head_branch": "agent/phase-3g-prospective-overlap",
     "head_commit": {
@@ -40,10 +40,10 @@
         "email": "82148680+Emad211@users.noreply.github.com",
         "name": "Emad Karimi"
       },
-      "id": "17db8b01c5c021e5f850fd1de90c3d2c070d3438",
-      "message": "publish validated Phase 3G overlap workflow",
-      "timestamp": "2026-07-18T10:55:59Z",
-      "tree_id": "1409ea740e6f85917929d873d059fe799f22885f"
+      "id": "d67c49b7e2937add0d1b33f00d81b28ed626d846",
+      "message": "discover Phase 3E and Phase 3G runs by workflow endpoint",
+      "timestamp": "2026-07-18T11:02:41Z",
+      "tree_id": "4f56946387f2e2ad838795441156b21d4c3dac10"
     },
     "head_repository": {
       "archive_url": "https://api.github.com/repos/Emad211/Trade-bot/{archive_format}{/ref}",
@@ -113,13 +113,13 @@
       "trees_url": "https://api.github.com/repos/Emad211/Trade-bot/git/trees{/sha}",
       "url": "https://api.github.com/repos/Emad211/Trade-bot"
     },
-    "head_sha": "17db8b01c5c021e5f850fd1de90c3d2c070d3438",
-    "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29641684148",
-    "id": 29641684148,
-    "jobs_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29641684148/jobs",
-    "logs_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29641684148/logs",
+    "head_sha": "d67c49b7e2937add0d1b33f00d81b28ed626d846",
+    "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29641882329",
+    "id": 29641882329,
+    "jobs_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29641882329/jobs",
+    "logs_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29641882329/logs",
     "name": "phase3g-prospective-overlap",
-    "node_id": "WFR_kwLOSjXKWc8AAAAG5sg0tA",
+    "node_id": "WFR_kwLOSjXKWc8AAAAG5ss62Q",
     "path": ".github/workflows/phase3g-prospective-overlap.yml",
     "previous_attempt_url": null,
     "pull_requests": [
@@ -140,7 +140,7 @@
             "name": "Trade-bot",
             "url": "https://api.github.com/repos/Emad211/Trade-bot"
           },
-          "sha": "b50dd2eeba780c16a77f5fe8dacdc08f53fec81f"
+          "sha": "d67c49b7e2937add0d1b33f00d81b28ed626d846"
         },
         "id": 4081946228,
         "number": 35,
@@ -216,11 +216,11 @@
       "trees_url": "https://api.github.com/repos/Emad211/Trade-bot/git/trees{/sha}",
       "url": "https://api.github.com/repos/Emad211/Trade-bot"
     },
-    "rerun_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29641684148/rerun",
+    "rerun_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29641882329/rerun",
     "run_attempt": 1,
-    "run_number": 2,
-    "run_started_at": "2026-07-18T10:56:01Z",
-    "status": "completed",
+    "run_number": 3,
+    "run_started_at": "2026-07-18T11:02:44Z",
+    "status": "in_progress",
     "triggering_actor": {
       "avatar_url": "https://avatars.githubusercontent.com/u/82148680?v=4",
       "events_url": "https://api.github.com/users/Emad211/events{/privacy}",
@@ -242,28 +242,28 @@
       "url": "https://api.github.com/users/Emad211",
       "user_view_type": "public"
     },
-    "updated_at": "2026-07-18T10:56:47Z",
-    "url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29641684148",
+    "updated_at": "2026-07-18T11:02:47Z",
+    "url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29641882329",
     "workflow_id": 315669677,
     "workflow_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/workflows/315669677"
   },
   "jobs": [
     {
-      "id": 88073135474,
-      "run_id": 29641684148,
+      "id": 88073625866,
+      "run_id": 29641882329,
       "workflow_name": "phase3g-prospective-overlap",
       "head_branch": "agent/phase-3g-prospective-overlap",
-      "run_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29641684148",
+      "run_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29641882329",
       "run_attempt": 1,
-      "node_id": "CR_kwDOSjXKWc8AAAAUgZFlcg",
-      "head_sha": "17db8b01c5c021e5f850fd1de90c3d2c070d3438",
-      "url": "https://api.github.com/repos/Emad211/Trade-bot/actions/jobs/88073135474",
-      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29641684148/job/88073135474",
-      "status": "completed",
-      "conclusion": "failure",
-      "created_at": "2026-07-18T10:56:02Z",
-      "started_at": "2026-07-18T10:56:05Z",
-      "completed_at": "2026-07-18T10:56:46Z",
+      "node_id": "CR_kwDOSjXKWc8AAAAUgZjhCg",
+      "head_sha": "d67c49b7e2937add0d1b33f00d81b28ed626d846",
+      "url": "https://api.github.com/repos/Emad211/Trade-bot/actions/jobs/88073625866",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29641882329/job/88073625866",
+      "status": "in_progress",
+      "conclusion": null,
+      "created_at": "2026-07-18T11:02:44Z",
+      "started_at": "2026-07-18T11:02:46Z",
+      "completed_at": null,
       "name": "overlap",
       "steps": [
         {
@@ -271,120 +271,112 @@
           "status": "completed",
           "conclusion": "success",
           "number": 1,
-          "started_at": "2026-07-18T10:56:06Z",
-          "completed_at": "2026-07-18T10:56:07Z"
+          "started_at": "2026-07-18T11:02:47Z",
+          "completed_at": "2026-07-18T11:02:48Z"
         },
         {
           "name": "Run actions/checkout@v4",
           "status": "completed",
           "conclusion": "success",
           "number": 2,
-          "started_at": "2026-07-18T10:56:07Z",
-          "completed_at": "2026-07-18T10:56:07Z"
+          "started_at": "2026-07-18T11:02:48Z",
+          "completed_at": "2026-07-18T11:02:49Z"
         },
         {
           "name": "Run actions/setup-python@v5",
           "status": "completed",
           "conclusion": "success",
           "number": 3,
-          "started_at": "2026-07-18T10:56:07Z",
-          "completed_at": "2026-07-18T10:56:11Z"
+          "started_at": "2026-07-18T11:02:49Z",
+          "completed_at": "2026-07-18T11:02:52Z"
         },
         {
           "name": "Install public exchange dependencies",
           "status": "completed",
           "conclusion": "success",
           "number": 4,
-          "started_at": "2026-07-18T10:56:11Z",
-          "completed_at": "2026-07-18T10:56:40Z"
+          "started_at": "2026-07-18T11:02:52Z",
+          "completed_at": "2026-07-18T11:03:19Z"
         },
         {
           "name": "Restore and verify latest prospective semantic state",
           "status": "completed",
-          "conclusion": "failure",
+          "conclusion": "success",
           "number": 5,
-          "started_at": "2026-07-18T10:56:40Z",
-          "completed_at": "2026-07-18T10:56:44Z"
+          "started_at": "2026-07-18T11:03:19Z",
+          "completed_at": "2026-07-18T11:03:21Z"
         },
         {
           "name": "Restore previous Phase 3G trajectory when available",
           "status": "completed",
-          "conclusion": "skipped",
+          "conclusion": "success",
           "number": 6,
-          "started_at": "2026-07-18T10:56:44Z",
-          "completed_at": "2026-07-18T10:56:44Z"
+          "started_at": "2026-07-18T11:03:21Z",
+          "completed_at": "2026-07-18T11:03:21Z"
         },
         {
           "name": "Declare exact observation cutoff",
           "status": "completed",
-          "conclusion": "skipped",
+          "conclusion": "success",
           "number": 7,
-          "started_at": "2026-07-18T10:56:44Z",
-          "completed_at": "2026-07-18T10:56:44Z"
+          "started_at": "2026-07-18T11:03:21Z",
+          "completed_at": "2026-07-18T11:03:21Z"
         },
         {
           "name": "Build prospective market and semantic overlap",
-          "status": "completed",
-          "conclusion": "skipped",
+          "status": "in_progress",
+          "conclusion": null,
           "number": 8,
-          "started_at": "2026-07-18T10:56:44Z",
-          "completed_at": "2026-07-18T10:56:44Z"
+          "started_at": "2026-07-18T11:03:21Z",
+          "completed_at": null
         },
         {
           "name": "Verify overlap, trajectory and safety boundaries",
-          "status": "completed",
-          "conclusion": "skipped",
+          "status": "pending",
+          "conclusion": null,
           "number": 9,
-          "started_at": "2026-07-18T10:56:44Z",
-          "completed_at": "2026-07-18T10:56:44Z"
+          "started_at": null,
+          "completed_at": null
         },
         {
           "name": "Record source provenance",
-          "status": "completed",
-          "conclusion": "skipped",
+          "status": "pending",
+          "conclusion": null,
           "number": 10,
-          "started_at": "2026-07-18T10:56:44Z",
-          "completed_at": "2026-07-18T10:56:44Z"
+          "started_at": null,
+          "completed_at": null
         },
         {
           "name": "Upload Phase 3G overlap evidence",
-          "status": "completed",
-          "conclusion": "skipped",
+          "status": "pending",
+          "conclusion": null,
           "number": 11,
-          "started_at": "2026-07-18T10:56:44Z",
-          "completed_at": "2026-07-18T10:56:44Z"
+          "started_at": null,
+          "completed_at": null
         },
         {
           "name": "Post Run actions/setup-python@v5",
-          "status": "completed",
-          "conclusion": "skipped",
+          "status": "pending",
+          "conclusion": null,
           "number": 21,
-          "started_at": "2026-07-18T10:56:44Z",
-          "completed_at": "2026-07-18T10:56:44Z"
+          "started_at": null,
+          "completed_at": null
         },
         {
           "name": "Post Run actions/checkout@v4",
-          "status": "completed",
-          "conclusion": "success",
+          "status": "pending",
+          "conclusion": null,
           "number": 22,
-          "started_at": "2026-07-18T10:56:44Z",
-          "completed_at": "2026-07-18T10:56:44Z"
-        },
-        {
-          "name": "Complete job",
-          "status": "completed",
-          "conclusion": "success",
-          "number": 23,
-          "started_at": "2026-07-18T10:56:44Z",
-          "completed_at": "2026-07-18T10:56:44Z"
+          "started_at": null,
+          "completed_at": null
         }
       ],
-      "check_run_url": "https://api.github.com/repos/Emad211/Trade-bot/check-runs/88073135474",
+      "check_run_url": "https://api.github.com/repos/Emad211/Trade-bot/check-runs/88073625866",
       "labels": [
         "ubuntu-latest"
       ],
-      "runner_id": 1000006618,
-      "runner_name": "GitHub Actions 1000006618",
+      "runner_id": 1000006669,
+      "runner_name": "GitHub Actions 1000006669",
       "runner_group_id": 0,
       "runner_group_name": "GitHub Actions"
     }
