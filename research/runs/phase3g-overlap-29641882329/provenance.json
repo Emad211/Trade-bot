@@ -1,0 +1,20 @@
+{
+  "artifact_checksums_verified": true,
+  "artifact_digest": "sha256:47ffbb2a4656c0a59945c673586f2e0fc06181036c663a06e23facf6c7d74cd6",
+  "artifact_id": 8428867389,
+  "artifact_name": "phase3g-overlap-29641882329",
+  "combined_market_content_hash_verified": true,
+  "credentials_used": false,
+  "dataset_content_hash_verified": true,
+  "model_fitting_executed": false,
+  "prospective_decisions_created": false,
+  "schema_version": "1.0",
+  "semantic_artifact_digest": "sha256:41a4afc354faecd4cbbad2a7ef55e6f00e21d48eb904bf4b0f8d8d5cf0f05ba8",
+  "semantic_artifact_id": 8404763802,
+  "semantic_workflow_run_id": "29575275480",
+  "source_commit_sha": "d67c49b7e2937add0d1b33f00d81b28ed626d846",
+  "source_snapshot_hashes_verified": true,
+  "trajectory_self_hash_verified": true,
+  "workflow_run_id": "29641882329",
+  "workflow_url": "https://github.com/Emad211/Trade-bot/actions/runs/29641882329"
+}
