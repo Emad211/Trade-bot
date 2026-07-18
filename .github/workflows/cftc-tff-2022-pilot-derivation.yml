@@ -1,0 +1,278 @@
+name: CFTC TFF 2022 Pilot Derivation
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/cftc-tff-2022-pilot-derivation.yml
+      - src/hybrid_trader/replication/cftc_historical_ingestion.py
+      - src/hybrid_trader/replication/cftc_historical_parser.py
+      - scripts/ingest_cftc_tff_historical_2022.py
+      - scripts/derive_cftc_tff_2022_pilot.py
+      - tests/test_cftc_historical_ingestion.py
+      - tests/test_cftc_historical_parser.py
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - .github/workflows/cftc-tff-2022-pilot-derivation.yml
+      - src/hybrid_trader/replication/cftc_historical_ingestion.py
+      - src/hybrid_trader/replication/cftc_historical_parser.py
+      - scripts/ingest_cftc_tff_historical_2022.py
+      - scripts/derive_cftc_tff_2022_pilot.py
+      - tests/test_cftc_historical_ingestion.py
+      - tests/test_cftc_historical_parser.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cftc-tff-2022-pilot-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  acquire-parse-derive-and-stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Check out the triggering commit
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install the project and verification tools
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev,replication]"
+
+      - name: Run project lint rules
+        run: >-
+          python -m ruff check
+          src/hybrid_trader/replication/cftc_historical_ingestion.py
+          src/hybrid_trader/replication/cftc_historical_parser.py
+          scripts/ingest_cftc_tff_historical_2022.py
+          scripts/derive_cftc_tff_2022_pilot.py
+          tests/test_cftc_historical_ingestion.py
+          tests/test_cftc_historical_parser.py
+
+      - name: Run strict typing
+        run: >-
+          python -m mypy --strict --ignore-missing-imports
+          src/hybrid_trader/replication/cftc_historical_ingestion.py
+          src/hybrid_trader/replication/cftc_historical_parser.py
+
+      - name: Run ingestion and parser unit tests
+        run: >-
+          python -m pytest -q
+          tests/test_cftc_historical_ingestion.py
+          tests/test_cftc_historical_parser.py
+
+      - name: Acquire the official 2022 TFF archive with transient retries
+        shell: bash
+        run: |
+          mkdir -p build/diagnostics
+          code=1
+          set +e
+          for attempt in 1 2 3 4 5; do
+            log="build/diagnostics/acquire-${attempt}.txt"
+            python scripts/ingest_cftc_tff_historical_2022.py \
+              --output-dir build/cftc-tff-historical-2022 \
+              > "$log" 2>&1
+            code=$?
+            cat "$log"
+            if [[ $code -eq 0 ]]; then
+              break
+            fi
+            if grep -Eq "HTTP Error (429|500|502|503|504)|URLError|timed out|Temporary failure" "$log"; then
+              if [[ $attempt -lt 5 ]]; then
+                sleep $((attempt * 3))
+                continue
+              fi
+            fi
+            break
+          done
+          exit "$code"
+
+      - name: Derive the frozen 2022-09-13 pilot
+        run: >-
+          python scripts/derive_cftc_tff_2022_pilot.py
+          --archive build/cftc-tff-historical-2022/fut_fin_txt_2022.zip
+          --report-date 2022-09-13
+          --output-dir build/cftc-tff-pilot-2022-09-13
+
+      - name: Independently verify raw, member, schema, annual, and pilot identities
+        run: |
+          python - <<'PY'
+          import csv
+          import hashlib
+          import io
+          import json
+          import zipfile
+          from pathlib import Path
+
+          raw_root = Path("build/cftc-tff-historical-2022")
+          pilot_root = Path("build/cftc-tff-pilot-2022-09-13")
+          zip_path = raw_root / "fut_fin_txt_2022.zip"
+          source_manifest = json.loads(
+              (raw_root / "acquisition-manifest.json").read_text(encoding="utf-8")
+          )
+          annual = json.loads((pilot_root / "annual-profile.json").read_text(encoding="utf-8"))
+          pilot = json.loads((pilot_root / "pilot-profile.json").read_text(encoding="utf-8"))
+          derivation = json.loads(
+              (pilot_root / "derivation-manifest.json").read_text(encoding="utf-8")
+          )
+          raw = zip_path.read_bytes()
+          expected_raw_hash = "94c9c1fdee9dfbe377a09923ddfe26b88d3460605dd076081f221ad367d88601"
+          expected_member_hash = "7c309cb76da8bf432e1a347e5bfde169bcac31cec4e9e33742cf3a078328bb3b"
+          expected_schema_hash = "fe0123051e8e5f5bb8f0cf4a870b451951bd4fa131777096eb5d028115545d42"
+          expected_pilot_hash = "1be0028ba872ed56c970f6cd67b76c480b3653b170762c6e55f39dc10c3d268b"
+
+          if hashlib.sha256(raw).hexdigest() != expected_raw_hash:
+              raise SystemExit("Frozen official ZIP hash changed")
+          if source_manifest["raw_sha256"] != expected_raw_hash:
+              raise SystemExit("Source manifest ZIP hash mismatch")
+          with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+              if archive.testzip() is not None:
+                  raise SystemExit("ZIP CRC verification failed")
+              member = archive.read("FinFutYY.txt")
+          if hashlib.sha256(member).hexdigest() != expected_member_hash:
+              raise SystemExit("Frozen text member hash changed")
+          if annual != derivation["annual_profile"]:
+              raise SystemExit("Annual profile lineage mismatch")
+          if pilot != derivation["pilot_profile"]:
+              raise SystemExit("Pilot profile lineage mismatch")
+          if annual["schema_field_count"] != 87:
+              raise SystemExit("Unexpected schema field count")
+          if annual["schema_sha256"] != expected_schema_hash:
+              raise SystemExit("Schema fingerprint changed")
+          if annual["row_count"] != 2719 or annual["report_date_count"] != 52:
+              raise SystemExit("Annual row/date counts changed")
+          if annual["min_report_date"] != "2022-01-04":
+              raise SystemExit("Unexpected annual first date")
+          if annual["max_report_date"] != "2022-12-27":
+              raise SystemExit("Unexpected annual last date")
+          if annual["long_exact_reconciliation_differences"] != 37:
+              raise SystemExit("Unexpected annual long reconciliation count")
+          if annual["short_exact_reconciliation_differences"] != 33:
+              raise SystemExit("Unexpected annual short reconciliation count")
+          if annual["consolidated_unit_difference_rows"] != 56:
+              raise SystemExit("Unexpected consolidated unit-difference count")
+          if annual["material_accounting_failures"] != 0:
+              raise SystemExit("Material annual accounting failure")
+          if pilot["row_count"] != 54 or pilot["unique_contract_market_codes"] != 54:
+              raise SystemExit("Pilot row identity changed")
+          if pilot["long_exact_reconciliation_differences"] != 0:
+              raise SystemExit("Pilot long reconciliation failure")
+          if pilot["short_exact_reconciliation_differences"] != 0:
+              raise SystemExit("Pilot short reconciliation failure")
+          if pilot["material_accounting_failures"] != 0:
+              raise SystemExit("Pilot material accounting failure")
+          pilot_path = pilot_root / pilot["canonical_csv_filename"]
+          pilot_bytes = pilot_path.read_bytes()
+          if hashlib.sha256(pilot_bytes).hexdigest() != expected_pilot_hash:
+              raise SystemExit("Canonical pilot hash changed")
+          if pilot["canonical_csv_sha256"] != expected_pilot_hash:
+              raise SystemExit("Pilot profile hash mismatch")
+          rows = list(csv.DictReader(io.StringIO(pilot_bytes.decode("utf-8"))))
+          codes = [row["CFTC_Contract_Market_Code"].strip() for row in rows]
+          if codes != sorted(codes) or len(codes) != len(set(codes)):
+              raise SystemExit("Pilot codes are not canonical and unique")
+          if derivation["artifact_audit_pass"] is not False:
+              raise SystemExit("Derived pilot self-promoted to artifact audit pass")
+          if derivation["paper_replication_pass"] is not False:
+              raise SystemExit("Derived pilot self-promoted to paper replication pass")
+          if derivation["economic_edge_verdict"] != "INCONCLUSIVE":
+              raise SystemExit("Derived pilot changed the economic verdict")
+          print(json.dumps(derivation, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload raw and derived staged bundle
+        id: upload_bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: cftc-tff-2022-raw-and-pilot-${{ github.sha }}
+          path: |
+            build/cftc-tff-historical-2022/
+            build/cftc-tff-pilot-2022-09-13/
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+      - name: Create the derivation staging receipt
+        env:
+          BUNDLE_ARTIFACT_ID: ${{ steps.upload_bundle.outputs.artifact-id }}
+          BUNDLE_ARTIFACT_URL: ${{ steps.upload_bundle.outputs.artifact-url }}
+          BUNDLE_ARTIFACT_DIGEST: ${{ steps.upload_bundle.outputs.artifact-digest }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+          receipt = {
+              "schema_version": "1.0",
+              "repository": os.environ["GITHUB_REPOSITORY"],
+              "commit_sha": os.environ["GITHUB_SHA"],
+              "workflow": os.environ["GITHUB_WORKFLOW"],
+              "run_id": os.environ["GITHUB_RUN_ID"],
+              "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
+              "created_at": datetime.now(UTC).isoformat(),
+              "bundle_artifact_id": os.environ["BUNDLE_ARTIFACT_ID"],
+              "bundle_artifact_url": os.environ["BUNDLE_ARTIFACT_URL"],
+              "bundle_artifact_digest": os.environ["BUNDLE_ARTIFACT_DIGEST"],
+              "storage_state": "ACTIONS_ARTIFACT_STAGED_RETENTION_90_DAYS",
+              "source_archive_sha256": "94c9c1fdee9dfbe377a09923ddfe26b88d3460605dd076081f221ad367d88601",
+              "source_member_sha256": "7c309cb76da8bf432e1a347e5bfde169bcac31cec4e9e33742cf3a078328bb3b",
+              "pilot_csv_sha256": "1be0028ba872ed56c970f6cd67b76c480b3653b170762c6e55f39dc10c3d268b",
+              "immutable_long_term_ingestion": False,
+              "artifact_audit_pass": False,
+              "paper_replication_pass": False,
+              "economic_edge_verdict": "INCONCLUSIVE",
+          }
+          if not all(
+              receipt[key]
+              for key in (
+                  "bundle_artifact_id",
+                  "bundle_artifact_url",
+                  "bundle_artifact_digest",
+              )
+          ):
+              raise SystemExit("Upload action returned incomplete evidence")
+          destination = Path("build/cftc-tff-2022-pilot-receipt.json")
+          destination.write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(receipt, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload derivation staging receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: cftc-tff-2022-pilot-receipt-${{ github.sha }}
+          path: build/cftc-tff-2022-pilot-receipt.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Record non-promotional derivation summary
+        run: |
+          {
+            echo "## CFTC TFF 2022 dated pilot"
+            echo
+            echo "- Official raw ZIP acquired and hashed"
+            echo "- Exact member and schema identities verified"
+            echo "- Annual profile: 2719 rows, 52 report dates"
+            echo "- Pilot: 2022-09-13, 54 unique market codes"
+            echo "- Pilot accounting differences: zero"
+            echo "- Raw and derived bundle staged for 90 days"
+            echo "- Long-term immutable ingestion: no"
+            echo "- Artifact audit pass: no"
+            echo "- Paper replication: no"
+            echo "- Economic edge: inconclusive"
+          } >> "$GITHUB_STEP_SUMMARY"
