@@ -1,0 +1,39 @@
+28:publish	Commit source-only changes	2026-07-18T10:48:15.9498076Z  ! [rejected]        HEAD -> agent/phase-3g-prospective-overlap (fetch first)
+29:publish	Commit source-only changes	2026-07-18T10:48:15.9498960Z error: failed to push some refs to 'https://github.com/Emad211/Trade-bot'
+30:publish	Commit source-only changes	2026-07-18T10:48:15.9508906Z hint: Updates were rejected because the remote contains work that you do not
+=== tail ===
+publish	Commit source-only changes	﻿2026-07-18T10:48:15.7327523Z ##[group]Run set -euo pipefail
+publish	Commit source-only changes	2026-07-18T10:48:15.7327933Z ^[[36;1mset -euo pipefail^[[0m
+publish	Commit source-only changes	2026-07-18T10:48:15.7328263Z ^[[36;1mrm -f scripts/materialize_phase3g_workflow.py^[[0m
+publish	Commit source-only changes	2026-07-18T10:48:15.7328635Z ^[[36;1mgit config user.name "github-actions[bot]"^[[0m
+publish	Commit source-only changes	2026-07-18T10:48:15.7329084Z ^[[36;1mgit config user.email "41898282+github-actions[bot]@users.noreply.github.com"^[[0m
+publish	Commit source-only changes	2026-07-18T10:48:15.7330355Z ^[[36;1mgit add configs/phase3g_market_overlap.yaml scripts/run_phase3g_overlap.py src/hybrid_trader/phase3g_market.py src/hybrid_trader/phase3g_trajectory.py src/hybrid_trader/phase3g_overlap.py tests/test_phase3g_market.py tests/test_phase3g_trajectory.py tests/test_phase3g_overlap.py^[[0m
+publish	Commit source-only changes	2026-07-18T10:48:15.7331546Z ^[[36;1mgit add -A scripts/materialize_phase3g_workflow.py^[[0m
+publish	Commit source-only changes	2026-07-18T10:48:15.7332095Z ^[[36;1mif git diff --cached --quiet; then^[[0m
+publish	Commit source-only changes	2026-07-18T10:48:15.7332450Z ^[[36;1m  echo "No source-only changes require publication."^[[0m
+publish	Commit source-only changes	2026-07-18T10:48:15.7332775Z ^[[36;1melse^[[0m
+publish	Commit source-only changes	2026-07-18T10:48:15.7333081Z ^[[36;1m  git commit -m "add validated Phase 3G overlap source"^[[0m
+publish	Commit source-only changes	2026-07-18T10:48:15.7333498Z ^[[36;1m  git push origin HEAD:agent/phase-3g-prospective-overlap^[[0m
+publish	Commit source-only changes	2026-07-18T10:48:15.7333837Z ^[[36;1mfi^[[0m
+publish	Commit source-only changes	2026-07-18T10:48:15.7395889Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+publish	Commit source-only changes	2026-07-18T10:48:15.7396234Z env:
+publish	Commit source-only changes	2026-07-18T10:48:15.7398853Z   GH_TOKEN: ***
+publish	Commit source-only changes	2026-07-18T10:48:15.7399153Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+publish	Commit source-only changes	2026-07-18T10:48:15.7399598Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+publish	Commit source-only changes	2026-07-18T10:48:15.7400028Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+publish	Commit source-only changes	2026-07-18T10:48:15.7400410Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+publish	Commit source-only changes	2026-07-18T10:48:15.7400814Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+publish	Commit source-only changes	2026-07-18T10:48:15.7401195Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+publish	Commit source-only changes	2026-07-18T10:48:15.7401515Z ##[endgroup]
+publish	Commit source-only changes	2026-07-18T10:48:15.7700635Z [agent/phase-3g-prospective-overlap 14d4c86] add validated Phase 3G overlap source
+publish	Commit source-only changes	2026-07-18T10:48:15.7701223Z  2 files changed, 1 insertion(+), 115 deletions(-)
+publish	Commit source-only changes	2026-07-18T10:48:15.7701611Z  delete mode 100644 scripts/materialize_phase3g_workflow.py
+publish	Commit source-only changes	2026-07-18T10:48:15.9497094Z To https://github.com/Emad211/Trade-bot
+publish	Commit source-only changes	2026-07-18T10:48:15.9498076Z  ! [rejected]        HEAD -> agent/phase-3g-prospective-overlap (fetch first)
+publish	Commit source-only changes	2026-07-18T10:48:15.9498960Z error: failed to push some refs to 'https://github.com/Emad211/Trade-bot'
+publish	Commit source-only changes	2026-07-18T10:48:15.9508906Z hint: Updates were rejected because the remote contains work that you do not
+publish	Commit source-only changes	2026-07-18T10:48:15.9509843Z hint: have locally. This is usually caused by another repository pushing to
+publish	Commit source-only changes	2026-07-18T10:48:15.9510708Z hint: the same ref. If you want to integrate the remote changes, use
+publish	Commit source-only changes	2026-07-18T10:48:15.9511316Z hint: 'git pull' before pushing again.
+publish	Commit source-only changes	2026-07-18T10:48:15.9511719Z hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+publish	Commit source-only changes	2026-07-18T10:48:15.9523751Z ##[error]Process completed with exit code 1.
