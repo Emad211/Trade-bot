@@ -6,6 +6,7 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 
 import pytest
+
 from hybrid_trader.replication.cftc_ingestion import (
     CFTCPilotError,
     HTTPArtifact,
