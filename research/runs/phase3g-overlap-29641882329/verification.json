@@ -1,0 +1,53 @@
+{
+  "active_decision_row_count": 3,
+  "as_of": "2026-07-18T11:03:21Z",
+  "bar_count_per_source": 719,
+  "combined_snapshot_sha256": "3b18b21bb886d0b756abc365e80cde458c11a661c4a4905d1f215cdc7c1ef274",
+  "cross_venue": {
+    "maximum_absolute_spread_bps": 20.912420912421183,
+    "median_absolute_spread_bps": 6.646841850161955,
+    "overlap_ratio": 1.0,
+    "overlap_rows": 719,
+    "p95_absolute_spread_bps": 16.08190692435385,
+    "return_correlation": 0.9996495643358647
+  },
+  "dataset_content_sha256": "ace403ed7733eff07da9303af672586f2bb358dd6d6e6270af6194d75a48e5c6",
+  "dataset_id": "semantic-ace403ed7733",
+  "matured_labeled_row_count": 677,
+  "maturity": {
+    "assessment_id": "c0fcd35ade039b73ba46e63cfdaa859673f564af44026044da602d432a65dcf2",
+    "failure_reasons": [
+      "insufficient_semantic_records",
+      "insufficient_unique_availability_dates",
+      "insufficient_active_decision_rows",
+      "insufficient_source_diversity"
+    ],
+    "negative_target_count": 346,
+    "paper_or_live_trading_allowed": false,
+    "positive_target_count": 331,
+    "relevant_semantic_record_count": 8,
+    "research_model_fitting_allowed": false,
+    "status": "insufficient_prospective_sample",
+    "unique_availability_date_count": 1,
+    "unique_source_count": 1
+  },
+  "missing_bar_count_per_source": 0,
+  "model_fitting_executed": false,
+  "overlap_id": "fe9b0103aaaac0b9b5385904ac9fd3c4563d41c2eafc3ce2b77783c08aa1ffd2",
+  "prospective_decisions_created": false,
+  "rows_before_first_semantic_availability": 674,
+  "rows_on_or_after_first_semantic_availability": 3,
+  "semantic_event_sum_before_first_availability": 0.0,
+  "semantic_event_sum_on_or_after_first_availability": 56.0,
+  "source_content_sha256": {
+    "bitstamp": "18a1a3f333be5285b57f3d27dbf1176920f5e3f698bd8264cfbdcac9addfd79b",
+    "okx": "604dc532446fda3d3ffa57c0de34daa1bb99e71fae39e9ed70d7703c041cf324"
+  },
+  "successful_sources": [
+    "bitstamp",
+    "okx"
+  ],
+  "trajectory_count": 1,
+  "trajectory_entry_id": "a867afcbe8747844dc68393a57385bdf28904f332ee075de1aec3b23885df243",
+  "trajectory_self_hash_verified": true
+}
