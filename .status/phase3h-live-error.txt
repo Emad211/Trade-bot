@@ -1,131 +1,83 @@
-1:pilot	Restore the latest verified Phase 3E compact state	﻿2026-07-18T12:50:08.9680316Z ##[group]Run set -euo pipefail
-2:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9680781Z ^[[36;1mset -euo pipefail^[[0m
-3:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9681084Z ^[[36;1mroot=artifacts/phase3h-avalai-pilot^[[0m
-4:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9681435Z ^[[36;1mmkdir -p "$root" /tmp/phase3h-previous^[[0m
-5:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9681927Z ^[[36;1mruns=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?status=success&per_page=100")^[[0m
-6:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9682392Z ^[[36;1mprevious_run_id=$(jq -r '^[[0m
-7:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9682659Z ^[[36;1m  [.workflow_runs[]^[[0m
-8:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9682972Z ^[[36;1m    | select(.name == "phase3e-longitudinal-events")^[[0m
-9:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9683312Z ^[[36;1m  ][0].id // empty^[[0m
-10:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9683546Z ^[[36;1m' <<<"$runs")^[[0m
-11:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9683782Z ^[[36;1mtest -n "$previous_run_id"^[[0m
-12:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9684296Z ^[[36;1martifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${previous_run_id}/artifacts?per_page=100")^[[0m
-13:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9684805Z ^[[36;1martifact=$(jq -c '^[[0m
-14:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9685045Z ^[[36;1m  [.artifacts[]^[[0m
-15:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9685323Z ^[[36;1m    | select(.expired == false)^[[0m
-16:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9685686Z ^[[36;1m    | select(.name | startswith("phase3e-longitudinal-state-"))^[[0m
-17:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9686050Z ^[[36;1m  ][0] // empty^[[0m
-18:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9686277Z ^[[36;1m' <<<"$artifacts")^[[0m
-19:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9686517Z ^[[36;1mtest -n "$artifact"^[[0m
-20:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9686807Z ^[[36;1mprevious_artifact_id=$(jq -r .id <<<"$artifact")^[[0m
-21:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9687201Z ^[[36;1mprevious_artifact_digest=$(jq -r .digest <<<"$artifact")^[[0m
-22:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9687588Z ^[[36;1martifact_name=$(jq -r .name <<<"$artifact")^[[0m
-23:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9688294Z ^[[36;1mgh run download "$previous_run_id" --name "$artifact_name" --dir /tmp/phase3h-previous^[[0m
-24:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9688936Z ^[[36;1mstate_dir=$(find /tmp/phase3h-previous -type d -name state -print -quit)^[[0m
-25:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9689554Z ^[[36;1mtest -n "$state_dir"^[[0m
-26:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9689816Z ^[[36;1mcp -a "$state_dir" "$root/state"^[[0m
-27:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9690126Z ^[[36;1mrm -f "$root/state/.capture.lock"^[[0m
-28:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9690470Z ^[[36;1mpython scripts/verify_phase3c_provider.py "$root"^[[0m
-29:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9690789Z ^[[36;1m^[[0m
-30:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9690989Z ^[[36;1mexport PHASE3H_ROOT="$root"^[[0m
-31:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9691300Z ^[[36;1mexport PREVIOUS_RUN_ID="$previous_run_id"^[[0m
-32:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9691661Z ^[[36;1mexport PREVIOUS_ARTIFACT_ID="$previous_artifact_id"^[[0m
-33:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9692080Z ^[[36;1mexport PREVIOUS_ARTIFACT_DIGEST="$previous_artifact_digest"^[[0m
-34:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9692440Z ^[[36;1mpython - <<'PY'^[[0m
-35:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9692670Z ^[[36;1mimport json^[[0m
-36:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9692894Z ^[[36;1mimport os^[[0m
-37:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9693122Z ^[[36;1mfrom pathlib import Path^[[0m
-38:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9693369Z ^[[36;1m^[[0m
-39:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9693594Z ^[[36;1mroot = Path(os.environ["PHASE3H_ROOT"])^[[0m
-40:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9693896Z ^[[36;1mpayload = {^[[0m
-41:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9694119Z ^[[36;1m    "schema_version": "1.0",^[[0m
-42:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9694437Z ^[[36;1m    "workflow_run_id": os.environ["GITHUB_RUN_ID"],^[[0m
-43:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9694803Z ^[[36;1m    "source_commit_sha": os.environ["GITHUB_SHA"],^[[0m
-44:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9695204Z ^[[36;1m    "previous_workflow_run_id": os.environ["PREVIOUS_RUN_ID"],^[[0m
-45:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9695723Z ^[[36;1m    "previous_artifact_id": int(os.environ["PREVIOUS_ARTIFACT_ID"]),^[[0m
-46:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9696238Z ^[[36;1m    "previous_artifact_digest": os.environ["PREVIOUS_ARTIFACT_DIGEST"],^[[0m
-47:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9696634Z ^[[36;1m    "state_restored": True,^[[0m
-48:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9696884Z ^[[36;1m}^[[0m
-49:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9697126Z ^[[36;1m(root / "phase3e_run_context.json").write_text(^[[0m
-50:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9697512Z ^[[36;1m    json.dumps(payload, sort_keys=True, indent=2) + "\n",^[[0m
-51:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9697870Z ^[[36;1m    encoding="utf-8",^[[0m
-52:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9698354Z ^[[36;1m)^[[0m
-53:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9698556Z ^[[36;1mPY^[[0m
-54:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9760418Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-55:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9760987Z env:
-56:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9761478Z   AVALAI_API_KEY: ***
-57:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9763924Z   GH_TOKEN: ***
-58:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9764221Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
-59:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9764670Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
-60:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9765107Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
-61:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9765507Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
-62:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9765895Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
-63:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9766289Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
-64:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9766613Z ##[endgroup]
-65:pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:13.1952782Z ##[error]Process completed with exit code 1.
-=== final 220 lines ===
-pilot	Restore the latest verified Phase 3E compact state	﻿2026-07-18T12:50:08.9680316Z ##[group]Run set -euo pipefail
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9680781Z ^[[36;1mset -euo pipefail^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9681084Z ^[[36;1mroot=artifacts/phase3h-avalai-pilot^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9681435Z ^[[36;1mmkdir -p "$root" /tmp/phase3h-previous^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9681927Z ^[[36;1mruns=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?status=success&per_page=100")^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9682392Z ^[[36;1mprevious_run_id=$(jq -r '^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9682659Z ^[[36;1m  [.workflow_runs[]^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9682972Z ^[[36;1m    | select(.name == "phase3e-longitudinal-events")^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9683312Z ^[[36;1m  ][0].id // empty^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9683546Z ^[[36;1m' <<<"$runs")^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9683782Z ^[[36;1mtest -n "$previous_run_id"^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9684296Z ^[[36;1martifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${previous_run_id}/artifacts?per_page=100")^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9684805Z ^[[36;1martifact=$(jq -c '^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9685045Z ^[[36;1m  [.artifacts[]^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9685323Z ^[[36;1m    | select(.expired == false)^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9685686Z ^[[36;1m    | select(.name | startswith("phase3e-longitudinal-state-"))^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9686050Z ^[[36;1m  ][0] // empty^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9686277Z ^[[36;1m' <<<"$artifacts")^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9686517Z ^[[36;1mtest -n "$artifact"^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9686807Z ^[[36;1mprevious_artifact_id=$(jq -r .id <<<"$artifact")^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9687201Z ^[[36;1mprevious_artifact_digest=$(jq -r .digest <<<"$artifact")^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9687588Z ^[[36;1martifact_name=$(jq -r .name <<<"$artifact")^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9688294Z ^[[36;1mgh run download "$previous_run_id" --name "$artifact_name" --dir /tmp/phase3h-previous^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9688936Z ^[[36;1mstate_dir=$(find /tmp/phase3h-previous -type d -name state -print -quit)^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9689554Z ^[[36;1mtest -n "$state_dir"^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9689816Z ^[[36;1mcp -a "$state_dir" "$root/state"^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9690126Z ^[[36;1mrm -f "$root/state/.capture.lock"^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9690470Z ^[[36;1mpython scripts/verify_phase3c_provider.py "$root"^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9690789Z ^[[36;1m^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9690989Z ^[[36;1mexport PHASE3H_ROOT="$root"^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9691300Z ^[[36;1mexport PREVIOUS_RUN_ID="$previous_run_id"^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9691661Z ^[[36;1mexport PREVIOUS_ARTIFACT_ID="$previous_artifact_id"^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9692080Z ^[[36;1mexport PREVIOUS_ARTIFACT_DIGEST="$previous_artifact_digest"^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9692440Z ^[[36;1mpython - <<'PY'^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9692670Z ^[[36;1mimport json^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9692894Z ^[[36;1mimport os^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9693122Z ^[[36;1mfrom pathlib import Path^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9693369Z ^[[36;1m^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9693594Z ^[[36;1mroot = Path(os.environ["PHASE3H_ROOT"])^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9693896Z ^[[36;1mpayload = {^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9694119Z ^[[36;1m    "schema_version": "1.0",^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9694437Z ^[[36;1m    "workflow_run_id": os.environ["GITHUB_RUN_ID"],^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9694803Z ^[[36;1m    "source_commit_sha": os.environ["GITHUB_SHA"],^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9695204Z ^[[36;1m    "previous_workflow_run_id": os.environ["PREVIOUS_RUN_ID"],^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9695723Z ^[[36;1m    "previous_artifact_id": int(os.environ["PREVIOUS_ARTIFACT_ID"]),^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9696238Z ^[[36;1m    "previous_artifact_digest": os.environ["PREVIOUS_ARTIFACT_DIGEST"],^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9696634Z ^[[36;1m    "state_restored": True,^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9696884Z ^[[36;1m}^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9697126Z ^[[36;1m(root / "phase3e_run_context.json").write_text(^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9697512Z ^[[36;1m    json.dumps(payload, sort_keys=True, indent=2) + "\n",^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9697870Z ^[[36;1m    encoding="utf-8",^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9698354Z ^[[36;1m)^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9698556Z ^[[36;1mPY^[[0m
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9760418Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9760987Z env:
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9761478Z   AVALAI_API_KEY: ***
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9763924Z   GH_TOKEN: ***
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9764221Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9764670Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9765107Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9765507Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9765895Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9766289Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:08.9766613Z ##[endgroup]
-pilot	Restore the latest verified Phase 3E compact state	2026-07-18T12:50:13.1952782Z ##[error]Process completed with exit code 1.
+1:pilot	Run the bounded source-diversity capture	﻿2026-07-18T12:57:46.2561907Z ##[group]Run python scripts/capture_phase3c_avalai_events.py \
+2:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2562472Z ^[[36;1mpython scripts/capture_phase3c_avalai_events.py \^[[0m
+3:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2562895Z ^[[36;1m  --config configs/phase3c_avalai_event_sources.yaml \^[[0m
+4:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2563286Z ^[[36;1m  --output artifacts/phase3h-avalai-pilot \^[[0m
+5:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2563631Z ^[[36;1m  --maximum-new-semantic-records 4^[[0m
+6:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2623871Z shell: /usr/bin/bash -e {0}
+7:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2624148Z env:
+8:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2624601Z   AVALAI_API_KEY: ***
+9:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2627059Z   GH_TOKEN: ***
+10:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2627597Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+11:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2628059Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+12:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2628506Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+13:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2628907Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+14:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2629324Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+15:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2629784Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+16:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2630140Z ##[endgroup]
+17:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2187363Z Traceback (most recent call last):
+18:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2197570Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/event_capture.py", line 266, in capture_events
+19:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2198558Z     new_document_count, _ = append_documents(
+20:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2222793Z                             ^^^^^^^^^^^^^^^^^
+21:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2224926Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/event_ledger.py", line 95, in append_documents
+22:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2225828Z     raise ValueError(
+23:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2226446Z ValueError: Existing document identity was observed under conflicting source metadata
+24:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2227000Z 
+25:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2227298Z The above exception was the direct cause of the following exception:
+26:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2227760Z 
+27:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2227917Z Traceback (most recent call last):
+28:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2228768Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/capture_phase3c_avalai_events.py", line 48, in <module>
+29:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2229561Z     main()
+30:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2230244Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/capture_phase3c_avalai_events.py", line 26, in main
+31:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2231016Z     result = capture_avalai_events(
+32:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2231409Z              ^^^^^^^^^^^^^^^^^^^^^^
+33:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2232488Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/avalai_capture.py", line 241, in capture_avalai_events
+34:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2233368Z     raise capture_failure
+35:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2234201Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/avalai_capture.py", line 187, in capture_avalai_events
+36:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2235244Z     capture_manifest = capture_events(config.capture, root, **capture_kwargs)
+37:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2235894Z                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+38:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2236769Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/event_capture.py", line 347, in capture_events
+39:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2237913Z     raise EventCaptureFailure(str(failure), manifest_path=manifest_path) from failure
+40:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2239074Z hybrid_trader.event_capture_models.EventCaptureFailure: Existing document identity was observed under conflicting source metadata
+41:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.3136539Z ##[error]Process completed with exit code 1.
+=== final 260 lines ===
+pilot	Run the bounded source-diversity capture	﻿2026-07-18T12:57:46.2561907Z ##[group]Run python scripts/capture_phase3c_avalai_events.py \
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2562472Z ^[[36;1mpython scripts/capture_phase3c_avalai_events.py \^[[0m
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2562895Z ^[[36;1m  --config configs/phase3c_avalai_event_sources.yaml \^[[0m
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2563286Z ^[[36;1m  --output artifacts/phase3h-avalai-pilot \^[[0m
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2563631Z ^[[36;1m  --maximum-new-semantic-records 4^[[0m
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2623871Z shell: /usr/bin/bash -e {0}
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2624148Z env:
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2624601Z   AVALAI_API_KEY: ***
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2627059Z   GH_TOKEN: ***
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2627597Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2628059Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2628506Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2628907Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2629324Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2629784Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2630140Z ##[endgroup]
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2187363Z Traceback (most recent call last):
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2197570Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/event_capture.py", line 266, in capture_events
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2198558Z     new_document_count, _ = append_documents(
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2222793Z                             ^^^^^^^^^^^^^^^^^
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2224926Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/event_ledger.py", line 95, in append_documents
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2225828Z     raise ValueError(
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2226446Z ValueError: Existing document identity was observed under conflicting source metadata
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2227000Z 
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2227298Z The above exception was the direct cause of the following exception:
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2227760Z 
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2227917Z Traceback (most recent call last):
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2228768Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/capture_phase3c_avalai_events.py", line 48, in <module>
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2229561Z     main()
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2230244Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/capture_phase3c_avalai_events.py", line 26, in main
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2231016Z     result = capture_avalai_events(
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2231409Z              ^^^^^^^^^^^^^^^^^^^^^^
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2232488Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/avalai_capture.py", line 241, in capture_avalai_events
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2233368Z     raise capture_failure
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2234201Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/avalai_capture.py", line 187, in capture_avalai_events
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2235244Z     capture_manifest = capture_events(config.capture, root, **capture_kwargs)
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2235894Z                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2236769Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/event_capture.py", line 347, in capture_events
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2237913Z     raise EventCaptureFailure(str(failure), manifest_path=manifest_path) from failure
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2239074Z hybrid_trader.event_capture_models.EventCaptureFailure: Existing document identity was observed under conflicting source metadata
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.3136539Z ##[error]Process completed with exit code 1.
