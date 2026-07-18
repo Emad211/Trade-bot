@@ -1,0 +1,377 @@
+name: phase3i-diversified-overlap
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 8 * * 1"
+  push:
+    branches: ["agent/phase-3i-state-lineage"]
+    paths:
+      - ".github/workflows/phase3i-diversified-overlap.yml"
+      - "configs/phase3g_market_overlap.yaml"
+      - "scripts/select_phase3i_semantic_state.py"
+      - "scripts/assess_phase3i_state.py"
+      - "scripts/run_phase3g_overlap.py"
+      - "src/hybrid_trader/phase3g_*.py"
+      - "src/hybrid_trader/phase3i_*.py"
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  overlap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install public exchange dependencies
+        run: python -m pip install -e '.[exchange]'
+      - name: Discover and select the newest semantic state
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/phase3i-overlap/state /tmp/phase3i-discovery
+          candidates=/tmp/phase3i-discovery/candidates.json
+          echo '[]' > "$candidates"
+
+          add_candidate() {
+            workflow_file="$1"
+            workflow_name="$2"
+            artifact_prefix="$3"
+            runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/${workflow_file}/runs?status=success&per_page=100")
+            run=$(jq -c '.workflow_runs[0] // empty' <<<"$runs")
+            if [ -z "$run" ]; then
+              return 0
+            fi
+            run_id=$(jq -r .id <<<"$run")
+            artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts?per_page=100")
+            artifact=$(jq -c --arg prefix "$artifact_prefix" '
+              [.artifacts[]
+                | select(.expired == false)
+                | select(.name | startswith($prefix))
+              ][0] // empty
+            ' <<<"$artifacts")
+            if [ -z "$artifact" ]; then
+              return 0
+            fi
+            jq --arg workflow_name "$workflow_name" --argjson run "$run" --argjson artifact "$artifact" '
+              . + [{
+                workflow_name: $workflow_name,
+                workflow_run_id: ($run.id | tostring),
+                run_created_at: $run.created_at,
+                run_completed_at: $run.updated_at,
+                source_commit_sha: $run.head_sha,
+                artifact_id: $artifact.id,
+                artifact_name: $artifact.name,
+                artifact_digest: $artifact.digest,
+                artifact_created_at: $artifact.created_at,
+                artifact_expired: $artifact.expired
+              }]
+            ' "$candidates" > "${candidates}.next"
+            mv "${candidates}.next" "$candidates"
+          }
+
+          add_candidate \
+            phase3e-longitudinal-events.yml \
+            phase3e-longitudinal-events \
+            phase3e-longitudinal-state-
+          add_candidate \
+            phase3h-avalai-pilot.yml \
+            phase3h-avalai-pilot \
+            phase3h-avalai-pilot-
+
+          selected_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          python scripts/select_phase3i_semantic_state.py \
+            --candidates "$candidates" \
+            --selected-at "$selected_at" \
+            --output artifacts/phase3i-overlap/state/semantic_state_selection.json
+
+          selection=artifacts/phase3i-overlap/state/semantic_state_selection.json
+          selected_run_id=$(jq -r .selected_candidate.workflow_run_id "$selection")
+          selected_artifact_id=$(jq -r .selected_candidate.artifact_id "$selection")
+          selected_artifact_name=$(jq -r .selected_candidate.artifact_name "$selection")
+          selected_artifact_digest=$(jq -r .selected_candidate.artifact_digest "$selection")
+          selected_workflow=$(jq -r .selected_candidate.workflow_name "$selection")
+          selected_source_sha=$(jq -r .selected_candidate.source_commit_sha "$selection")
+          {
+            echo "SELECTED_SEMANTIC_RUN_ID=$selected_run_id"
+            echo "SELECTED_SEMANTIC_ARTIFACT_ID=$selected_artifact_id"
+            echo "SELECTED_SEMANTIC_ARTIFACT_NAME=$selected_artifact_name"
+            echo "SELECTED_SEMANTIC_ARTIFACT_DIGEST=$selected_artifact_digest"
+            echo "SELECTED_SEMANTIC_WORKFLOW=$selected_workflow"
+            echo "SELECTED_SEMANTIC_SOURCE_SHA=$selected_source_sha"
+          } >> "$GITHUB_ENV"
+      - name: Download and verify the selected semantic state
+        shell: bash
+        run: |
+          set -euo pipefail
+          semantic_root=/tmp/phase3i-semantic-root
+          mkdir -p "$semantic_root" /tmp/phase3i-semantic-download
+          gh run download "$SELECTED_SEMANTIC_RUN_ID" \
+            --name "$SELECTED_SEMANTIC_ARTIFACT_NAME" \
+            --dir /tmp/phase3i-semantic-download
+          state_dir=$(find /tmp/phase3i-semantic-download -type d -name state -print -quit)
+          test -n "$state_dir"
+          cp -a "$state_dir" "$semantic_root/state"
+          rm -f "$semantic_root/state/.capture.lock"
+          python scripts/verify_phase3c_provider.py "$semantic_root"
+          test ! -s "$semantic_root/state/prospective_decisions.jsonl"
+          echo "SEMANTIC_ROOT=$semantic_root/state" >> "$GITHUB_ENV"
+      - name: Restore previous maturity and source-health trajectories
+        shell: bash
+        run: |
+          set -euo pipefail
+          output=artifacts/phase3i-overlap
+          mkdir -p "$output/state"
+          previous_phase3g_run_id=""
+          previous_phase3g_artifact_id=""
+          previous_phase3g_artifact_digest=""
+          phase3g_trajectory_restored=false
+          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/phase3g-prospective-overlap.yml/runs?status=success&per_page=100")
+          previous_phase3g_run_id=$(jq -r '.workflow_runs[0].id // empty' <<<"$runs")
+          if [ -n "$previous_phase3g_run_id" ]; then
+            artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${previous_phase3g_run_id}/artifacts?per_page=100")
+            artifact=$(jq -c '
+              [.artifacts[]
+                | select(.expired == false)
+                | select(.name | startswith("phase3g-overlap-"))
+              ][0] // empty
+            ' <<<"$artifacts")
+            test -n "$artifact"
+            previous_phase3g_artifact_id=$(jq -r .id <<<"$artifact")
+            previous_phase3g_artifact_digest=$(jq -r .digest <<<"$artifact")
+            artifact_name=$(jq -r .name <<<"$artifact")
+            gh run download "$previous_phase3g_run_id" --name "$artifact_name" --dir /tmp/phase3i-phase3g
+            trajectory=$(find /tmp/phase3i-phase3g -type f -name maturity_trajectory.jsonl -print -quit)
+            test -n "$trajectory"
+            cp "$trajectory" "$output/state/maturity_trajectory.jsonl"
+            python - <<'PY'
+          from hybrid_trader.phase3g_trajectory import verify_phase3g_trajectory
+
+          state = verify_phase3g_trajectory(
+              "artifacts/phase3i-overlap/state/maturity_trajectory.jsonl"
+          )
+          if state.count < 1 or state.head_sha256 is None:
+              raise RuntimeError("Restored Phase 3G trajectory is empty")
+          print(state)
+          PY
+            phase3g_trajectory_restored=true
+          fi
+
+          previous_phase3i_run_id=""
+          previous_phase3i_artifact_id=""
+          previous_phase3i_artifact_digest=""
+          phase3i_trajectory_restored=false
+          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/phase3i-diversified-overlap.yml/runs?status=success&per_page=100")
+          previous_phase3i_run_id=$(jq -r --arg current "$GITHUB_RUN_ID" '
+            [.workflow_runs[] | select((.id | tostring) != $current)][0].id // empty
+          ' <<<"$runs")
+          if [ -n "$previous_phase3i_run_id" ]; then
+            artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${previous_phase3i_run_id}/artifacts?per_page=100")
+            artifact=$(jq -c '
+              [.artifacts[]
+                | select(.expired == false)
+                | select(.name | startswith("phase3i-overlap-"))
+              ][0] // empty
+            ' <<<"$artifacts")
+            test -n "$artifact"
+            previous_phase3i_artifact_id=$(jq -r .id <<<"$artifact")
+            previous_phase3i_artifact_digest=$(jq -r .digest <<<"$artifact")
+            artifact_name=$(jq -r .name <<<"$artifact")
+            gh run download "$previous_phase3i_run_id" --name "$artifact_name" --dir /tmp/phase3i-previous
+            health_trajectory=$(find /tmp/phase3i-previous -type f -name source_health_trajectory.jsonl -print -quit)
+            test -n "$health_trajectory"
+            cp "$health_trajectory" "$output/state/source_health_trajectory.jsonl"
+            python - <<'PY'
+          from hybrid_trader.phase3i_trajectory import verify_phase3i_health_trajectory
+
+          state = verify_phase3i_health_trajectory(
+              "artifacts/phase3i-overlap/state/source_health_trajectory.jsonl"
+          )
+          if state.count < 1 or state.head_sha256 is None:
+              raise RuntimeError("Restored Phase 3I trajectory is empty")
+          print(state)
+          PY
+            phase3i_trajectory_restored=true
+          fi
+
+          {
+            echo "PREVIOUS_PHASE3G_RUN_ID=$previous_phase3g_run_id"
+            echo "PREVIOUS_PHASE3G_ARTIFACT_ID=$previous_phase3g_artifact_id"
+            echo "PREVIOUS_PHASE3G_ARTIFACT_DIGEST=$previous_phase3g_artifact_digest"
+            echo "PHASE3G_TRAJECTORY_RESTORED=$phase3g_trajectory_restored"
+            echo "PREVIOUS_PHASE3I_RUN_ID=$previous_phase3i_run_id"
+            echo "PREVIOUS_PHASE3I_ARTIFACT_ID=$previous_phase3i_artifact_id"
+            echo "PREVIOUS_PHASE3I_ARTIFACT_DIGEST=$previous_phase3i_artifact_digest"
+            echo "PHASE3I_TRAJECTORY_RESTORED=$phase3i_trajectory_restored"
+          } >> "$GITHUB_ENV"
+      - name: Declare exact observation cutoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          as_of=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          echo "PHASE3I_AS_OF=$as_of" >> "$GITHUB_ENV"
+      - name: Build current market and semantic overlap
+        run: |
+          python scripts/run_phase3g_overlap.py \
+            --market-config configs/phase3g_market_overlap.yaml \
+            --benchmark-config configs/btc_spot_4h_smoke.yaml \
+            --semantic-state-root "$SEMANTIC_ROOT" \
+            --output artifacts/phase3i-overlap \
+            --trajectory-path artifacts/phase3i-overlap/state/maturity_trajectory.jsonl \
+            --as-of "$PHASE3I_AS_OF" \
+            --source-commit-sha "$GITHUB_SHA"
+      - name: Assess state health and append Phase 3I trajectory
+        run: |
+          python scripts/assess_phase3i_state.py \
+            --semantic-root "$(dirname "$SEMANTIC_ROOT")" \
+            --selection artifacts/phase3i-overlap/state/semantic_state_selection.json \
+            --phase3g-trajectory artifacts/phase3i-overlap/state/maturity_trajectory.jsonl \
+            --phase3i-trajectory artifacts/phase3i-overlap/state/source_health_trajectory.jsonl \
+            --assessed-at "$PHASE3I_AS_OF" \
+            --output artifacts/phase3i-overlap/phase3i
+      - name: Verify overlap, lineage, trajectories, and safety boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          from hybrid_trader.phase3g_overlap import Phase3GOverlapManifest
+          from hybrid_trader.phase3g_trajectory import verify_phase3g_trajectory
+          from hybrid_trader.phase3i_health import Phase3ISourceHealthAssessment
+          from hybrid_trader.phase3i_lineage import SemanticStateSelection
+          from hybrid_trader.phase3i_trajectory import verify_phase3i_health_trajectory
+          from hybrid_trader.semantic_dataset import read_semantic_dataset
+
+          root = Path("artifacts/phase3i-overlap")
+          overlap = Phase3GOverlapManifest.model_validate_json(
+              (root / "overlap_manifest.json").read_text(encoding="utf-8")
+          )
+          _, dataset = read_semantic_dataset(root / "dataset")
+          selection = SemanticStateSelection.model_validate_json(
+              (root / "state" / "semantic_state_selection.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          health = Phase3ISourceHealthAssessment.model_validate_json(
+              (root / "phase3i" / "source_health.json").read_text(encoding="utf-8")
+          )
+          maturity = verify_phase3g_trajectory(
+              root / "state" / "maturity_trajectory.jsonl"
+          )
+          health_trajectory = verify_phase3i_health_trajectory(
+              root / "state" / "source_health_trajectory.jsonl"
+          )
+          if selection.selected_candidate.workflow_name != "phase3h-avalai-pilot":
+              raise RuntimeError("Phase 3I did not select the newer diversified state")
+          if health.status != "pass":
+              raise RuntimeError("Selected semantic state failed source-health gates")
+          if dataset.semantic_ledger_head_sha256 != health.semantic_ledger_head_sha256:
+              raise RuntimeError("Dataset and health assessment use different semantic state")
+          if maturity.count < 2 or health_trajectory.count < 1:
+              raise RuntimeError("Phase 3I trajectories did not advance")
+          if overlap.model_fitting_executed or overlap.prospective_decisions_created:
+              raise RuntimeError("Phase 3I attempted fitting or a decision")
+          if health.model_fitting_allowed or health.paper_or_live_trading_allowed:
+              raise RuntimeError("Phase 3I health assessment authorized unsafe activity")
+          summary = json.loads(
+              (root / "phase3i" / "phase3i_summary.json").read_text(encoding="utf-8")
+          )
+          summary.update(
+              {
+                  "dataset_id": dataset.dataset_id,
+                  "dataset_content_sha256": dataset.content_sha256,
+                  "maturity_status": dataset.maturity.status,
+                  "research_model_fitting_allowed": dataset.maturity.research_model_fitting_allowed,
+                  "model_fitting_executed": False,
+                  "prospective_decisions_created": False,
+              }
+          )
+          (root / "verification.json").write_text(
+              json.dumps(summary, sort_keys=True, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+      - name: Record state lineage and checksum inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          def optional_int(name: str) -> int | None:
+              value = os.environ.get(name, "")
+              return int(value) if value else None
+
+          def optional_text(name: str) -> str | None:
+              return os.environ.get(name, "") or None
+
+          root = Path("artifacts/phase3i-overlap")
+          payload = {
+              "schema_version": "1.0",
+              "workflow_run_id": os.environ["GITHUB_RUN_ID"],
+              "source_commit_sha": os.environ["GITHUB_SHA"],
+              "as_of": os.environ["PHASE3I_AS_OF"],
+              "selected_semantic_workflow": os.environ["SELECTED_SEMANTIC_WORKFLOW"],
+              "selected_semantic_run_id": os.environ["SELECTED_SEMANTIC_RUN_ID"],
+              "selected_semantic_artifact_id": int(
+                  os.environ["SELECTED_SEMANTIC_ARTIFACT_ID"]
+              ),
+              "selected_semantic_artifact_digest": os.environ[
+                  "SELECTED_SEMANTIC_ARTIFACT_DIGEST"
+              ],
+              "selected_semantic_source_sha": os.environ[
+                  "SELECTED_SEMANTIC_SOURCE_SHA"
+              ],
+              "previous_phase3g_run_id": optional_text("PREVIOUS_PHASE3G_RUN_ID"),
+              "previous_phase3g_artifact_id": optional_int(
+                  "PREVIOUS_PHASE3G_ARTIFACT_ID"
+              ),
+              "previous_phase3g_artifact_digest": optional_text(
+                  "PREVIOUS_PHASE3G_ARTIFACT_DIGEST"
+              ),
+              "phase3g_trajectory_restored": os.environ[
+                  "PHASE3G_TRAJECTORY_RESTORED"
+              ] == "true",
+              "previous_phase3i_run_id": optional_text("PREVIOUS_PHASE3I_RUN_ID"),
+              "previous_phase3i_artifact_id": optional_int(
+                  "PREVIOUS_PHASE3I_ARTIFACT_ID"
+              ),
+              "previous_phase3i_artifact_digest": optional_text(
+                  "PREVIOUS_PHASE3I_ARTIFACT_DIGEST"
+              ),
+              "phase3i_trajectory_restored": os.environ[
+                  "PHASE3I_TRAJECTORY_RESTORED"
+              ] == "true",
+              "credentials_used": False,
+              "model_fitting_executed": False,
+              "prospective_decisions_created": False,
+          }
+          (root / "run_context.json").write_text(
+              json.dumps(payload, sort_keys=True, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+          root=artifacts/phase3i-overlap
+          printf '%s\n' "$GITHUB_SHA" > "$root/source_commit_sha.txt"
+          printf '%s\n' "$GITHUB_RUN_ID" > "$root/workflow_run_id.txt"
+          find "$root" -type f ! -name SHA256SUMS -print0 \
+            | sort -z | xargs -0 sha256sum > "$root/SHA256SUMS"
+      - name: Upload Phase 3I overlap and health evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase3i-overlap-${{ github.run_id }}
+          path: artifacts/phase3i-overlap/
+          if-no-files-found: error
+          retention-days: 90
