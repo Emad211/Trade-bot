@@ -54,22 +54,27 @@ Report 2.3 evidence and implementation:
 
 - [Replication execution manifest](02-replication/02-03-replication-execution-manifest.yaml)
 - [Independent reality verification and correction log](02-replication/02-03-independent-reality-verification-log.md)
+- [Static analysis, test, and coverage verification](02-replication/02-03-static-analysis-and-test-verification.md)
+- `.github/workflows/replication-integrity.yml`
 - `src/hybrid_trader/replication/`
 - `tests/test_replication_*.py`
 
 Report 2.3 currently records:
 
-- the original committed implementation was independently reconstructed from GitHub commit content;
+- the original committed implementation was independently reconstructed from authenticated GitHub commit content;
 - the original 11 deterministic tests passed again in a separate temporary environment;
 - provenance hardening added four tests, and the hardened suite passed 15 tests;
+- the repository Ruff rule selection passed locally;
+- strict mypy passed locally for all nine replication source files;
+- replication-package statement coverage passed locally at 85.44% against an 80% gate;
 - Python compilation passed;
-- Ruff and mypy were unavailable in the isolated environment and are not reported as passed;
-- no GitHub CI status has yet been reported;
+- a GitHub Actions verification workflow was committed, but no workflow run or combined status was observed, so hosted CI remains unverified;
 - an over-permissive factor-audit verdict was found and corrected;
 - unverified local files can no longer receive an artifact audit pass;
 - `ARTIFACT_AUDIT_PASS` requires immutable official provenance, matching checksum and byte count, a license snapshot, immutable storage identity, and declared return units;
 - the official CFTC TFF API is reachable, but immutable raw ingestion is still pending;
 - AQR workbooks, Moreira–Muir factor artifacts, licensed futures histories, and Binance/OKX pilot archives have not yet been immutably ingested;
+- no paper-level numerical replication is complete;
 - all six empirical edge verdicts remain `INCONCLUSIVE`.
 
 Empirical fitting, parameter tuning, a strategy tournament, paper trading, live trading, leverage, and capital deployment remain unauthorized.
@@ -136,6 +141,7 @@ Five leaf reports form one section-level synthesis. The five section syntheses f
 - API reachability is not immutable ingestion.
 - Raw acquisition is not immutable ingestion until checksum, retrieval, license, and storage evidence exist.
 - An artifact audit pass is not an empirical paper pass.
+- A local static-analysis pass is not a hosted CI pass.
 - Blocked or licensed data must remain blocked or pending; a convenient substitute cannot inherit an exact verdict.
 - An admitted hypothesis remains unproven until it survives genuinely new forward data and realistic execution.
 - The final outcome may legitimately be to reject every candidate.
