@@ -1,6 +1,6 @@
 name: report-phase3g-materialize
 
-# Generation 3: report the explicitly typed trajectory construction run.
+# Generation 4: report the obsolete-payload removal run.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
@@ -35,7 +35,7 @@ jobs:
           run_id=$(jq -r .id <<<"$run")
           jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
           {
-            echo '## Typed Phase 3G overlap materializer status'
+            echo '## Final Phase 3G overlap materializer status'
             echo
             echo "- run: $(jq -r .html_url <<<"$run")"
             echo "- conclusion: $(jq -r .conclusion <<<"$run")"
