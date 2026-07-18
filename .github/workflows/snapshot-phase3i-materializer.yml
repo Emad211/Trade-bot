@@ -1,5 +1,6 @@
 name: snapshot-phase3i-materializer
 
+# Trigger after workflow registration.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
