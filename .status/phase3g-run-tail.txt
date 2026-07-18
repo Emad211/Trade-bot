@@ -1,0 +1,44 @@
+overlap	Restore and verify latest prospective semantic state	﻿2026-07-18T10:56:40.2207790Z ##[group]Run set -euo pipefail
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2208168Z ^[[36;1mset -euo pipefail^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2208458Z ^[[36;1msemantic_root=/tmp/phase3g-semantic-root^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2208813Z ^[[36;1mmkdir -p "$semantic_root"^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2209266Z ^[[36;1mruns=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?status=success&per_page=100")^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2209996Z ^[[36;1msemantic_run_id=$(jq -r '[.workflow_runs[] | select(.name == "phase3e-longitudinal-events")][0].id // empty' <<<"$runs")^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2210835Z ^[[36;1mif [ -z "$semantic_run_id" ]; then^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2211214Z ^[[36;1m  echo "No successful Phase 3E longitudinal run was found." >&2^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2211570Z ^[[36;1m  exit 1^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2211762Z ^[[36;1mfi^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2212195Z ^[[36;1martifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${semantic_run_id}/artifacts?per_page=100")^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2213065Z ^[[36;1martifact=$(jq -c '[.artifacts[] | select(.expired == false) | select(.name | startswith("phase3e-longitudinal-state-"))][0] // empty' <<<"$artifacts")^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2213745Z ^[[36;1mif [ -z "$artifact" ]; then^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2214124Z ^[[36;1m  echo "The latest successful Phase 3E run has no state artifact." >&2^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2214500Z ^[[36;1m  exit 1^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2214690Z ^[[36;1mfi^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2214937Z ^[[36;1msemantic_artifact_id=$(jq -r .id <<<"$artifact")^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2215337Z ^[[36;1msemantic_artifact_digest=$(jq -r .digest <<<"$artifact")^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2215742Z ^[[36;1msemantic_artifact_name=$(jq -r .name <<<"$artifact")^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2216303Z ^[[36;1mgh run download "$semantic_run_id" --name "$semantic_artifact_name" --dir /tmp/phase3g-semantic-download^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2216973Z ^[[36;1mstate_dir=$(find /tmp/phase3g-semantic-download -type d -name state -print -quit)^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2217412Z ^[[36;1mtest -n "$state_dir"^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2217696Z ^[[36;1mcp -a "$state_dir" "$semantic_root/state"^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2218035Z ^[[36;1mrm -f "$semantic_root/state/.capture.lock"^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2218423Z ^[[36;1mpython scripts/verify_phase3c_provider.py "$semantic_root"^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2219047Z ^[[36;1mtest ! -s "$semantic_root/state/prospective_decisions.jsonl"^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2219391Z ^[[36;1m{^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2219629Z ^[[36;1m  echo "SEMANTIC_ROOT=$semantic_root/state"^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2219964Z ^[[36;1m  echo "SEMANTIC_RUN_ID=$semantic_run_id"^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2220327Z ^[[36;1m  echo "SEMANTIC_ARTIFACT_ID=$semantic_artifact_id"^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2220855Z ^[[36;1m  echo "SEMANTIC_ARTIFACT_DIGEST=$semantic_artifact_digest"^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2221200Z ^[[36;1m} >> "$GITHUB_ENV"^[[0m
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2283143Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2283483Z env:
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2286065Z   GH_TOKEN: ***
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2286357Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2286804Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2287238Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2287692Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2288068Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2288452Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:40.2288770Z ##[endgroup]
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:44.3288934Z No successful Phase 3E longitudinal run was found.
+overlap	Restore and verify latest prospective semantic state	2026-07-18T10:56:44.3303404Z ##[error]Process completed with exit code 1.
