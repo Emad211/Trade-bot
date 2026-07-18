@@ -30,6 +30,9 @@ forecast = [
   "chronos-forecasting>=2.2,<3",
   "timesfm[torch]>=2.0.2,<3",
 ]
+replication = [
+  "openpyxl>=3.1,<4",
+]
 dev = [
   "mypy>=1.11,<2",
   "pandas-stubs>=2.2",
@@ -43,6 +46,7 @@ all = [
   "ccxt>=4.4,<5",
   "chronos-forecasting>=2.2,<3",
   "lightgbm>=4.5,<5",
+  "openpyxl>=3.1,<4",
   "timesfm[torch]>=2.0.2,<3",
 ]
 
