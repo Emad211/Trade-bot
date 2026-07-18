@@ -1,0 +1,154 @@
+schema_version: "1.0"
+document:
+  id: "CFTC-TFF-2022-EVIDENCE"
+  title: "Verified CFTC TFF 2022 Acquisition and Dated Pilot Evidence"
+  date: "2026-07-18"
+  branch: "agent/edge-research-reports"
+  human_report: "02-03-cftc-tff-2022-acquisition-and-pilot-evidence.md"
+  parent: "02-03-current-controlling-status.md"
+
+source:
+  source_id: "CFTC_TFF_FUTURES_ONLY_HISTORICAL_TEXT_2022"
+  publisher: "Commodity Futures Trading Commission"
+  report_family: "TFF_FUTURES_ONLY"
+  year: 2022
+  official_url: "https://www.cftc.gov/files/dea/history/fut_fin_txt_2022.zip"
+  http_status: 200
+  content_type: "application/zip"
+  last_modified: "Thu, 15 Jan 2026 17:02:23 GMT"
+  raw_filename: "fut_fin_txt_2022.zip"
+  raw_byte_count: 494559
+  raw_sha256: "94c9c1fdee9dfbe377a09923ddfe26b88d3460605dd076081f221ad367d88601"
+  member:
+    name: "FinFutYY.txt"
+    compressed_size: 494437
+    uncompressed_size: 2105659
+    crc32: "7c783c41"
+    sha256: "7c309cb76da8bf432e1a347e5bfde169bcac31cec4e9e33742cf3a078328bb3b"
+
+hosted_acquisition:
+  workflow: "CFTC TFF Historical 2022 Ingestion"
+  run_id: 29655608183
+  conclusion: "SUCCESS"
+  raw_bundle:
+    artifact_id: 8432769852
+    artifact_name: "cftc-tff-historical-2022-a136191a0e68225cb8eed559eb4c0cef2482d810"
+    artifact_digest: "d718393c4984a63be874ed72b4dcc0b2173f29717e4339d02b83e1f9ed614270"
+    expires_at: "2026-10-16"
+  receipt:
+    artifact_id: 8432769955
+    artifact_digest: "cfa4ad076eace97d91c7edb636003348d1b769f56b33240d687276e703798692"
+
+parser_contract:
+  schema_field_count: 87
+  schema_sha256: "fe0123051e8e5f5bb8f0cf4a870b451951bd4fa131777096eb5d028115545d42"
+  annual:
+    row_count: 2719
+    unique_report_contract_keys: 2719
+    report_date_count: 52
+    min_report_date: "2022-01-04"
+    max_report_date: "2022-12-27"
+    futures_only_rows: 2719
+    long_exact_reconciliation_differences: 37
+    short_exact_reconciliation_differences: 33
+    consolidated_unit_difference_rows: 56
+    material_accounting_failures: 0
+  reconciliation_policy:
+    exact_equality_default: true
+    accepted_artifact_specific_exception:
+      maximum_absolute_difference: 1
+      requires_contract_code_suffix: "+"
+      requires_market_name_token: "Consolidated"
+      observed_codes:
+        - "12460+"
+        - "13874+"
+        - "20974+"
+    generalization_to_other_artifact_versions: false
+
+pilot:
+  derivation_id: "CFTC_TFF_2022_09_13_PILOT_V1"
+  report_date: "2022-09-13"
+  row_count: 54
+  unique_contract_market_codes: 54
+  min_contract_market_code: "020601"
+  max_contract_market_code: "43874A"
+  long_exact_reconciliation_differences: 0
+  short_exact_reconciliation_differences: 0
+  material_accounting_failures: 0
+  canonical_csv_filename: "tff_futures_only_2022-09-13.canonical.csv"
+  canonical_csv_byte_count: 27954
+  canonical_csv_sha256: "1be0028ba872ed56c970f6cd67b76c480b3653b170762c6e55f39dc10c3d268b"
+  preserves_all_source_fields: true
+  canonical_sort_key: "stripped CFTC_Contract_Market_Code"
+
+end_to_end_derivation:
+  workflow: "CFTC TFF 2022 Pilot Derivation"
+  run_id: 29656055991
+  conclusion: "SUCCESS"
+  head_sha: "47bea7846139db2c2953c1102fa5e2f33419291a"
+  raw_and_pilot_bundle:
+    artifact_id: 8432902155
+    artifact_name: "cftc-tff-2022-raw-and-pilot-d9b25f814b3f383bbac6b408744ff07fb6c504a9"
+    artifact_digest: "391a7bc682f02e0feec735342b33ae6a63a59c0db9432ee9812e4ebe17c83184"
+    expires_at: "2026-10-16"
+  receipt:
+    artifact_id: 8432902321
+    artifact_digest: "49cbd8b7d2863e915291468652dc7cfecdac28364723cde40a29aa5d1fbb773c"
+  successful_steps:
+    - "ruff"
+    - "strict_mypy"
+    - "eight_ingestion_and_parser_unit_tests"
+    - "official_zip_acquisition"
+    - "dated_pilot_derivation"
+    - "independent_raw_member_schema_profile_and_pilot_verification"
+    - "raw_and_derived_artifact_upload"
+    - "receipt_upload"
+
+independent_external_reverification:
+  performed: true
+  outer_bundle_sha256: "391a7bc682f02e0feec735342b33ae6a63a59c0db9432ee9812e4ebe17c83184"
+  outer_receipt_sha256: "49cbd8b7d2863e915291468652dc7cfecdac28364723cde40a29aa5d1fbb773c"
+  raw_zip_sha256_match: true
+  member_sha256_match: true
+  zip_crc_pass: true
+  annual_profile_lineage_match: true
+  pilot_profile_lineage_match: true
+  pilot_csv_sha256_match: true
+  pilot_row_and_key_checks_pass: true
+
+pre_api:
+  dataset_id: "gpe5-46if"
+  identity_verified: true
+  github_runner_reliability: "FAILED_REPEATED_HTTP_503"
+  immutable_raw_acquisition: false
+  row_level_cross_check: "PENDING"
+  automatic_pr_workflow_evidence: false
+
+storage:
+  state: "ACTIONS_ARTIFACT_STAGED_RETENTION_90_DAYS"
+  long_term_immutable: false
+  redistribution_review_complete: false
+
+verdicts:
+  raw_official_acquisition: "PASS"
+  parser_contract: "PASS_FOR_FROZEN_ARTIFACT_IDENTITY"
+  dated_pilot_derivation: "PASS"
+  actions_staging: "PASS_RETENTION_LIMITED"
+  immutable_ingestion: "NOT_COMPLETE"
+  artifact_audit_pass: false
+  paper_replication_pass: false
+  economic_edge_verdict: "INCONCLUSIVE"
+  report_2_4_full_authorization: false
+
+authorization:
+  continue_cftc_data_engineering: true
+  build_release_ledger: true
+  extend_to_separately_versioned_years: true
+  plan_licensed_price_linkage: true
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_tournament: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
