@@ -1,0 +1,63 @@
+{
+  "assessment_id": "e26acb5aeca8ecf8e9d952e8863fa805d8b1a3907f897d8dc0853aac2ca7d02f",
+  "base_phase3e_assessment_id": "8e6208ef696cf4c1c4b8cb5668a6b6993e9770b60b4781f79d7dac4dcf63f6c0",
+  "credential_pattern_detected": false,
+  "failed_capture_sources": [],
+  "failed_new_call_count": 0,
+  "failure_reasons": [],
+  "latest_capture_id": "97a35225c65f46db7822c031a3970bbed108278424995e314e2ad9cd8f3816e6",
+  "latest_provider_run_id": "1c176cf405cbb599032c9a57a7cab96691cc9d2cc9381ba305a82497f369f442",
+  "latest_total_tokens": 4446,
+  "maximum_attempts": 1,
+  "missing_required_assets": [],
+  "missing_required_sources": [],
+  "new_call_count": 4,
+  "new_document_count": 18,
+  "new_semantic_assets": [
+    "BTC",
+    "ETH",
+    "MARKET"
+  ],
+  "new_semantic_record_count": 4,
+  "new_semantic_sources": [
+    "bitcoin-core-releases",
+    "bitcoin-optech-newsletters",
+    "federal-reserve-monetary-policy",
+    "geth-releases"
+  ],
+  "paper_or_live_trading_allowed": false,
+  "policy": {
+    "max_attempts_per_call": 4,
+    "max_failed_calls": 0,
+    "max_new_calls": 4,
+    "max_total_tokens": 8000,
+    "minimum_new_assets": 2,
+    "minimum_new_semantic_sources": 2,
+    "minimum_relevance_rejections": 1,
+    "minimum_successful_sources": 2,
+    "required_new_assets": [
+      "BTC",
+      "MARKET"
+    ],
+    "required_new_sources": [
+      "bitcoin-optech-newsletters",
+      "federal-reserve-monetary-policy"
+    ]
+  },
+  "prospective_decision_count": 0,
+  "provider_calls_or_model_fitting_allowed": false,
+  "recommended_action": "continue_diversified_collection",
+  "relevance_accepted_document_count": 38,
+  "relevance_rejected_document_count": 20,
+  "schema_version": "1.0",
+  "status": "pass",
+  "successful_capture_sources": [
+    "bitcoin-core-releases",
+    "bitcoin-optech-newsletters",
+    "federal-reserve-monetary-policy",
+    "geth-releases",
+    "sec-press-releases"
+  ],
+  "successful_new_call_count": 4,
+  "zero_accepted_sources_called": []
+}
