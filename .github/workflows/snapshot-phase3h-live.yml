@@ -1,6 +1,6 @@
 name: snapshot-phase3h-live
 
-# Generation 2: snapshot the restoration-fixed live pilot.
+# Generation 3: snapshot the metadata-compatible live pilot.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
@@ -24,7 +24,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sleep 15
+          sleep 20
           runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-3h-source-diversity&per_page=100")
           mkdir -p .status
           jq '{captured_at:(now|todate),runs:[.workflow_runs[] | select(.name == "phase3h-avalai-pilot") | {id,name,status,conclusion,head_sha,html_url,created_at,updated_at}]}' \
