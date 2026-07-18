@@ -36,6 +36,11 @@ any provider call. The current candidates are:
 - Federal Reserve monetary-policy releases — official MARKET source;
 - SEC press releases — optional BTC/MARKET broad source with relevance filtering.
 
+Probe run `29642914211` succeeded without a provider credential. Bitcoin Core, Geth,
+Bitcoin Optech and Federal Reserve produced accepted documents. The SEC feed produced
+20 deterministic relevance rejections and zero accepted documents. All probe
+checksums were independently verified.
+
 A successful probe does not automatically authorize semantic calls. The live pilot
 must also pass the bounded provider, source-diversity and asset-diversity gates.
 
@@ -51,6 +56,10 @@ existing hard pre-call limit.
 
 Documents that exceed the budget remain in the document ledger and are eligible for
 later semantic recovery. Rejected documents are not treated as pending work.
+
+Existing document metadata is immutable. Source quality and asset tags for Bitcoin
+Core and Geth remain identical to the previously recorded Phase 3E policy; Phase 3H
+adds diversity through new sources rather than rewriting historical metadata.
 
 ## Bounded live pilot gate
 
@@ -71,6 +80,34 @@ new AvalAI calls. It requires:
 
 `phase3h_assessment.json` records the machine-readable result. A passing result permits
 continued diversified prospective collection only.
+
+## Successful live result
+
+Workflow run `29645401163` passed every Phase 3H gate.
+
+- artifact ID: `8429886030`;
+- artifact digest:
+  `sha256:ec077f99caadaa28fc3142a9482b4f6160f4a338759692341825719d241fad91`;
+- assessment ID:
+  `e26acb5aeca8ecf8e9d952e8863fa805d8b1a3907f897d8dc0853aac2ca7d02f`;
+- restored Phase 3E run/artifact: `29575275480` / `8404763802`;
+- new provider calls: 4;
+- successful/failed calls: 4 / 0;
+- maximum attempts: 1;
+- total token use: 4,446 of 8,000;
+- mean/maximum latency: 3.47 / 4.78 seconds;
+- new semantic sources: Bitcoin Core, Geth, Bitcoin Optech and Federal Reserve;
+- new semantic assets: BTC, ETH and MARKET;
+- accepted/rejected documents: 38 / 20;
+- zero-accepted sources receiving a call: 0;
+- prospective decisions: 0;
+- credential-pattern findings: 0.
+
+The SEC feed consumed no provider call. All 27 top-level checksum records and all six
+nested capture/provider checksum inventories were independently verified after
+artifact download. Compact evidence is committed under
+`research/runs/phase3h-avalai-pilot-29645401163/`; raw feed payloads and provider trace
+metadata remain in the digest-addressed Actions artifact.
 
 ## Safety boundary
 
