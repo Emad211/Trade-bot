@@ -14,18 +14,15 @@ from hybrid_trader.event_ledger import verify_document_ledger
 from hybrid_trader.features import build_supervised_frame
 from hybrid_trader.phase2c_sources import SpotFactory
 from hybrid_trader.phase3g_market import (
-    Phase3GMarketManifest,
     Phase3GMarketSpec,
     collect_phase3g_market,
 )
 from hybrid_trader.phase3g_trajectory import (
-    Phase3GTrajectoryEntry,
     append_phase3g_trajectory,
     make_phase3g_trajectory_entry,
     verify_phase3g_trajectory,
 )
 from hybrid_trader.semantic_dataset import (
-    SemanticDatasetManifest,
     SemanticMaturityPolicy,
     build_semantic_dataset,
     write_semantic_dataset,
@@ -111,6 +108,7 @@ def run_phase3g_overlap(
     feature_spec: SemanticFeatureSpec | None = None,
     maturity_policy: SemanticMaturityPolicy | None = None,
     spot_factory: SpotFactory | None = None,
+    trajectory_path: str | Path | None = None,
     recorded_at: datetime | None = None,
 ) -> Phase3GOverlapManifest:
     """Build one current overlap artifact and append its maturity trajectory."""
@@ -133,17 +131,21 @@ def run_phase3g_overlap(
     if semantic_state.state.count > document_count:
         raise ValueError("Semantic ledger contains more records than the document ledger")
 
-    collector_kwargs: dict[str, object] = {
-        "source_commit_sha": source_commit_sha,
-        "retrieved_at": recorded_at,
-    }
-    if spot_factory is not None:
-        collector_kwargs["spot_factory"] = spot_factory
-    market_manifest = collect_phase3g_market(
-        market_spec,
-        market_root,
-        **collector_kwargs,
-    )
+    if spot_factory is None:
+        market_manifest = collect_phase3g_market(
+            market_spec,
+            market_root,
+            source_commit_sha=source_commit_sha,
+            retrieved_at=recorded_at,
+        )
+    else:
+        market_manifest = collect_phase3g_market(
+            market_spec,
+            market_root,
+            source_commit_sha=source_commit_sha,
+            spot_factory=spot_factory,
+            retrieved_at=recorded_at,
+        )
     market_frame, snapshot_manifest = read_snapshot(market_root / "combined_snapshot")
     if snapshot_manifest.content_sha256 != market_manifest.combined_snapshot_sha256:
         raise RuntimeError("Phase 3G market snapshot disagrees with its manifest")
@@ -171,8 +173,12 @@ def run_phase3g_overlap(
         created_at=market_spec.as_of,
     )
 
-    trajectory_path = root / "state" / "maturity_trajectory.jsonl"
-    trajectory_before = verify_phase3g_trajectory(trajectory_path)
+    trajectory_ledger = (
+        Path(trajectory_path)
+        if trajectory_path is not None
+        else root / "state" / "maturity_trajectory.jsonl"
+    )
+    trajectory_before = verify_phase3g_trajectory(trajectory_ledger)
     timestamp = recorded_at or datetime.now(UTC)
     entry = make_phase3g_trajectory_entry(
         market_manifest,
@@ -180,7 +186,7 @@ def run_phase3g_overlap(
         recorded_at=timestamp,
         previous_entry_sha256=trajectory_before.head_sha256,
     )
-    trajectory_after = append_phase3g_trajectory(trajectory_path, entry)
+    trajectory_after = append_phase3g_trajectory(trajectory_ledger, entry)
     if trajectory_after.head_sha256 is None:
         raise AssertionError("Phase 3G trajectory append did not create a head")
 
