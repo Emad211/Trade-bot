@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class ReplicationStatus(StrEnum):
     PASS = "PASS"
+    ARTIFACT_AUDIT_PASS = "ARTIFACT_AUDIT_PASS"
     FAIL = "FAIL"
     INCONCLUSIVE = "INCONCLUSIVE"
     BLOCKED_BY_SOURCE_ACCESS = "BLOCKED_BY_SOURCE_ACCESS"
