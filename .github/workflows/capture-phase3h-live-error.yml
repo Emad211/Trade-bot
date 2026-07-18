@@ -1,6 +1,6 @@
 name: capture-phase3h-live-error
 
-# Trigger after workflow registration.
+# Generation 2: capture the restoration-fixed pilot failure.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
@@ -25,11 +25,11 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p .status
-          gh run view 29645028083 --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/phase3h-live-error.log
+          gh run view 29645254709 --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/phase3h-live-error.log
           {
-            grep -nE 'Traceback|Error|Exception|RuntimeError|ValueError|FAILED|error:|not found|No such|missing|digest|artifact|state' /tmp/phase3h-live-error.log || true
-            echo '=== final 220 lines ==='
-            tail -n 220 /tmp/phase3h-live-error.log
+            grep -nE 'Traceback|Error|Exception|RuntimeError|ValueError|FAILED|error:|not found|No such|missing|digest|artifact|state|AvalAI|HTTP|source' /tmp/phase3h-live-error.log || true
+            echo '=== final 260 lines ==='
+            tail -n 260 /tmp/phase3h-live-error.log
           } > .status/phase3h-live-error.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
