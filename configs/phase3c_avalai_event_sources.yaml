@@ -10,7 +10,7 @@ capture:
     - source_id: bitcoin-core-releases
       feed_url: https://github.com/bitcoin/bitcoin/releases.atom
       allowed_domains: [github.com]
-      source_quality: 1.0
+      source_quality: 0.95
       asset_tags: [BTC]
       required: true
       max_items: 10
@@ -20,7 +20,7 @@ capture:
     - source_id: geth-releases
       feed_url: https://github.com/ethereum/go-ethereum/releases.atom
       allowed_domains: [github.com]
-      source_quality: 0.95
+      source_quality: 0.90
       asset_tags: [ETH]
       required: false
       max_items: 10
