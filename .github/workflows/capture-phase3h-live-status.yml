@@ -1,0 +1,49 @@
+name: capture-phase3h-live-status
+
+on:
+  push:
+    branches: ["agent/phase3c-hardening-runner"]
+    paths:
+      - ".github/workflows/capture-phase3h-live-status.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGET_SHA: "81a68f026e8f223d101625c1a246981f752c4117"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase3c-hardening-runner
+      - name: Capture exact live-pilot status
+        shell: bash
+        run: |
+          set -euo pipefail
+          run=""
+          for attempt in $(seq 1 360); do
+            run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-3h-source-diversity&per_page=100" \
+              --jq --arg sha "$TARGET_SHA" '[.workflow_runs[] | select(.name == "phase3h-avalai-pilot" and .head_sha == $sha)][0]')
+            if [ "$(jq -r '.status // empty' <<<"$run")" = "completed" ]; then
+              break
+            fi
+            sleep 10
+          done
+          test -n "$run"
+          run_id=$(jq -r .id <<<"$run")
+          jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
+          artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts?per_page=100")
+          mkdir -p .status
+          jq -n --argjson run "$run" --argjson jobs "$jobs" --argjson artifacts "$artifacts" \
+            '{run:$run,jobs:$jobs.jobs,artifacts:$artifacts.artifacts}' \
+            > .status/phase3h-live-pilot.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .status/phase3h-live-pilot.json
+          git commit -m "capture Phase 3H live-pilot status" || true
+          git push origin HEAD:agent/phase3c-hardening-runner
