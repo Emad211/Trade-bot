@@ -4,7 +4,6 @@ from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import pytest
-
 from hybrid_trader.replication.cftc import normalize_cot_rows, standard_release_time
 
 
