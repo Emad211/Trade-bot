@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pandas as pd
 
@@ -29,18 +29,16 @@ def normalize_column_name(value: Any) -> str:
 def _detect_header_row(raw: pd.DataFrame, *, max_rows: int = 40) -> int:
     for index in range(min(max_rows, len(raw))):
         values = [normalize_column_name(value) for value in raw.iloc[index].tolist()]
-        if any(value in {"date", "month", "yyyymm", "year_month"} for value in values):
-            if sum(bool(value) for value in values) >= 2:
-                return index
+        if (
+            any(value in {"date", "month", "yyyymm", "year_month"} for value in values)
+            and sum(bool(value) for value in values) >= 2
+        ):
+            return index
     raise ValueError("Could not detect a date-bearing header row")
 
 
 def load_tabular_artifact(path: str | Path, *, sheet_name: str | int | None = None) -> pd.DataFrame:
-    """Load CSV or Excel while preserving source semantics.
-
-    Excel workbooks often contain title and terms-of-use rows before the table.
-    A date-bearing header is required; silent guessing is prohibited.
-    """
+    """Load CSV or Excel while preserving source semantics."""
 
     source = Path(path)
     suffix = source.suffix.lower()
@@ -78,4 +76,10 @@ def parse_month_column(values: pd.Series) -> pd.Series:
     if parsed.isna().any():
         examples = text.loc[parsed.isna()].head(5).tolist()
         raise ValueError(f"Unparseable date values: {examples}")
-    return parsed.dt.tz_convert(None).dt.to_period("M").dt.to_timestamp("M").dt.tz_localize("UTC")
+    month_end = (
+        parsed.dt.tz_convert(None)
+        .dt.to_period("M")
+        .dt.to_timestamp("M")
+        .dt.tz_localize("UTC")
+    )
+    return cast(pd.Series, month_end)
