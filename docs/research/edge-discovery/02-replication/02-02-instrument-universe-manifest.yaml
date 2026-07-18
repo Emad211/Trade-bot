@@ -1,0 +1,268 @@
+schema_version: '1.0'
+document:
+  id: INSTRUMENT-UNIVERSE-MANIFEST-2.2
+  title: Instrument and Point-in-Time Universe Manifest
+  date: '2026-07-18'
+  status: FROZEN_FOR_ACQUISITION
+  branch: agent/edge-research-reports
+global_instrument_key:
+  required_fields:
+  - asset_class
+  - venue_id
+  - native_instrument_id
+  - instrument_type
+  - base_or_underlying
+  - quote_currency
+  - settlement_currency
+  - effective_from
+  - effective_to
+  - source_version
+  futures_additional_fields:
+  - product_id
+  - contract_code
+  - maturity_year_month
+  - last_trade_date
+  - first_notice_date
+  - settlement_type
+  - contract_multiplier
+  - tick_size
+  crypto_derivative_additional_fields:
+  - contract_form
+  - contract_value
+  - contract_multiplier
+  - margin_currency
+  - funding_interval
+  - listing_time
+  - expiry_time
+hypotheses:
+- hypothesis_id: EDGE-FUT-TREND-001
+  tracks:
+  - experiment_track_id: TREND-MOP-RAW-EXACT
+    class: EXACT_PENDING_LICENSE
+    anchor: Moskowitz, Ooi, and Pedersen (2012)
+    sample:
+      start: 1965-01
+      end: 2009-12
+    reported_size: 58
+    asset_classes:
+    - equity_index
+    - currency
+    - commodity
+    - government_bond
+    instrument_list_status: MUST_BE_EXTRACTED_FROM_OFFICIAL_APPENDIX_AND_VENDOR_MAPPING
+    required_source_types:
+    - individual_futures_contracts
+    - currency_forwards_where_used
+    substitution_rule: no substitute universe may use this experiment id
+  - experiment_track_id: TREND-AQR-FACTOR-AUDIT
+    class: NEAR_EXACT_FACTOR_AUDIT
+    source_ids:
+    - AQR_TSMOM_ORIGINAL
+    - AQR_TSMOM_MAINTAINED
+    frequency: monthly
+    instrument_level: false
+    purpose:
+    - published factor audit
+    - post-publication extension
+    - vintage comparison
+  - experiment_track_id: TREND-MODERN-CONSTRUCTIVE
+    class: CONSTRUCTIVE_PUBLIC_OR_LICENSED
+    asset_classes:
+    - equity_index_futures
+    - government_bond_futures
+    - currency_futures
+    - commodity_futures
+    membership_rule:
+      listed: true
+      minimum_history: 12 months plus estimator lookback
+      valid_contract_chain: true
+      minimum_liquidity: predeclared by product class
+      stale_settlement_excluded: true
+      survivorship_free: true
+- hypothesis_id: EDGE-RISK-POLICY-001
+  tracks:
+  - experiment_track_id: RISK-MM-PUBLIC-FACTOR
+    class: NEAR_EXACT_PUBLIC
+    universe: frozen upstream factor series
+    membership_rule: factor exists in provider vintage and upstream checksum is frozen
+  - experiment_track_id: RISK-KK-COMMODITY-EXACT
+    class: EXACT_PENDING_LICENSE
+    anchor: Kang and Kwon (2021)
+    sample:
+      start: 1979-01
+      end: 2017-12
+    reported_size: 44
+    source: Refinitiv Datastream
+    asset_class: commodity_futures
+    paper_contract_rule: at month t choose nearest contract maturing after end of t+1
+    full_list_status: extract and validate from paper table/supplement before procurement
+- hypothesis_id: EDGE-FUT-CARRY-001
+  tracks:
+  - experiment_track_id: CARRY-SZYMANOWSKA-EXACT
+    class: EXACT_PENDING_LICENSE
+    anchor: Szymanowska et al. (2014)
+    frequency: bimonthly
+    requirements:
+    - maturity-specific end-of-period prices
+    - paper-specific proxy spot
+    - first and deferred contracts
+    - same-contract holding returns
+    - irregular maturity map
+    universe_status: official paper/supplement list must be frozen before acquisition
+  - experiment_track_id: CARRY-BOONS-PRADO-EXACT
+    class: EXACT_PENDING_LICENSE
+    anchor: Boons and Prado (2019)
+    reported_cross_section: 32
+    reported_sample:
+      start: 1960-08
+      end: 2014-02
+    requirements:
+    - first-nearby
+    - second-nearby
+    - nearby and spreading returns
+    - maturity-specific momentum
+    - slope and curvature
+  - experiment_track_id: CARRY-MODERN-FIELD-AUDIT
+    class: CONSTRUCTIVE_LICENSED
+    purpose: test current field availability and missing second-nearby histories
+    missingness_rule: no future imputation; exclusion reason recorded point in time
+- hypothesis_id: EDGE-FUT-POSITION-001
+  tracks:
+  - experiment_track_id: POSITION-FAN-EXACT
+    class: EXACT_PENDING_LICENSE
+    anchor: Fan et al. (2020)
+    sample:
+      start: '1992-09-30'
+      end: '2018-05-25'
+    reported_size: 84
+    asset_classes:
+    - commodity_futures
+    - currency_futures
+    - equity_index_futures
+    - fixed_income_futures
+    sources:
+    - CFTC_COT
+    - REFINITIV_DATASTREAM
+    negative_control: fixed_income_futures
+  - experiment_track_id: POSITION-CFTC-PUBLIC-TIMING
+    class: CONSTRUCTIVE_PUBLIC
+    universe: markets with valid CFTC market codes and mapped tradable contracts
+    membership_rule:
+      report_available: true
+      actual_or_conservative_release_time: true
+      category_semantics_valid: true
+      price_contract_available: true
+  - experiment_track_id: POSITION-UHL-CROWDING-UPDATE
+    class: EXACT_PENDING_LICENSE
+    anchor: Uhl (2025)
+    sample:
+      start: 2006-01
+      end: 2023-12
+    reported_size: 26
+    instruments:
+    - CL
+    - NG
+    - HO
+    - RB
+    - HG
+    - GC
+    - SI
+    - PL
+    - PA
+    - W
+    - C
+    - S
+    - SM
+    - BO
+    - KC
+    - SB
+    - CT
+    - CC
+    - LB
+    - OJ
+    - LC
+    - LH
+    - FC
+    - KW
+    - MW
+    - RR
+    note: vendor generic tickers require mapping to native contracts; adjusted continuous prices cannot be PnL
+- hypothesis_id: EDGE-CRYPTO-BASIS-001
+  tracks:
+  - experiment_track_id: CRYPTO-BASIS-CHI-EXACT
+    class: INCONCLUSIVE_DATA_ACCESS
+    anchor: Chi et al. (2023)
+    source: 1Token/OKEx licensed paper data
+    sample:
+      start: '2017-11-13'
+      end: '2021-03-31'
+    frequency_raw: minute
+    instruments:
+    - ADA
+    - BCH
+    - BSV
+    - BTC
+    - DOT
+    - EOS
+    - ETC
+    - ETH
+    - LINK
+    - LTC
+    - TRX
+    - XRP
+    markets:
+    - spot
+    - current_quarter_futures
+    membership: date-dependent according to actual listing
+    roll_rule: current-quarter contract rolls at declared OKEx quarter roll time
+  - experiment_track_id: CRYPTO-BASIS-MULTIVENUE-CONSTRUCTIVE
+    class: CONSTRUCTIVE_PUBLIC_READY_AFTER_QA
+    venues:
+    - Binance
+    - OKX
+    markets:
+    - spot
+    - linear_perpetual
+    - dated_futures_if_complete
+    membership_rule:
+      listed_at_decision: true
+      active: true
+      minimum_listing_age: predeclared
+      minimum_history: predeclared
+      minimum_volume: trailing-only
+      maximum_spread: trailing-only
+      valid_mark_and_index: true
+      no_unresolved_outage: true
+    universe_size: dynamic and point-in-time; not fixed from current rankings
+- hypothesis_id: EDGE-CRYPTO-RV-001
+  tracks:
+  - experiment_track_id: CRYPTO-RV-DEBLASIS-RECONSTRUCTION
+    class: EXACT_PUBLIC_OR_CONSTRUCTIVE_SUBTRACKS
+    anchor: De Blasis and Webb (2022)
+    markets:
+    - Binance spot
+    - Binance perpetual
+    - Binance quarterly futures
+    instrument_identity: venue-native and effective-dated
+    authorization: historical data and accounting only
+  - experiment_track_id: CRYPTO-RV-MULTIVENUE-CAPITAL-PATH
+    class: CONSTRUCTIVE_PUBLIC_READY_AFTER_QA
+    venues:
+    - Binance
+    - OKX
+    pair_rule:
+      same_underlying: true
+      settlement_and_margin_compatible: true
+      spot_short_not_assumed: true
+      both_legs_liquid: true
+      funding_and_fee_history_complete: true
+      rule_versions_complete: true
+    authorization: data and deterministic accounting only; no paper orders
+prohibited:
+- current constituents projected backward
+- delisted instruments removed without exit
+- future volume used for eligibility
+- current metadata applied historically
+- root ticker used as contract identity
+- generic continuous series used as executable PnL
+- public substitute labeled exact
