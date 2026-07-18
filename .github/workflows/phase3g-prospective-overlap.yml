@@ -36,8 +36,8 @@ jobs:
           set -euo pipefail
           semantic_root=/tmp/phase3g-semantic-root
           mkdir -p "$semantic_root"
-          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?status=success&per_page=100")
-          semantic_run_id=$(jq -r '[.workflow_runs[] | select(.name == "phase3e-longitudinal-events")][0].id // empty' <<<"$runs")
+          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/phase3e-longitudinal-events.yml/runs?status=success&per_page=20")
+          semantic_run_id=$(jq -r '.workflow_runs[0].id // empty' <<<"$runs")
           if [ -z "$semantic_run_id" ]; then
             echo "No successful Phase 3E longitudinal run was found." >&2
             exit 1
@@ -74,8 +74,8 @@ jobs:
           previous_artifact_id=""
           previous_artifact_digest=""
           trajectory_restored=false
-          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?status=success&per_page=100")
-          previous_run_id=$(jq -r --arg current "$GITHUB_RUN_ID" '[.workflow_runs[] | select(.name == "phase3g-prospective-overlap") | select((.id | tostring) != $current)][0].id // empty' <<<"$runs")
+          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/phase3g-prospective-overlap.yml/runs?status=success&per_page=20")
+          previous_run_id=$(jq -r --arg current "$GITHUB_RUN_ID" '[.workflow_runs[] | select((.id | tostring) != $current)][0].id // empty' <<<"$runs")
           if [ -n "$previous_run_id" ]; then
             artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${previous_run_id}/artifacts?per_page=100")
             artifact=$(jq -c '[.artifacts[] | select(.expired == false) | select(.name | startswith("phase3g-overlap-"))][0] // empty' <<<"$artifacts")
