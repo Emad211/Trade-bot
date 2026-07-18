@@ -100,6 +100,53 @@ The old Phase 3G workflow remains available for manual historical reproduction, 
 its weekly schedule is retired. `phase3i-diversified-overlap.yml` becomes the single
 scheduled overlap path and runs after the longitudinal collection window.
 
+## First exact-head result
+
+Workflow run `29646846973` completed successfully on source commit
+`1e3071d457173f2f6644f3beeaa04cccc0ae53b5`.
+
+- artifact ID: `8430291832`;
+- artifact digest:
+  `sha256:d87d626ff69a9f07181a8c029ce29650219ac1a91c2ca56b99dc0b3af3601bb0`;
+- semantic-state selection ID:
+  `654daecdeae606516b95214b5d2f3a85ad541a7a6365ec6d1b228d0c83a1d13b`;
+- source-health assessment ID:
+  `4f059fc5e01d082f6bb1c79e42cdfc0446d33dad3fed0b57bd9af52947895dc0`.
+
+The selector considered the newest successful Phase 3E and Phase 3H state artifacts
+and selected the later diversified Phase 3H artifact from run `29645401163`, artifact
+`8429886030`, with digest
+`sha256:ec077f99caadaa28fc3142a9482b4f6160f4a338759692341825719d241fad91`.
+
+The source-health gate passed:
+
+- document sources: 4;
+- semantic sources: 4;
+- semantic assets: BTC, ETH, and MARKET;
+- total documents: 38;
+- total semantic records: 12;
+- pending accepted documents: 26;
+- required/optional source failures: 0 / 0;
+- metadata-drift sources: 0;
+- zero-accepted sources receiving a call: 0.
+
+The current dataset contained 677 matured labeled rows and 11 relevant semantic
+records. Its maturity verdict remained `insufficient_prospective_sample` because the
+semantic-record, unique-availability-date, and active-window requirements were not yet
+met. Both target classes and the minimum labeled-row count were already present.
+
+Both trajectories advanced and independently verified:
+
+- Phase 3G trajectory count/head: `2` /
+  `e8e4cc89e20052b71a20b57c173a32c4e2e7e441feefb31d45f3be2a5d990c1f`;
+- Phase 3I trajectory count/head: `2` /
+  `93648d9f5fd2c1463767c6c7ef9b899045cc371f2afe678a67793a93dced7c82`.
+
+All 24 artifact checksum records, the canonical dataset hash, semantic-state selection
+and source-health hashes, and every Phase 3G/3I trajectory link were independently
+verified after artifact download. Compact evidence is committed under
+`research/runs/phase3i-overlap-29646846973/`.
+
 ## Safety boundary
 
 A passing Phase 3I result permits continued maturity monitoring only. Even if the
