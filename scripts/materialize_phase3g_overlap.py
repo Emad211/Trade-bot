@@ -15,14 +15,6 @@ def main() -> None:
     text = PATH.read_text(encoding="utf-8")
     text = replace_once(
         text,
-        "from hybrid_trader.data.snapshot import canonical_json_sha256, read_snapshot\n"
-        if "canonical_json_sha256" in text.split("\n", 20)[0:20]
-        else "from hybrid_trader.data.snapshot import read_snapshot\n",
-        "from hybrid_trader.data.snapshot import canonical_json_sha256, read_snapshot\n",
-        label="snapshot imports",
-    )
-    text = replace_once(
-        text,
         '''    spot_factory: SpotFactory | None = None,
     recorded_at: datetime | None = None,
 ) -> Phase3GOverlapManifest:
