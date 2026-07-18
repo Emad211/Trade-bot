@@ -1,5 +1,6 @@
 name: phase3h-avalai-pilot
 
+# Final bounded live pilot after full offline validation.
 on:
   workflow_dispatch:
   push:
