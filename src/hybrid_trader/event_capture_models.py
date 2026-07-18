@@ -14,7 +14,7 @@ from hybrid_trader.event_documents import FeedSourceSpec
 class EventCaptureSpec(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    schema_version: str = "1.2"
+    schema_version: str = "1.3"
     sources: tuple[FeedSourceSpec, ...]
     extractor: Literal["keyword_baseline", "avalai_structured"] = "keyword_baseline"
     timeout_seconds: int = Field(default=30, ge=1, le=300)
@@ -46,6 +46,8 @@ class SourceCaptureAttempt(BaseModel):
     duplicate_documents: int = Field(default=0, ge=0)
     skipped_documents: int = Field(default=0, ge=0)
     truncated_documents: int = Field(default=0, ge=0)
+    relevance_accepted_documents: int = Field(default=0, ge=0)
+    relevance_rejected_documents: int = Field(default=0, ge=0)
     warnings: tuple[str, ...] = ()
     error_type: str | None = None
     error_message: str | None = None
@@ -56,6 +58,15 @@ class SourceCaptureAttempt(BaseModel):
         if value.tzinfo is None:
             raise ValueError("Source attempt timestamps must be timezone-aware")
         return value.astimezone(UTC)
+
+    @model_validator(mode="after")
+    def validate_relevance_counts(self) -> SourceCaptureAttempt:
+        decided = self.relevance_accepted_documents + self.relevance_rejected_documents
+        if self.status == "success" and decided != self.parsed_documents:
+            raise ValueError("Source relevance counts must equal parsed_documents")
+        if self.status == "failed" and decided:
+            raise ValueError("Failed source cannot contain relevance decisions")
+        return self
 
 
 class RawPayloadRecord(BaseModel):
@@ -70,7 +81,7 @@ class RawPayloadRecord(BaseModel):
 class EventCaptureManifest(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    schema_version: str = "1.1"
+    schema_version: str = "1.2"
     capture_id: str = Field(pattern=r"^[0-9a-f]{64}$")
     status: Literal["success", "failed"]
     config_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
@@ -88,6 +99,13 @@ class EventCaptureManifest(BaseModel):
     recovered_semantic_record_count: int = Field(ge=0)
     semantic_ledger_head_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     cross_source_duplicate_content_count: int = Field(ge=0)
+    relevance_decision_count: int = Field(default=0, ge=0)
+    relevance_accepted_document_count: int = Field(default=0, ge=0)
+    relevance_rejected_document_count: int = Field(default=0, ge=0)
+    relevance_decisions_sha256: str | None = Field(
+        default=None,
+        pattern=r"^[0-9a-f]{64}$",
+    )
     extractor_model_id: str
     extractor_model_revision: str
     extractor_prompt_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
@@ -115,6 +133,14 @@ class EventCaptureManifest(BaseModel):
             raise ValueError("Successful captures cannot contain failure metadata")
         if self.status == "failed" and not self.failure_type:
             raise ValueError("Failed captures must record a failure_type")
+        if (
+            self.relevance_accepted_document_count
+            + self.relevance_rejected_document_count
+            != self.relevance_decision_count
+        ):
+            raise ValueError("Capture relevance counts do not reconcile")
+        if self.relevance_decision_count and self.relevance_decisions_sha256 is None:
+            raise ValueError("Capture relevance decisions require a checksum")
         return self
 
 
