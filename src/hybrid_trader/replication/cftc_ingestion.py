@@ -22,6 +22,7 @@ DEFAULT_LIMIT = 5000
 DEFAULT_USER_AGENT = (
     "Emad211-Trade-bot-replication/1.0 (+https://github.com/Emad211/Trade-bot)"
 )
+RAW_FILENAME = "tff_futures_only_2022-09-13.raw.json"
 
 REQUIRED_FIELDS = frozenset(
     {
@@ -122,6 +123,10 @@ def _as_int(row: Mapping[str, Any], field: str) -> int:
     return result
 
 
+def _first_order_inversions(ids: Sequence[str], *, limit: int = 5) -> list[tuple[str, str]]:
+    return [(left, right) for left, right in zip(ids, ids[1:]) if left > right][:limit]
+
+
 def parse_and_validate(raw_bytes: bytes, *, report_date: date = DEFAULT_REPORT_DATE) -> PilotValidation:
     """Parse and fail closed on identity, date, schema, and accounting defects."""
 
@@ -175,7 +180,11 @@ def parse_and_validate(raw_bytes: bytes, *, report_date: date = DEFAULT_REPORT_D
     if len(ids) != len(set(ids)):
         raise CFTCPilotError("Duplicate CFTC row ids detected")
     if ids != sorted(ids):
-        raise CFTCPilotError("Rows are not deterministically ordered by id")
+        inversions = _first_order_inversions(ids)
+        raise CFTCPilotError(
+            "Rows are not ordered under Python code-point collation; "
+            f"first adjacent inversions={inversions!r}"
+        )
 
     return PilotValidation(
         dataset_id=DATASET_ID,
@@ -204,6 +213,60 @@ def _atomic_write(path: Path, data: bytes) -> None:
         raise
 
 
+def _artifact_evidence(
+    *, artifact: HTTPArtifact, source_url: str, retrieved_at: datetime
+) -> dict[str, Any]:
+    return {
+        "source_id": "CFTC_TFF_FUTURES_ONLY",
+        "dataset_id": DATASET_ID,
+        "official_source_url": source_url,
+        "retrieved_at": retrieved_at.astimezone(UTC).isoformat(),
+        "http_status": artifact.status_code,
+        "content_type": artifact.content_type,
+        "etag": artifact.etag,
+        "last_modified": artifact.last_modified,
+        "raw_filename": RAW_FILENAME,
+        "byte_count": len(artifact.raw_bytes),
+        "sha256": hashlib.sha256(artifact.raw_bytes).hexdigest(),
+    }
+
+
+def write_validation_failure_bundle(
+    output_dir: Path,
+    *,
+    artifact: HTTPArtifact,
+    source_url: str,
+    retrieved_at: datetime,
+    error: CFTCPilotError,
+) -> dict[str, Any]:
+    """Quarantine downloaded official bytes when validation rejects them."""
+
+    if retrieved_at.tzinfo is None:
+        raise ValueError("retrieved_at must be timezone-aware")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    _atomic_write(output_dir / RAW_FILENAME, artifact.raw_bytes)
+    manifest: dict[str, Any] = {
+        "schema_version": "1.0",
+        **_artifact_evidence(
+            artifact=artifact,
+            source_url=source_url,
+            retrieved_at=retrieved_at,
+        ),
+        "validation_status": "FAILED_QUARANTINED",
+        "validation_error_type": type(error).__name__,
+        "validation_error": str(error),
+        "source_access_state": "RAW_ARTIFACT_ACQUIRED_VALIDATION_FAILED_QUARANTINED",
+        "artifact_audit_pass": False,
+        "paper_replication_pass": False,
+        "economic_edge_verdict": "INCONCLUSIVE",
+    }
+    _atomic_write(
+        output_dir / "validation-failure-manifest.json",
+        (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode("utf-8"),
+    )
+    return manifest
+
+
 def write_pilot_bundle(
     output_dir: Path,
     *,
@@ -217,12 +280,11 @@ def write_pilot_bundle(
     if retrieved_at.tzinfo is None:
         raise ValueError("retrieved_at must be timezone-aware")
     output_dir.mkdir(parents=True, exist_ok=True)
-    raw_path = output_dir / "tff_futures_only_2022-09-13.raw.json"
+    raw_path = output_dir / RAW_FILENAME
     validation_path = output_dir / "validation.json"
     manifest_path = output_dir / "acquisition-manifest.json"
     _atomic_write(raw_path, artifact.raw_bytes)
 
-    sha256 = hashlib.sha256(artifact.raw_bytes).hexdigest()
     validation_payload = asdict(validation)
     _atomic_write(
         validation_path,
@@ -230,18 +292,13 @@ def write_pilot_bundle(
     )
     manifest: dict[str, Any] = {
         "schema_version": "1.0",
-        "source_id": "CFTC_TFF_FUTURES_ONLY",
-        "dataset_id": DATASET_ID,
-        "official_source_url": source_url,
-        "retrieved_at": retrieved_at.astimezone(UTC).isoformat(),
-        "http_status": artifact.status_code,
-        "content_type": artifact.content_type,
-        "etag": artifact.etag,
-        "last_modified": artifact.last_modified,
-        "raw_filename": raw_path.name,
-        "byte_count": len(artifact.raw_bytes),
-        "sha256": sha256,
+        **_artifact_evidence(
+            artifact=artifact,
+            source_url=source_url,
+            retrieved_at=retrieved_at,
+        ),
         "validation": validation_payload,
+        "validation_status": "PASS",
         "source_access_state": "RAW_ARTIFACT_ACQUIRED_NOT_YET_ACTIONS_STAGED",
         "artifact_audit_pass": False,
         "paper_replication_pass": False,
@@ -265,7 +322,17 @@ def ingest_pilot(
     source_url = build_query_url(report_date=report_date)
     retrieved_at = datetime.now(UTC)
     artifact = fetch_official_bytes(source_url, app_token=app_token)
-    validation = parse_and_validate(artifact.raw_bytes, report_date=report_date)
+    try:
+        validation = parse_and_validate(artifact.raw_bytes, report_date=report_date)
+    except CFTCPilotError as exc:
+        write_validation_failure_bundle(
+            output_dir,
+            artifact=artifact,
+            source_url=source_url,
+            retrieved_at=retrieved_at,
+            error=exc,
+        )
+        raise
     return write_pilot_bundle(
         output_dir,
         artifact=artifact,
