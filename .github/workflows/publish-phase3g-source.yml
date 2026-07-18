@@ -1,5 +1,6 @@
 name: publish-phase3g-source
 
+# Trigger after workflow registration.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
