@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-PATH = Path("src/hybrid_trader/phase3g_overlap.py")
+OVERLAP_PATH = Path("src/hybrid_trader/phase3g_overlap.py")
+TRAJECTORY_PATH = Path("src/hybrid_trader/phase3g_trajectory.py")
 
 
 def replace_once(text: str, before: str, after: str, *, label: str) -> str:
@@ -11,8 +12,8 @@ def replace_once(text: str, before: str, after: str, *, label: str) -> str:
     return text.replace(before, after, 1)
 
 
-def main() -> None:
-    text = PATH.read_text(encoding="utf-8")
+def patch_overlap() -> None:
+    text = OVERLAP_PATH.read_text(encoding="utf-8")
     text = replace_once(
         text,
         '''    spot_factory: SpotFactory | None = None,
@@ -78,7 +79,38 @@ def main() -> None:
         "    trajectory_after = append_phase3g_trajectory(trajectory_ledger, entry)\n",
         label="trajectory append",
     )
-    PATH.write_text(text, encoding="utf-8")
+    OVERLAP_PATH.write_text(text, encoding="utf-8")
+
+
+def patch_trajectory() -> None:
+    text = TRAJECTORY_PATH.read_text(encoding="utf-8")
+    text = replace_once(
+        text,
+        '''    return Phase3GTrajectoryEntry(
+        entry_id=canonical_sha256(payload),
+        **payload,
+    )
+''',
+        '''    candidate = Phase3GTrajectoryEntry.model_construct(
+        entry_id="0" * 64,
+        **payload,
+    )
+    canonical_payload = trajectory_identity_payload(candidate)
+    return Phase3GTrajectoryEntry.model_validate(
+        {
+            **candidate.model_dump(mode="json"),
+            "entry_id": canonical_sha256(canonical_payload),
+        }
+    )
+''',
+        label="canonical trajectory hash construction",
+    )
+    TRAJECTORY_PATH.write_text(text, encoding="utf-8")
+
+
+def main() -> None:
+    patch_overlap()
+    patch_trajectory()
 
 
 if __name__ == "__main__":
