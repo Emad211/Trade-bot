@@ -26,7 +26,7 @@
     "check_suite_id": 80272929317,
     "check_suite_node_id": "CS_kwDOSjXKWc8AAAASsKOyJQ",
     "check_suite_url": "https://api.github.com/repos/Emad211/Trade-bot/check-suites/80272929317",
-    "conclusion": null,
+    "conclusion": "failure",
     "created_at": "2026-07-18T10:46:58Z",
     "display_title": "trigger Phase 3G source-only publisher",
     "event": "push",
@@ -196,7 +196,7 @@
     "run_attempt": 1,
     "run_number": 2,
     "run_started_at": "2026-07-18T10:46:58Z",
-    "status": "in_progress",
+    "status": "completed",
     "triggering_actor": {
       "avatar_url": "https://avatars.githubusercontent.com/u/82148680?v=4",
       "events_url": "https://api.github.com/users/Emad211/events{/privacy}",
@@ -218,7 +218,7 @@
       "url": "https://api.github.com/users/Emad211",
       "user_view_type": "public"
     },
-    "updated_at": "2026-07-18T10:47:01Z",
+    "updated_at": "2026-07-18T10:48:18Z",
     "url": "https://api.github.com/repos/Emad211/Trade-bot/actions/runs/29641423495",
     "workflow_id": 315672304,
     "workflow_url": "https://api.github.com/repos/Emad211/Trade-bot/actions/workflows/315672304"
@@ -235,11 +235,11 @@
       "head_sha": "e8007ca9c56ada77a043e68c41b961a98d64c366",
       "url": "https://api.github.com/repos/Emad211/Trade-bot/actions/jobs/88072490188",
       "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29641423495/job/88072490188",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "failure",
       "created_at": "2026-07-18T10:46:58Z",
       "started_at": "2026-07-18T10:47:00Z",
-      "completed_at": null,
+      "completed_at": "2026-07-18T10:48:17Z",
       "name": "publish",
       "steps": [
         {
@@ -268,43 +268,51 @@
         },
         {
           "name": "Apply validated workflow/source formatting in the workspace",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "number": 4,
           "started_at": "2026-07-18T10:47:04Z",
-          "completed_at": null
+          "completed_at": "2026-07-18T10:48:15Z"
         },
         {
           "name": "Commit source-only changes",
-          "status": "pending",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "failure",
           "number": 5,
-          "started_at": null,
-          "completed_at": null
+          "started_at": "2026-07-18T10:48:15Z",
+          "completed_at": "2026-07-18T10:48:15Z"
         },
         {
           "name": "Report source publication",
-          "status": "pending",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "skipped",
           "number": 6,
-          "started_at": null,
-          "completed_at": null
+          "started_at": "2026-07-18T10:48:15Z",
+          "completed_at": "2026-07-18T10:48:15Z"
         },
         {
           "name": "Post Run actions/setup-python@v5",
-          "status": "pending",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "skipped",
           "number": 11,
-          "started_at": null,
-          "completed_at": null
+          "started_at": "2026-07-18T10:48:15Z",
+          "completed_at": "2026-07-18T10:48:15Z"
         },
         {
           "name": "Post Run actions/checkout@v4",
-          "status": "pending",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "number": 12,
-          "started_at": null,
-          "completed_at": null
+          "started_at": "2026-07-18T10:48:15Z",
+          "completed_at": "2026-07-18T10:48:16Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-07-18T10:48:16Z",
+          "completed_at": "2026-07-18T10:48:16Z"
         }
       ],
       "check_run_url": "https://api.github.com/repos/Emad211/Trade-bot/check-runs/88072490188",
