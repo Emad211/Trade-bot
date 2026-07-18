@@ -1,5 +1,6 @@
 name: capture-phase3f-c1248-runs
 
+# Trigger after workflow registration.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
