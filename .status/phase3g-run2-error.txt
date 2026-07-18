@@ -1,0 +1,209 @@
+190:materialize	Install and validate Phase 3G	2026-07-18T10:24:59.2877822Z Found 4 errors (4 fixed, 0 remaining).
+191:materialize	Install and validate Phase 3G	2026-07-18T10:25:12.4757293Z src/hybrid_trader/phase3g_trajectory.py:127: error: Argument 2 to "model_construct" of "Phase3GTrajectoryEntry" has incompatible type "**dict[str, object]"; expected "set[str] | None"  [arg-type]
+192:materialize	Install and validate Phase 3G	2026-07-18T10:25:12.4759002Z src/hybrid_trader/phase3g_trajectory.py:127: error: Argument 2 to "model_construct" of "Phase3GTrajectoryEntry" has incompatible type "**dict[str, object]"; expected "str"  [arg-type]
+193:materialize	Install and validate Phase 3G	2026-07-18T10:25:12.4760601Z src/hybrid_trader/phase3g_trajectory.py:127: error: Argument 2 to "model_construct" of "Phase3GTrajectoryEntry" has incompatible type "**dict[str, object]"; expected "str | None"  [arg-type]
+194:materialize	Install and validate Phase 3G	2026-07-18T10:25:12.4762166Z src/hybrid_trader/phase3g_trajectory.py:127: error: Argument 2 to "model_construct" of "Phase3GTrajectoryEntry" has incompatible type "**dict[str, object]"; expected "datetime"  [arg-type]
+195:materialize	Install and validate Phase 3G	2026-07-18T10:25:12.4764045Z src/hybrid_trader/phase3g_trajectory.py:127: error: Argument 2 to "model_construct" of "Phase3GTrajectoryEntry" has incompatible type "**dict[str, object]"; expected "int"  [arg-type]
+196:materialize	Install and validate Phase 3G	2026-07-18T10:25:12.4766214Z src/hybrid_trader/phase3g_trajectory.py:127: error: Argument 2 to "model_construct" of "Phase3GTrajectoryEntry" has incompatible type "**dict[str, object]"; expected "Literal['mature_for_research', 'insufficient_prospective_sample']"  [arg-type]
+197:materialize	Install and validate Phase 3G	2026-07-18T10:25:12.4767850Z src/hybrid_trader/phase3g_trajectory.py:127: error: Argument 2 to "model_construct" of "Phase3GTrajectoryEntry" has incompatible type "**dict[str, object]"; expected "bool"  [arg-type]
+198:materialize	Install and validate Phase 3G	2026-07-18T10:25:12.5960226Z Found 7 errors in 1 file (checked 74 source files)
+=== tail ===
+materialize	Install and validate Phase 3G	﻿2026-07-18T10:24:26.1884372Z ##[group]Run python -m pip install -e '.[dev,ml]'
+materialize	Install and validate Phase 3G	2026-07-18T10:24:26.1884831Z ^[[36;1mpython -m pip install -e '.[dev,ml]'^[[0m
+materialize	Install and validate Phase 3G	2026-07-18T10:24:26.1885818Z ^[[36;1mruff format src/hybrid_trader/phase3g_market.py src/hybrid_trader/phase3g_trajectory.py src/hybrid_trader/phase3g_overlap.py tests/test_phase3g_market.py tests/test_phase3g_trajectory.py tests/test_phase3g_overlap.py^[[0m
+materialize	Install and validate Phase 3G	2026-07-18T10:24:26.1887367Z ^[[36;1mruff check --fix src/hybrid_trader/phase3g_market.py src/hybrid_trader/phase3g_trajectory.py src/hybrid_trader/phase3g_overlap.py tests/test_phase3g_market.py tests/test_phase3g_trajectory.py tests/test_phase3g_overlap.py^[[0m
+materialize	Install and validate Phase 3G	2026-07-18T10:24:26.1888317Z ^[[36;1mmypy --python-version 3.12 src^[[0m
+materialize	Install and validate Phase 3G	2026-07-18T10:24:26.1888842Z ^[[36;1mpytest tests/test_phase3g_market.py tests/test_phase3g_trajectory.py tests/test_phase3g_overlap.py -q^[[0m
+materialize	Install and validate Phase 3G	2026-07-18T10:24:26.1889375Z ^[[36;1mpytest -m 'not optional_ml' -q^[[0m
+materialize	Install and validate Phase 3G	2026-07-18T10:24:26.1889656Z ^[[36;1mpytest -m optional_ml -q^[[0m
+materialize	Install and validate Phase 3G	2026-07-18T10:24:26.1889920Z ^[[36;1mpython -m pip check^[[0m
+materialize	Install and validate Phase 3G	2026-07-18T10:24:26.1945479Z shell: /usr/bin/bash -e {0}
+materialize	Install and validate Phase 3G	2026-07-18T10:24:26.1945775Z env:
+materialize	Install and validate Phase 3G	2026-07-18T10:24:26.1946044Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+materialize	Install and validate Phase 3G	2026-07-18T10:24:26.1946487Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+materialize	Install and validate Phase 3G	2026-07-18T10:24:26.1946924Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+materialize	Install and validate Phase 3G	2026-07-18T10:24:26.1947306Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+materialize	Install and validate Phase 3G	2026-07-18T10:24:26.1947682Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+materialize	Install and validate Phase 3G	2026-07-18T10:24:26.1948074Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+materialize	Install and validate Phase 3G	2026-07-18T10:24:26.1948395Z ##[endgroup]
+materialize	Install and validate Phase 3G	2026-07-18T10:24:26.7605420Z Obtaining file:///home/runner/work/Trade-bot/Trade-bot
+materialize	Install and validate Phase 3G	2026-07-18T10:24:26.7625839Z   Installing build dependencies: started
+materialize	Install and validate Phase 3G	2026-07-18T10:24:27.3537564Z   Installing build dependencies: finished with status 'done'
+materialize	Install and validate Phase 3G	2026-07-18T10:24:27.3543053Z   Checking if build backend supports build_editable: started
+materialize	Install and validate Phase 3G	2026-07-18T10:24:27.4028551Z   Checking if build backend supports build_editable: finished with status 'done'
+materialize	Install and validate Phase 3G	2026-07-18T10:24:27.4036549Z   Getting requirements to build editable: started
+materialize	Install and validate Phase 3G	2026-07-18T10:24:27.5530399Z   Getting requirements to build editable: finished with status 'done'
+materialize	Install and validate Phase 3G	2026-07-18T10:24:27.5546676Z   Preparing editable metadata (pyproject.toml): started
+materialize	Install and validate Phase 3G	2026-07-18T10:24:27.7642099Z   Preparing editable metadata (pyproject.toml): finished with status 'done'
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.0788476Z Collecting numpy<3,>=1.26 (from hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.0802923Z   Using cached numpy-2.5.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (6.6 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.1981754Z Collecting pandas<3,>=2.2 (from hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.2004681Z   Using cached pandas-2.3.3-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (91 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.3425570Z Collecting pydantic<3,>=2.8 (from hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.3438614Z   Using cached pydantic-2.13.4-py3-none-any.whl.metadata (109 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.3957544Z Collecting pyyaml<7,>=6.0 (from hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.3969705Z   Using cached pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.4388138Z Collecting rich<15,>=13.7 (from hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.4400341Z   Using cached rich-14.3.4-py3-none-any.whl.metadata (18 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.5301619Z Collecting scikit-learn<2,>=1.5 (from hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.5316069Z   Using cached scikit_learn-1.9.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (11 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.5822784Z Collecting typer<1,>=0.12 (from hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.6298287Z   Downloading typer-0.27.0-py3-none-any.whl.metadata (15 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.7460391Z Collecting mypy<2,>=1.11 (from hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.7474125Z   Using cached mypy-1.20.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.7857951Z Collecting pandas-stubs>=2.2 (from hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.7870189Z   Using cached pandas_stubs-3.0.3.260530-py3-none-any.whl.metadata (11 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.8164027Z Collecting pytest-cov<8,>=5 (from hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.8193059Z   Downloading pytest_cov-7.1.0-py3-none-any.whl.metadata (32 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.8685957Z Collecting pytest<10,>=8.3 (from hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:28.8717433Z   Downloading pytest-9.1.1-py3-none-any.whl.metadata (7.6 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.2993243Z Collecting ruff<1,>=0.8 (from hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.3023077Z   Downloading ruff-0.15.22-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (26 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.3408887Z Collecting types-pyyaml>=6.0 (from hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.3421242Z   Using cached types_pyyaml-6.0.12.20260518-py3-none-any.whl.metadata (1.7 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.4290909Z Collecting catboost<2,>=1.2 (from hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.4324380Z   Downloading catboost-1.2.10-cp312-cp312-manylinux2014_x86_64.whl.metadata (1.2 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.4675445Z Collecting lightgbm<5,>=4.5 (from hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.4709968Z   Downloading lightgbm-4.6.0-py3-none-manylinux_2_28_x86_64.whl.metadata (17 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.5066469Z Collecting graphviz (from catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.5094551Z   Downloading graphviz-0.21-py3-none-any.whl.metadata (12 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.6537007Z Collecting matplotlib (from catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.6570185Z   Downloading matplotlib-3.11.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (80 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.8107255Z Collecting scipy (from catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.8120702Z   Using cached scipy-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (62 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.8715357Z Collecting plotly (from catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.8744657Z   Downloading plotly-6.9.0-py3-none-any.whl.metadata (9.0 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.9104160Z Collecting six (from catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.9116862Z   Using cached six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.9449244Z Collecting typing_extensions>=4.6.0 (from mypy<2,>=1.11->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.9461551Z   Using cached typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.9709470Z Collecting mypy_extensions>=1.0.0 (from mypy<2,>=1.11->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.9722080Z   Using cached mypy_extensions-1.1.0-py3-none-any.whl.metadata (1.1 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:29.9989705Z Collecting pathspec>=1.0.0 (from mypy<2,>=1.11->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:30.0002179Z   Using cached pathspec-1.1.1-py3-none-any.whl.metadata (14 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:30.1460580Z Collecting librt>=0.8.0 (from mypy<2,>=1.11->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:30.1475342Z   Using cached librt-0.13.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (1.3 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:30.1759699Z Collecting python-dateutil>=2.8.2 (from pandas<3,>=2.2->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:30.1771743Z   Using cached python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:30.2249241Z Collecting pytz>=2020.1 (from pandas<3,>=2.2->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:30.2261640Z   Using cached pytz-2026.2-py2.py3-none-any.whl.metadata (22 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:30.2555839Z Collecting tzdata>=2022.7 (from pandas<3,>=2.2->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:30.2568011Z   Using cached tzdata-2026.3-py2.py3-none-any.whl.metadata (1.4 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:30.2828463Z Collecting annotated-types>=0.6.0 (from pydantic<3,>=2.8->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:30.2840545Z   Using cached annotated_types-0.7.0-py3-none-any.whl.metadata (15 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:30.9467626Z Collecting pydantic-core==2.46.4 (from pydantic<3,>=2.8->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:30.9482096Z   Using cached pydantic_core-2.46.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.6 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:30.9745329Z Collecting typing-inspection>=0.4.2 (from pydantic<3,>=2.8->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:30.9757699Z   Using cached typing_inspection-0.4.2-py3-none-any.whl.metadata (2.6 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.0020411Z Collecting iniconfig>=1.0.1 (from pytest<10,>=8.3->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.0032703Z   Using cached iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.0325895Z Collecting packaging>=22 (from pytest<10,>=8.3->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.0338161Z   Using cached packaging-26.2-py3-none-any.whl.metadata (3.5 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.0606820Z Collecting pluggy<2,>=1.5 (from pytest<10,>=8.3->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.0619460Z   Using cached pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.0939742Z Collecting pygments>=2.7.2 (from pytest<10,>=8.3->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.0951734Z   Using cached pygments-2.20.0-py3-none-any.whl.metadata (2.5 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.4740209Z Collecting coverage>=7.10.6 (from coverage[toml]>=7.10.6->pytest-cov<8,>=5->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.4774871Z   Downloading coverage-7.15.2-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (8.6 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.5128532Z Collecting markdown-it-py>=2.2.0 (from rich<15,>=13.7->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.5140868Z   Using cached markdown_it_py-4.2.0-py3-none-any.whl.metadata (7.4 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.5572292Z Collecting joblib>=1.4.0 (from scikit-learn<2,>=1.5->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.5584264Z   Using cached joblib-1.5.3-py3-none-any.whl.metadata (5.5 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.6040654Z Collecting narwhals>=2.0.1 (from scikit-learn<2,>=1.5->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.6052285Z   Using cached narwhals-2.24.0-py3-none-any.whl.metadata (15 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.6343979Z Collecting threadpoolctl>=3.5.0 (from scikit-learn<2,>=1.5->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.6355925Z   Using cached threadpoolctl-3.6.0-py3-none-any.whl.metadata (13 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.6635039Z Collecting shellingham>=1.3.0 (from typer<1,>=0.12->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.6646647Z   Using cached shellingham-1.5.4-py2.py3-none-any.whl.metadata (3.5 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.6912920Z Collecting annotated-doc>=0.0.2 (from typer<1,>=0.12->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.6924731Z   Using cached annotated_doc-0.0.4-py3-none-any.whl.metadata (6.6 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.7212073Z Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich<15,>=13.7->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.7223852Z   Using cached mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.8136854Z Collecting contourpy>=1.0.1 (from matplotlib->catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.8164995Z   Downloading contourpy-1.3.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (5.5 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.8454558Z Collecting cycler>=0.10 (from matplotlib->catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:31.8483222Z   Downloading cycler-0.12.1-py3-none-any.whl.metadata (3.8 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:32.0307666Z Collecting fonttools>=4.28.2 (from matplotlib->catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:32.0339211Z   Downloading fonttools-4.63.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (118 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:32.1197751Z Collecting kiwisolver>=1.3.1 (from matplotlib->catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:32.1225963Z   Downloading kiwisolver-1.5.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (5.1 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:32.2979749Z Collecting pillow>=9 (from matplotlib->catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:32.3010384Z   Downloading pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (9.1 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:32.3432135Z Collecting pyparsing>=3 (from matplotlib->catboost<2,>=1.2->hybrid-trader==0.2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:32.3460650Z   Downloading pyparsing-3.3.2-py3-none-any.whl.metadata (5.8 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:32.3633752Z Downloading catboost-1.2.10-cp312-cp312-manylinux2014_x86_64.whl (97.1 MB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.5995751Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 97.1/97.1 MB 78.7 MB/s  0:00:01
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.6032589Z Downloading lightgbm-4.6.0-py3-none-manylinux_2_28_x86_64.whl (3.6 MB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.6229768Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.6/3.6 MB 195.7 MB/s  0:00:00
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.6242944Z Using cached mypy-1.20.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (14.7 MB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.6311873Z Using cached numpy-2.5.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.7 MB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.6386421Z Using cached pandas-2.3.3-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (12.4 MB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.6446452Z Using cached pydantic-2.13.4-py3-none-any.whl (472 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.6460175Z Using cached pydantic_core-2.46.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.6499217Z Downloading pytest-9.1.1-py3-none-any.whl (386 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.6543995Z Using cached pluggy-1.6.0-py3-none-any.whl (20 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.6571631Z Downloading pytest_cov-7.1.0-py3-none-any.whl (22 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.6604499Z Using cached pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (807 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.6618960Z Using cached rich-14.3.4-py3-none-any.whl (310 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.6631654Z Using cached pygments-2.20.0-py3-none-any.whl (1.2 MB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.6666366Z Downloading ruff-0.15.22-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (11.4 MB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7018525Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 11.4/11.4 MB 341.6 MB/s  0:00:00
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7031707Z Using cached scikit_learn-1.9.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (9.1 MB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7094125Z Downloading typer-0.27.0-py3-none-any.whl (122 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7130531Z Using cached annotated_doc-0.0.4-py3-none-any.whl (5.3 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7141945Z Using cached annotated_types-0.7.0-py3-none-any.whl (13 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7170199Z Downloading coverage-7.15.2-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (256 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7211276Z Using cached iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7222630Z Using cached joblib-1.5.3-py3-none-any.whl (309 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7235882Z Using cached librt-0.13.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (531 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7248987Z Using cached markdown_it_py-4.2.0-py3-none-any.whl (91 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7260522Z Using cached mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7271845Z Using cached mypy_extensions-1.1.0-py3-none-any.whl (5.0 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7283256Z Using cached narwhals-2.24.0-py3-none-any.whl (461 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7296463Z Using cached packaging-26.2-py3-none-any.whl (100 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7308100Z Using cached pandas_stubs-3.0.3.260530-py3-none-any.whl (173 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7319652Z Using cached pathspec-1.1.1-py3-none-any.whl (57 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7334380Z Using cached python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7347087Z Using cached pytz-2026.2-py2.py3-none-any.whl (510 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7361093Z Using cached scipy-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (35.3 MB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7502754Z Using cached shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7514624Z Using cached six-1.17.0-py2.py3-none-any.whl (11 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7526388Z Using cached threadpoolctl-3.6.0-py3-none-any.whl (18 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7538432Z Using cached types_pyyaml-6.0.12.20260518-py3-none-any.whl (20 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7550469Z Using cached typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7562457Z Using cached typing_inspection-0.4.2-py3-none-any.whl (14 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7574294Z Using cached tzdata-2026.3-py2.py3-none-any.whl (348 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7606804Z Downloading graphviz-0.21-py3-none-any.whl (47 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.7661111Z Downloading matplotlib-3.11.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (10.0 MB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.8218446Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.0/10.0 MB 189.1 MB/s  0:00:00
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.8248445Z Downloading contourpy-1.3.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (362 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.8310168Z Downloading cycler-0.12.1-py3-none-any.whl (8.3 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.8514486Z Downloading fonttools-4.63.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (5.0 MB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.8725531Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.0/5.0 MB 259.9 MB/s  0:00:00
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.8756112Z Downloading kiwisolver-1.5.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (1.5 MB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.8865821Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.5/1.5 MB 171.4 MB/s  0:00:00
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.8897113Z Downloading pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (6.9 MB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.9150733Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.9/6.9 MB 292.2 MB/s  0:00:00
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.9180026Z Downloading pyparsing-3.3.2-py3-none-any.whl (122 kB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:33.9232076Z Downloading plotly-6.9.0-py3-none-any.whl (9.9 MB)
+materialize	Install and validate Phase 3G	2026-07-18T10:24:34.0732786Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 9.9/9.9 MB 66.2 MB/s  0:00:00
+materialize	Install and validate Phase 3G	2026-07-18T10:24:34.3321617Z Building wheels for collected packages: hybrid-trader
+materialize	Install and validate Phase 3G	2026-07-18T10:24:34.3331813Z   Building editable for hybrid-trader (pyproject.toml): started
+materialize	Install and validate Phase 3G	2026-07-18T10:24:34.3687289Z   Building editable for hybrid-trader (pyproject.toml): finished with status 'done'
+materialize	Install and validate Phase 3G	2026-07-18T10:24:34.3693217Z   Created wheel for hybrid-trader: filename=hybrid_trader-0.2.0-py3-none-any.whl size=10670 sha256=20529b5d891fe4e0848047b920cbc81b606a61871ab511e76f5e3a733e024b22
+materialize	Install and validate Phase 3G	2026-07-18T10:24:34.3695567Z   Stored in directory: /tmp/pip-ephem-wheel-cache-6xizt39b/wheels/89/8e/db/230672a5aba40d3707ad89333259c67c18a35c997ef208082b
+materialize	Install and validate Phase 3G	2026-07-18T10:24:34.3718888Z Successfully built hybrid-trader
+materialize	Install and validate Phase 3G	2026-07-18T10:24:34.5340166Z Installing collected packages: pytz, tzdata, typing_extensions, types-pyyaml, threadpoolctl, six, shellingham, ruff, pyyaml, pyparsing, pygments, pluggy, pillow, pathspec, packaging, numpy, narwhals, mypy_extensions, mdurl, librt, kiwisolver, joblib, iniconfig, graphviz, fonttools, cycler, coverage, annotated-types, annotated-doc, typing-inspection, scipy, python-dateutil, pytest, pydantic-core, plotly, pandas-stubs, mypy, markdown-it-py, contourpy, scikit-learn, rich, pytest-cov, pydantic, pandas, matplotlib, lightgbm, typer, catboost, hybrid-trader
+materialize	Install and validate Phase 3G	2026-07-18T10:24:59.0758007Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:24:59.0803736Z Successfully installed annotated-doc-0.0.4 annotated-types-0.7.0 catboost-1.2.10 contourpy-1.3.3 coverage-7.15.2 cycler-0.12.1 fonttools-4.63.0 graphviz-0.21 hybrid-trader-0.2.0 iniconfig-2.3.0 joblib-1.5.3 kiwisolver-1.5.0 librt-0.13.0 lightgbm-4.6.0 markdown-it-py-4.2.0 matplotlib-3.11.1 mdurl-0.1.2 mypy-1.20.2 mypy_extensions-1.1.0 narwhals-2.24.0 numpy-2.5.1 packaging-26.2 pandas-2.3.3 pandas-stubs-3.0.3.260530 pathspec-1.1.1 pillow-12.3.0 plotly-6.9.0 pluggy-1.6.0 pydantic-2.13.4 pydantic-core-2.46.4 pygments-2.20.0 pyparsing-3.3.2 pytest-9.1.1 pytest-cov-7.1.0 python-dateutil-2.9.0.post0 pytz-2026.2 pyyaml-6.0.3 rich-14.3.4 ruff-0.15.22 scikit-learn-1.9.0 scipy-1.18.0 shellingham-1.5.4 six-1.17.0 threadpoolctl-3.6.0 typer-0.27.0 types-pyyaml-6.0.12.20260518 typing-inspection-0.4.2 typing_extensions-4.16.0 tzdata-2026.3
+materialize	Install and validate Phase 3G	2026-07-18T10:24:59.2791637Z 6 files left unchanged
+materialize	Install and validate Phase 3G	2026-07-18T10:24:59.2877822Z Found 4 errors (4 fixed, 0 remaining).
+materialize	Install and validate Phase 3G	2026-07-18T10:25:12.4757293Z src/hybrid_trader/phase3g_trajectory.py:127: error: Argument 2 to "model_construct" of "Phase3GTrajectoryEntry" has incompatible type "**dict[str, object]"; expected "set[str] | None"  [arg-type]
+materialize	Install and validate Phase 3G	2026-07-18T10:25:12.4759002Z src/hybrid_trader/phase3g_trajectory.py:127: error: Argument 2 to "model_construct" of "Phase3GTrajectoryEntry" has incompatible type "**dict[str, object]"; expected "str"  [arg-type]
+materialize	Install and validate Phase 3G	2026-07-18T10:25:12.4760601Z src/hybrid_trader/phase3g_trajectory.py:127: error: Argument 2 to "model_construct" of "Phase3GTrajectoryEntry" has incompatible type "**dict[str, object]"; expected "str | None"  [arg-type]
+materialize	Install and validate Phase 3G	2026-07-18T10:25:12.4762166Z src/hybrid_trader/phase3g_trajectory.py:127: error: Argument 2 to "model_construct" of "Phase3GTrajectoryEntry" has incompatible type "**dict[str, object]"; expected "datetime"  [arg-type]
+materialize	Install and validate Phase 3G	2026-07-18T10:25:12.4764045Z src/hybrid_trader/phase3g_trajectory.py:127: error: Argument 2 to "model_construct" of "Phase3GTrajectoryEntry" has incompatible type "**dict[str, object]"; expected "int"  [arg-type]
+materialize	Install and validate Phase 3G	2026-07-18T10:25:12.4766214Z src/hybrid_trader/phase3g_trajectory.py:127: error: Argument 2 to "model_construct" of "Phase3GTrajectoryEntry" has incompatible type "**dict[str, object]"; expected "Literal['mature_for_research', 'insufficient_prospective_sample']"  [arg-type]
+materialize	Install and validate Phase 3G	2026-07-18T10:25:12.4767850Z src/hybrid_trader/phase3g_trajectory.py:127: error: Argument 2 to "model_construct" of "Phase3GTrajectoryEntry" has incompatible type "**dict[str, object]"; expected "bool"  [arg-type]
+materialize	Install and validate Phase 3G	2026-07-18T10:25:12.5960226Z Found 7 errors in 1 file (checked 74 source files)
+materialize	Install and validate Phase 3G	2026-07-18T10:25:12.6228627Z ##[error]Process completed with exit code 1.
