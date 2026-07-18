@@ -34,7 +34,7 @@ class InstrumentVersion(BaseModel):
     lot_size: float = Field(gt=0)
 
     @model_validator(mode="after")
-    def validate_interval(self) -> "InstrumentVersion":
+    def validate_interval(self) -> InstrumentVersion:
         if self.effective_to is not None and self.effective_to <= self.effective_from:
             raise ValueError("effective_to must follow effective_from")
         return self
@@ -92,7 +92,7 @@ class LinearTwoLegInput(BaseModel):
     venue_haircut: float = Field(default=0.0, ge=0)
 
     @model_validator(mode="after")
-    def validate_side(self) -> "LinearTwoLegInput":
+    def validate_side(self) -> LinearTwoLegInput:
         if self.derivative_side not in {-1, 1}:
             raise ValueError("derivative_side must be -1 or 1")
         return self
