@@ -1,0 +1,57 @@
+name: publish-phase3g-source
+
+on:
+  push:
+    branches: ["agent/phase3c-hardening-runner"]
+    paths:
+      - ".github/workflows/publish-phase3g-source.yml"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase-3g-prospective-overlap
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Apply validated workflow/source formatting in the workspace
+        run: |
+          python scripts/materialize_phase3g_workflow.py
+          python -m pip install -e '.[dev,ml]'
+          ruff format scripts/run_phase3g_overlap.py src/hybrid_trader/phase3g_market.py src/hybrid_trader/phase3g_trajectory.py src/hybrid_trader/phase3g_overlap.py tests/test_phase3g_market.py tests/test_phase3g_trajectory.py tests/test_phase3g_overlap.py
+          ruff check --fix scripts/run_phase3g_overlap.py src/hybrid_trader/phase3g_market.py src/hybrid_trader/phase3g_trajectory.py src/hybrid_trader/phase3g_overlap.py tests/test_phase3g_market.py tests/test_phase3g_trajectory.py tests/test_phase3g_overlap.py
+          mypy --python-version 3.12 src
+          pytest tests/test_phase3g_market.py tests/test_phase3g_trajectory.py tests/test_phase3g_overlap.py -q
+          pytest -m 'not optional_ml' -q
+          pytest -m optional_ml -q
+          python -m pip check
+      - name: Commit source-only changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f scripts/materialize_phase3g_workflow.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add configs/phase3g_market_overlap.yaml scripts/run_phase3g_overlap.py src/hybrid_trader/phase3g_market.py src/hybrid_trader/phase3g_trajectory.py src/hybrid_trader/phase3g_overlap.py tests/test_phase3g_market.py tests/test_phase3g_trajectory.py tests/test_phase3g_overlap.py
+          git add -A scripts/materialize_phase3g_workflow.py
+          if git diff --cached --quiet; then
+            echo "No source-only changes require publication."
+          else
+            git commit -m "add validated Phase 3G overlap source"
+            git push origin HEAD:agent/phase-3g-prospective-overlap
+          fi
+      - name: Report source publication
+        run: |
+          gh pr comment 35 --repo "$GITHUB_REPOSITORY" --body \
+            "Phase 3G source, CLI, Ruff formatting, strict Mypy, targeted tests, complete core tests and optional ML tests passed. Source-only changes were published without attempting a workflow mutation. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
