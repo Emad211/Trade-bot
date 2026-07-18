@@ -1,0 +1,55 @@
+name: Replication Integrity
+
+on:
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - "src/hybrid_trader/replication/**"
+      - "tests/test_replication_*.py"
+      - "docs/research/edge-discovery/02-replication/**"
+      - "pyproject.toml"
+      - ".github/workflows/replication-integrity.yml"
+  pull_request:
+    paths:
+      - "src/hybrid_trader/replication/**"
+      - "tests/test_replication_*.py"
+      - "docs/research/edge-discovery/02-replication/**"
+      - "pyproject.toml"
+      - ".github/workflows/replication-integrity.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replication-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install project and verification dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev,replication]"
+
+      - name: Ruff
+        run: python -m ruff check src/hybrid_trader/replication tests/test_replication_*.py
+
+      - name: Mypy
+        run: python -m mypy src/hybrid_trader/replication
+
+      - name: Replication tests and coverage
+        run: |
+          python -m pytest -q tests/test_replication_*.py \
+            --cov=hybrid_trader.replication \
+            --cov-report=term-missing \
+            --cov-fail-under=80
