@@ -1,6 +1,6 @@
 name: phase3i-materialize
 
-# Trigger after workflow registration.
+# Publish validated source/test changes only; workflow changes use the connector.
 on:
   push:
     branches: ["agent/phase-3i-state-lineage"]
@@ -57,15 +57,23 @@ jobs:
           pytest -m 'not optional_ml' -q
           pytest -m optional_ml -q
           python -m pip check
-      - name: Remove one-time files and commit
+      - name: Commit validated source and tests
         shell: bash
         run: |
           set -euo pipefail
-          rm -f \
-            scripts/materialize_phase3i_schedule.py \
-            .github/workflows/phase3i-materialize.yml
+          git checkout -- .github/workflows/phase3g-prospective-overlap.yml
+          rm -f scripts/materialize_phase3i_schedule.py
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
+          git add \
+            scripts/select_phase3i_semantic_state.py \
+            scripts/assess_phase3i_state.py \
+            src/hybrid_trader/phase3i_lineage.py \
+            src/hybrid_trader/phase3i_health.py \
+            src/hybrid_trader/phase3i_trajectory.py \
+            tests/test_phase3i_lineage.py \
+            tests/test_phase3i_health.py \
+            tests/test_phase3i_trajectory.py
+          git add -A scripts/materialize_phase3i_schedule.py
           git commit -m "add Phase 3I semantic state lineage and source health"
           git push origin HEAD:agent/phase-3i-state-lineage
