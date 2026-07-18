@@ -14,6 +14,13 @@ from hybrid_trader.event_source_spec import FeedRelevanceSpec
 from hybrid_trader.prospective_document import DocumentEnvelope
 
 _WHITESPACE = re.compile(r"\s+")
+RelevanceReason = Literal[
+    "accepted_no_filter",
+    "accepted_include_match",
+    "accepted_no_include_terms",
+    "rejected_excluded_term",
+    "rejected_missing_include_term",
+]
 
 
 class RelevanceDecision(BaseModel):
@@ -27,13 +34,7 @@ class RelevanceDecision(BaseModel):
     source_id: str
     policy_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     accepted: bool
-    reason: Literal[
-        "accepted_no_filter",
-        "accepted_include_match",
-        "accepted_no_include_terms",
-        "rejected_excluded_term",
-        "rejected_missing_include_term",
-    ]
+    reason: RelevanceReason
     matched_include_terms: tuple[str, ...] = ()
     matched_exclude_terms: tuple[str, ...] = ()
 
@@ -86,7 +87,7 @@ def _decision(
     *,
     policy_sha256: str,
     accepted: bool,
-    reason: RelevanceDecision.__annotations__["reason"],
+    reason: RelevanceReason,
     matched_include_terms: tuple[str, ...] = (),
     matched_exclude_terms: tuple[str, ...] = (),
 ) -> RelevanceDecision:
