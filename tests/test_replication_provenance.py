@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
-
 from hybrid_trader.replication.artifacts import sha256_file
 from hybrid_trader.replication.provenance import ArtifactProvenance, SourceAccessStatus
 from hybrid_trader.replication.runner import run_aqr_vintage_audit
