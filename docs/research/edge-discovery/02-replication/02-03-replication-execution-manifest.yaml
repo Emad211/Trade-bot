@@ -1,4 +1,4 @@
-schema_version: "1.1"
+schema_version: "1.2"
 document:
   id: "REPLICATION-EXECUTION-2.3"
   title: "Controlled Empirical and Code Replication"
@@ -8,6 +8,7 @@ document:
   branch: "agent/edge-research-reports"
   human_report: "02-03-controlled-empirical-and-code-replication.md"
   independent_verification_log: "02-03-independent-reality-verification-log.md"
+  static_analysis_report: "02-03-static-analysis-and-test-verification.md"
   parent_contract: "02-02-data-contract-manifest.yaml"
   next_report: "02-04-sensitivity-cost-failure-disagreement-analysis.md"
 
@@ -45,17 +46,35 @@ verification:
     failed: 0
     duration_seconds: 0.13
     compileall: "PASS"
-  hardened_provenance_run:
-    pytest_result: "PASS"
-    passed: 15
-    failed: 0
-    duration_seconds: 0.14
+  hardened_local_verification:
+    test_data_class: "CONTROLLED_SYNTHETIC_FIXTURES"
+    ruff:
+      version: "0.15.22"
+      selection: ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+      ignored: ["E501"]
+      result: "PASS"
+    mypy:
+      version: "2.3.0"
+      mode: "STRICT_IGNORE_MISSING_IMPORTS"
+      result: "PASS"
+      source_files_checked: 9
+    pytest:
+      version: "9.0.2"
+      result: "PASS"
+      passed: 15
+      failed: 0
+    coverage:
+      scope: "hybrid_trader.replication"
+      statement_percent: 85.44
+      minimum_percent: 80.0
+      result: "PASS"
     compileall: "PASS"
-  static_analysis:
-    ruff: "NOT_RUN_TOOL_UNAVAILABLE"
-    mypy: "NOT_RUN_TOOL_UNAVAILABLE"
   github_ci:
-    status: "NO_STATUS_REPORTED"
+    workflow: ".github/workflows/replication-integrity.yml"
+    workflow_file_committed: true
+    workflow_run_observed: false
+    combined_status: "EMPTY"
+    verdict: "UNVERIFIED"
   empirical_claim_authorized: false
 
 source_access_states:
@@ -78,18 +97,40 @@ hardening_changes:
   - id: "R23-HARDEN-003"
     defect: "mixed monthly parsing emitted ambiguous inference warnings"
     correction: "parse YYYYMM and mixed date formats through explicit branches"
+  - id: "R23-HARDEN-004"
+    defect: "strict typing identified seven pandas and column-label type errors"
+    correction: "resolved all errors without type-ignore escapes"
+  - id: "R23-HARDEN-005"
+    defect: "project Ruff rules identified import, annotation, and simplification violations"
+    correction: "resolved all reported violations under repository lint selection"
 
 current_hardened_files:
+  - path: "src/hybrid_trader/replication/__init__.py"
+    sha256_verified_local: "954f6ee2f7f9d5657e1dd2be146146b9dfb518979440d7a08ab5194ae41b895a"
   - path: "src/hybrid_trader/replication/artifacts.py"
-    sha256_verified_local: "9276caee42299cfcd94b669d6dbfeeb0fd73a4c8181b4194f468cbf08200b239"
+    sha256_verified_local: "572c8c28bfaba50e8b4b9b7cc3be9fa1a0ff6c29edb3529d732bca61700f194f"
+  - path: "src/hybrid_trader/replication/crypto.py"
+    sha256_verified_local: "bab63c3a9ce643de3b0f890afc4764398b30e8191ad592654ece808dd266893b"
+  - path: "src/hybrid_trader/replication/factor_audit.py"
+    sha256_verified_local: "84b4f1502969f6c9b4b49f472682be92bf1738f56e78a3414e8d3ebf29698cbc"
+  - path: "src/hybrid_trader/replication/futures.py"
+    sha256_verified_local: "15014f294713c052d4640a2a4fa7ee45d18e22eed16e7e5768550bd01b409bf4"
+  - path: "src/hybrid_trader/replication/provenance.py"
+    sha256_verified_local: "e0a14da15bdf511ccc42bbfb238ca6131bc8e61c70e3651ae93d5b4e832212e6"
+  - path: "src/hybrid_trader/replication/runner.py"
+    sha256_verified_local: "7b271e1b549a67b8fa0c0798dea6f2fe544bd1857b94b5864f04f16315feae3a"
   - path: "src/hybrid_trader/replication/verdicts.py"
     sha256_verified_local: "ffd6d0fa99b225c2eda3ef3690614d9068e5d3ecc96fea82b0b8c938f813cf53"
-  - path: "src/hybrid_trader/replication/provenance.py"
-    sha256_verified_local: "6d0ecfcb32b7863652db384eb632124058eca6a4bd8bb631b878c5615b33f8bd"
-  - path: "src/hybrid_trader/replication/runner.py"
-    sha256_verified_local: "e6f53ada3d31a28edc621d9faf66f8ad969ccb59571ed6cd7fdb9250c7c317ed"
+  - path: "tests/test_replication_cftc.py"
+    sha256_verified_local: "9abccaa1b915bbbfd2a51ee86fef6db512eda2a091b203c3e093922270750c93"
+  - path: "tests/test_replication_crypto.py"
+    sha256_verified_local: "9eaf39c20fbab01cbf042b353e18c150fcede91dcaa58da232a68d0be72cc5f2"
+  - path: "tests/test_replication_factor_audit.py"
+    sha256_verified_local: "64ad375541b0d820324d37c9a204dc97bf2d784d6895c0ddbfac8bba9ed7f9fc"
+  - path: "tests/test_replication_futures.py"
+    sha256_verified_local: "cdbf9b30aead8743cd812727ed21c158030bc6fd9f548d1af87335947f6fdb3d"
   - path: "tests/test_replication_provenance.py"
-    sha256_verified_local: "23b6d6424e70546667902b1cfced07829adddcbf318e1851a33ab284d5a8cdaf"
+    sha256_verified_local: "86f16cc02891234587dbc9f8c1af331b348c9cb76d2699e416a5e7393113ebed"
 
 verified_sources:
   - source_id: "AQR_TSMOM_ORIGINAL"
@@ -206,12 +247,15 @@ completion_gates:
   - "small Binance or OKX official pilot archive ingested with checksum"
   - "red-team tests pass on acquired official data"
   - "all exact inaccessible studies retain pending or inconclusive verdicts"
-  - "ruff, mypy, pytest, and coverage pass in repository CI"
+  - "repository-hosted CI run observed and passed"
 
 final_verdict:
   repository_and_branch: "CONFIRMED"
   code_and_invariants: "PASS_WITH_INDEPENDENT_RERUN"
+  local_static_analysis: "RUFF_PASS_MYPY_STRICT_PASS"
   hardened_tests: "15_PASS"
+  local_statement_coverage: "85.44_PERCENT_PASS"
+  github_hosted_ci: "UNVERIFIED_NO_RUN_OBSERVED"
   official_public_artifact_ingestion: "PARTIAL_NOT_IMMUTABLE"
   licensed_exact_replication: "PENDING"
   paper_level_numerical_replication: "NOT_COMPLETE"
