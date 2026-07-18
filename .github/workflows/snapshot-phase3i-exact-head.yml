@@ -1,0 +1,35 @@
+name: snapshot-phase3i-exact-head
+
+on:
+  push:
+    branches: ["agent/phase3c-hardening-runner"]
+    paths:
+      - ".github/workflows/snapshot-phase3i-exact-head.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGET_SHA: "1e3071d457173f2f6644f3beeaa04cccc0ae53b5"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase3c-hardening-runner
+      - name: Snapshot exact Phase 3I overlap run
+        shell: bash
+        run: |
+          set -euo pipefail
+          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-3i-state-lineage&per_page=100")
+          mkdir -p .status
+          jq --arg sha "$TARGET_SHA" '{captured_at:(now|todate),runs:[.workflow_runs[] | select(.name == "phase3i-diversified-overlap" and .head_sha == $sha) | {id,status,conclusion,head_sha,html_url,created_at,updated_at}]}' \
+            <<<"$runs" > .status/phase3i-exact-head.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .status/phase3i-exact-head.json
+          git commit -m "snapshot exact Phase 3I overlap run" || true
+          git push origin HEAD:agent/phase3c-hardening-runner
