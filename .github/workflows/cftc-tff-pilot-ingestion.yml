@@ -2,6 +2,14 @@ name: CFTC TFF Pilot Ingestion
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/cftc-tff-pilot-ingestion.yml
+      - src/hybrid_trader/replication/cftc_ingestion.py
+      - scripts/ingest_cftc_tff_pilot.py
+      - tests/test_cftc_ingestion.py
   push:
     branches:
       - agent/edge-research-reports
