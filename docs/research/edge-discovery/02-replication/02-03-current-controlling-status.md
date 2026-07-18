@@ -4,182 +4,318 @@
 **Section:** 2 — Research Replication  
 **Report:** 3 of 5  
 **Status date:** 2026-07-18  
-**Status:** `PARTIALLY_COMPLETE — IMPLEMENTATION_INDEPENDENTLY_REVERIFIED; OFFICIAL EMPIRICAL ARTIFACTS PENDING`
+**Status:** `PARTIALLY_COMPLETE — FIRST OFFICIAL RAW ARTIFACT ACQUIRED; FIRST DATED PILOT DERIVED; REMAINING REPLICATION GATES OPEN`
 
-This document is the controlling status for Report 2.3. It supersedes older execution counts, static-analysis states, generic `PASS` wording, and source-access labels in the initial execution snapshot when they conflict.
+This document is the controlling status for Report 2.3. It supersedes older execution counts, source states, generic `PASS` wording, and CI descriptions in the initial execution snapshot when they conflict.
 
-The original execution snapshot is retained for audit history:
+Historical and detailed evidence is retained in:
 
 - [Initial controlled execution report](02-03-controlled-empirical-and-code-replication.md)
-
-The detailed verification evidence is retained separately:
-
 - [Independent reality verification and corrections](02-03-independent-reality-verification-log.md)
 - [Static analysis, tests, and coverage](02-03-static-analysis-and-test-verification.md)
+- [Verified CFTC TFF acquisition and pilot evidence](02-03-cftc-tff-2022-acquisition-and-pilot-evidence.md)
+- [Machine-readable CFTC TFF evidence](02-03-cftc-tff-2022-evidence.yaml)
 - [Machine-readable execution manifest](02-03-replication-execution-manifest.yaml)
 
 ---
 
-## Verified repository work
+## 1. Verified repository and implementation state
 
 ```text
 Repository: Emad211/Trade-bot
 Branch: agent/edge-research-reports
+Draft PR: #41
 Repository and branch through authenticated GitHub connector: CONFIRMED
-Original committed source independently reconstructed: CONFIRMED
+Original committed replication source independently reconstructed: CONFIRMED
 ```
 
-A direct clone from the isolated compute container was blocked by container DNS. That failure is not treated as repository evidence because the authenticated GitHub connector returned the branch, commits, file contents, and compare state.
+The previously discovered over-permission defect in `run_aqr_vintage_audit` remains corrected. Unverified files cannot receive an artifact-audit pass.
 
----
-
-## Defect discovered and corrected
-
-The initial `run_aqr_vintage_audit` could return a generic `PASS` after parsing any two local files. It did not require evidence that the files came from the official source or had been immutably ingested.
-
-That was a real over-permission defect.
-
-The hardened implementation now requires the following before `ARTIFACT_AUDIT_PASS`:
+`ARTIFACT_AUDIT_PASS` still requires:
 
 ```text
 official source identity
-IMMUTABLE_INGESTED provenance state
-matching SHA-256
-matching byte count
+matching SHA-256 and byte count
 retrieval time
 license snapshot
-immutable storage key
-explicit return unit
+long-term immutable storage key
+explicit data/return unit
 ```
 
-Unverified local files receive at most:
-
-```text
-IMPLEMENTATION_READY
-```
-
-`ARTIFACT_AUDIT_PASS` remains a processed-artifact audit. It is not a raw paper replication, opposing-evidence pass, economic-edge verdict, or deployment authorization.
+The newly acquired CFTC artifact is staged in retention-limited GitHub Actions storage. It is therefore not yet `IMMUTABLE_INGESTED` and does not receive `ARTIFACT_AUDIT_PASS`.
 
 ---
 
-## Independently executed local verification
+## 2. Local and hosted code verification
 
-The original fixture suite was reconstructed from authenticated GitHub commit content and rerun:
-
-```text
-11 tests passed
-compileall passed
-```
-
-After provenance and verdict hardening, the final local verification was:
+The hardened replication package previously passed locally:
 
 ```text
 Ruff under repository rules: PASS
-Mypy strict: PASS for 9 replication source files
+Mypy strict: PASS
 Pytest: 15 passed
-Statement coverage of hybrid_trader.replication: 85.44%
-Required coverage threshold: 80%
+Statement coverage: 85.44%
 Compileall: PASS
 ```
 
-The tests use deterministic synthetic fixtures. They establish only the tested implementation invariants.
+The dedicated CFTC workflows now provide additional real GitHub-hosted evidence.
 
-They do not establish:
+### Official annual ZIP acquisition workflow
 
-- a published table;
-- a paper result;
-- profitability;
-- an economic edge;
-- production exchange safety.
+```text
+Workflow: CFTC TFF Historical 2022 Ingestion
+Run ID: 29655608183
+Conclusion: SUCCESS
+```
+
+The workflow passed:
+
+- Ruff;
+- strict mypy;
+- ingestion tests;
+- official ZIP acquisition;
+- ZIP CRC and member-hash verification;
+- raw-bundle upload;
+- staging-receipt upload.
+
+### End-to-end parser and dated-pilot workflow
+
+```text
+Workflow: CFTC TFF 2022 Pilot Derivation
+Run ID: 29656055991
+Conclusion: SUCCESS
+```
+
+The workflow passed:
+
+- Ruff;
+- strict mypy;
+- eight combined ingestion/parser tests;
+- official ZIP acquisition;
+- exact archive and member identity checks;
+- exact schema verification;
+- full-year parsing and diagnostics;
+- deterministic `2022-09-13` pilot derivation;
+- independent raw/member/schema/profile/pilot checks;
+- raw-plus-derived artifact upload;
+- receipt upload.
+
+The repository-wide legacy `ci` and `Replication Integrity` workflows are not green on this research branch. Their failures are not reclassified as passes. The claims above apply only to the dedicated CFTC workflows and the already recorded local verification scope.
 
 ---
 
-## GitHub-hosted CI
+## 3. First verified official raw acquisition
 
-A workflow exists at:
-
-```text
-.github/workflows/replication-integrity.yml
-```
-
-At the controlling-status cutoff:
+The first real official artifact is:
 
 ```text
-WORKFLOW FILE: COMMITTED
-WORKFLOW RUN OBSERVED: NO
-COMBINED STATUS: EMPTY
-GITHUB-HOSTED CI VERDICT: UNVERIFIED
+Source ID:
+CFTC_TFF_FUTURES_ONLY_HISTORICAL_TEXT_2022
+
+Official URL:
+https://www.cftc.gov/files/dea/history/fut_fin_txt_2022.zip
+
+Raw filename:
+fut_fin_txt_2022.zip
+
+Raw byte count:
+494559
+
+Raw SHA-256:
+94c9c1fdee9dfbe377a09923ddfe26b88d3460605dd076081f221ad367d88601
 ```
 
-A local pass is not represented as a hosted CI pass.
+ZIP validation:
+
+```text
+CRC: PASS
+Non-directory member count: 1
+Text member: FinFutYY.txt
+Member byte count: 2105659
+Member CRC32: 7c783c41
+Member SHA-256:
+7c309cb76da8bf432e1a347e5bfde169bcac31cec4e9e33742cf3a078328bb3b
+```
+
+These values were computed in GitHub Actions and independently recomputed after downloading the Actions artifact.
 
 ---
 
-## Corrected official-source states
+## 4. Retention-limited Actions staging
+
+### Initial raw bundle
+
+```text
+Run ID: 29655608183
+Artifact ID: 8432769852
+Artifact digest:
+d718393c4984a63be874ed72b4dcc0b2173f29717e4339d02b83e1f9ed614270
+Expiry: 2026-10-16
+```
+
+### End-to-end raw and derived bundle
+
+```text
+Run ID: 29656055991
+Artifact ID: 8432902155
+Artifact digest:
+391a7bc682f02e0feec735342b33ae6a63a59c0db9432ee9812e4ebe17c83184
+Expiry: 2026-10-16
+```
+
+### Derivation receipt
+
+```text
+Artifact ID: 8432902321
+Artifact digest:
+49cbd8b7d2863e915291468652dc7cfecdac28364723cde40a29aa5d1fbb773c
+```
+
+Current storage classification:
+
+```text
+ACTIONS_ARTIFACT_STAGED_RETENTION_90_DAYS
+```
+
+GitHub Actions artifacts are deletable and expire. Long-term immutable storage remains incomplete.
+
+---
+
+## 5. Exact parser contract and annual findings
+
+The parser is bound to the exact acquired archive and member hashes.
+
+```text
+Schema field count: 87
+Schema SHA-256:
+fe0123051e8e5f5bb8f0cf4a870b451951bd4fa131777096eb5d028115545d42
+
+Annual rows: 2719
+Unique report-date/contract keys: 2719
+Report dates: 52
+First date: 2022-01-04
+Last date: 2022-12-27
+Futures-only rows: 2719
+```
+
+The full-year accounting diagnostic found:
+
+```text
+Long exact-reconciliation differences: 37
+Short exact-reconciliation differences: 33
+Rows with accepted consolidated unit differences: 56
+Material accounting failures: 0
+```
+
+Every difference was exactly one contract in magnitude and confined to consolidated market rows whose contract-market code ends in `+` and whose market name identifies the row as consolidated.
+
+Observed consolidated codes:
+
+- `12460+` — DJIA Consolidated;
+- `13874+` — S&P 500 Consolidated;
+- `20974+` — NASDAQ-100 Consolidated.
+
+These differences are recorded, not erased. The artifact-specific parser accepts them only as nonmaterial unit reconciliation differences. This rule does not automatically transfer to another year or revised artifact.
+
+---
+
+## 6. First deterministic dated pilot
+
+```text
+Report date: 2022-09-13
+Rows: 54
+Unique contract-market codes: 54
+Minimum code: 020601
+Maximum code: 43874A
+Long reconciliation differences: 0
+Short reconciliation differences: 0
+Material accounting failures: 0
+```
+
+Derived file:
+
+```text
+tff_futures_only_2022-09-13.canonical.csv
+
+Byte count: 27954
+
+SHA-256:
+1be0028ba872ed56c970f6cd67b76c480b3653b170762c6e55f39dc10c3d268b
+```
+
+The pilot preserves all 87 source fields and is deterministically sorted by stripped `CFTC_Contract_Market_Code`.
+
+The pilot hash was independently verified:
+
+1. during derivation;
+2. in a separate workflow verification step;
+3. after downloading the Actions artifact outside the runner.
+
+---
+
+## 7. CFTC PRE API state
+
+The Public Reporting Environment dataset identity `gpe5-46if` is verified. The endpoint returned structured data in some contexts, but repeated GitHub-hosted acquisition attempts produced persistent HTTP 503 responses.
+
+Current PRE classification:
+
+```text
+API identity: VERIFIED
+GitHub-runner reliability: FAILED_REPEATED_HTTP_503
+Immutable PRE raw artifact: NOT ACQUIRED
+PRE-versus-historical row cross-check: PENDING
+```
+
+The successful evidence comes from the official annual historical compressed archive, not from the unreliable PRE workflow.
+
+The PRE workflow is not considered a passing PR gate.
+
+---
+
+## 8. Remaining official-source states
 
 ### AQR original and maintained TSMOM workbooks
 
 ```text
-OFFICIAL PAGE/LOCATOR: VERIFIED
-RAW BINARY ACQUIRED: NO
-IMMUTABLE INGESTION: NO
-ARTIFACT AUDIT: BLOCKED
+Official page/locator: VERIFIED
+Raw binary acquired: NO
+Long-term immutable ingestion: NO
+Factor audit: BLOCKED
 ```
 
 ### Moreira–Muir factor artifact
 
 ```text
-PAPER IDENTITY: VERIFIED
-AUTHOR FACTOR ARTIFACT ACQUIRED: NO
-EMPIRICAL AUDIT: NOT COMPLETE
-```
-
-### CFTC TFF Futures Only
-
-```text
-DATASET ID: gpe5-46if
-OFFICIAL DATASET PAGE: VERIFIED
-OFFICIAL STRUCTURED API RESPONSE: OBSERVED
-RAW RESPONSE BYTES PERSISTED: NO
-SHA-256 RECORDED IN IMMUTABLE STORAGE: NO
-STATUS: API_REACHABLE_RAW_INGESTION_PENDING
-```
-
-API reachability does not count as raw acquisition or immutable ingestion.
-
-### CFTC Legacy and Disaggregated
-
-```text
-OFFICIAL METADATA: VERIFIED
-IMMUTABLE RAW INGESTION: PENDING
-COMPRESSED-FILE CROSS-CHECK: NOT COMPLETE
-```
-
-### Binance and OKX
-
-```text
-OFFICIAL DOCUMENTATION/METADATA: VERIFIED
-PILOT ARCHIVE/API ARTIFACT IMMUTABLY INGESTED: NO
-CONSTRUCTIVE EMPIRICAL EXPERIMENT: NOT STARTED
+Paper identity: VERIFIED
+Author factor artifact acquired: NO
+Empirical audit: NOT COMPLETE
 ```
 
 ### Licensed traditional futures and Chi et al.
 
 ```text
-REQUIRED EXACT SOURCE DATA: NOT ACQUIRED
-STATUS: PENDING_LICENSE or INCONCLUSIVE_DATA_ACCESS
+Required exact data: NOT ACQUIRED
+Status: PENDING_LICENSE or INCONCLUSIVE_DATA_ACCESS
+```
+
+### Binance and OKX
+
+```text
+Official documentation/metadata: VERIFIED
+Official pilot artifact ingested: NO
+Constructive empirical experiment: NOT STARTED
 ```
 
 ---
 
-## Hypothesis verdicts
+## 9. Hypothesis verdicts
 
-| Hypothesis | Implementation status | Empirical status |
+| Hypothesis | Implementation/data progress | Empirical status |
 |---|---|---|
-| `EDGE-FUT-TREND-001` | Audit mechanics ready | `INCONCLUSIVE` |
+| `EDGE-FUT-TREND-001` | Audit mechanics ready; raw futures still licensed | `INCONCLUSIVE` |
 | `EDGE-RISK-POLICY-001` | Recursive overlay mechanics ready | `INCONCLUSIVE` |
 | `EDGE-FUT-CARRY-001` | Same-contract and roll mechanics ready | `INCONCLUSIVE` |
-| `EDGE-FUT-POSITION-001` | Release-time mechanics ready | `INCONCLUSIVE` |
+| `EDGE-FUT-POSITION-001` | First official CFTC raw artifact and dated pilot acquired/derived | `INCONCLUSIVE` |
 | `EDGE-CRYPTO-BASIS-001` | Instrument-version and basis mechanics ready | `INCONCLUSIVE` |
 | `EDGE-CRYPTO-RV-001` | Linear two-leg accounting ready | `INCONCLUSIVE` |
 
@@ -187,13 +323,16 @@ No hypothesis has an economic pass.
 
 ---
 
-## Controlling authorization
+## 10. Controlling authorization
 
 ```yaml
 implementation: true
 unit_testing: true
 formula_validation: true
 official_data_acquisition: true
+cftc_release_ledger_construction: true
+cftc_additional_year_versioning: true
+licensed_price_linkage_planning: true
 
 empirical_fitting: false
 parameter_tuning: false
@@ -207,16 +346,23 @@ report_2_4_full_authorization: false
 
 ---
 
-## Final controlling verdict
+## 11. Final controlling verdict
 
 ```text
 REAL REPOSITORY WORK: CONFIRMED
 REAL COMMITTED IMPLEMENTATION: CONFIRMED
-INDEPENDENT TEST RERUN: CONFIRMED
-OVER-PERMISSIVE VERDICT DEFECT: FOUND AND CORRECTED
-LOCAL RUFF/MYPY/PYTEST/COVERAGE: PASS
-GITHUB-HOSTED CI: UNVERIFIED
-OFFICIAL IMMUTABLE ARTIFACT INGESTION: INCOMPLETE
+LOCAL HARDENED CHECKS: PASS
+DEDICATED CFTC RAW ACQUISITION WORKFLOW: PASS
+DEDICATED CFTC END-TO-END PILOT WORKFLOW: PASS
+RAW OFFICIAL CFTC ZIP ACQUISITION: CONFIRMED
+RAW ZIP/MEMBER HASHES AND CRC: CONFIRMED
+EXACT 87-FIELD PARSER CONTRACT: CONFIRMED
+FULL-YEAR PROFILE: CONFIRMED
+DATED 54-ROW PILOT: CONFIRMED
+PILOT SHA-256: CONFIRMED
+ACTIONS STAGING: CONFIRMED, RETENTION-LIMITED
+LONG-TERM IMMUTABLE INGESTION: INCOMPLETE
+PRE API CROSS-CHECK: INCOMPLETE
 PAPER-LEVEL NUMERICAL REPLICATION: NOT COMPLETE
 TRADING EDGE: NOT ESTABLISHED
 ALL SIX HYPOTHESES: INCONCLUSIVE
