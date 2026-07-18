@@ -1,0 +1,13 @@
+{
+  "artifact_checksums_verified": true,
+  "artifact_digest": "sha256:d1d4ba1b34370667aeab95e9c3ba0dd5f58d2085550963a93843863537a00f6b",
+  "artifact_id": 8409259039,
+  "artifact_name": "phase3f-semantic-dataset-29586581122",
+  "content_hash_verified": true,
+  "model_fitting_executed": false,
+  "prospective_decisions_created": false,
+  "schema_version": "1.0",
+  "source_commit_sha": "c1248daadb0313261c565c88291a77bb5b1926d6",
+  "workflow_run_id": "29586581122",
+  "workflow_url": "https://github.com/Emad211/Trade-bot/actions/runs/29586581122"
+}
