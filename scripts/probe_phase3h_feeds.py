@@ -90,9 +90,9 @@ def main() -> None:
                 }
             )
 
-    required = {
-        source.source_id for source in config.capture.sources if source.required
-    }.union(args.require_source)
+    required = {source.source_id for source in config.capture.sources if source.required}.union(
+        args.require_source
+    )
     missing = sorted(required.difference(successful))
     if len(successful) < config.capture.minimum_successful_sources:
         missing.append(
@@ -108,9 +108,7 @@ def main() -> None:
         "prospective_decisions_created": 0,
         "successful_sources": sorted(successful),
         "failed_sources": sorted(
-            record["source_id"]
-            for record in records
-            if record["status"] == "failed"
+            record["source_id"] for record in records if record["status"] == "failed"
         ),
         "required_probe_sources": sorted(required),
         "missing_required_probe_sources": missing,
