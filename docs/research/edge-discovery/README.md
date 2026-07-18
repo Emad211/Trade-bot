@@ -37,11 +37,11 @@ Admission authorizes research replication only. It does not authorize paper trad
 |---|---|---|
 | [2.1 — Anchor Papers, Opposing Evidence, Modern Updates, Data, and Replication-Code Selection](02-replication/02-01-anchor-opposition-code-selection.md) | Binding paper roles, exactness classes, official data routes, code-admission rules, table-level targets, and kill criteria | Complete |
 | [2.2 — Data, Timing, and Information-Contract Reconstruction](02-replication/02-02-data-timing-information-contract-reconstruction.md) | Availability clocks, immutable raw artifacts, source licenses, point-in-time instruments, futures rolls, regulator releases, crypto contract versions, lineage, costs, and acquisition decisions | Complete |
-| [2.3 — Current Controlling Status](02-replication/02-03-current-controlling-status.md) | Independently reverified implementation, provenance hardening, corrected source states, static checks, and empirical completion gates | Partially complete — implementation verified; official artifacts pending |
+| [2.3 — Current Controlling Status](02-replication/02-03-current-controlling-status.md) | Independently reverified implementation, first official CFTC raw acquisition, exact parser contract, dated pilot, remaining empirical gates | Partially complete — first official artifact and pilot verified; remaining gates open |
 | 2.4 — Sensitivity, Cost, Failure, and Disagreement Analysis | Conditional sensitivity analysis on numerically reconstructed evidence | Blocked until Report 2.3 artifact gates pass |
 | 2.5 | Replication dossier and continue/stop decisions | Planned |
 
-Report 2.1 selects what must be replicated. Report 2.2 freezes what each datum means and when it becomes usable. Report 2.3 implements and tests replication invariants, but it does not claim a paper-level numerical replication without official source artifacts.
+Report 2.1 selects what must be replicated. Report 2.2 freezes what each datum means and when it becomes usable. Report 2.3 now contains one real official CFTC raw artifact and a deterministic dated pilot, but it does not claim a paper-level numerical replication or an economic edge.
 
 Report 2.2 machine-readable contracts:
 
@@ -57,25 +57,32 @@ Report 2.3 evidence and implementation:
 - [Replication execution manifest](02-replication/02-03-replication-execution-manifest.yaml)
 - [Independent reality verification and correction log](02-replication/02-03-independent-reality-verification-log.md)
 - [Static analysis, test, and coverage verification](02-replication/02-03-static-analysis-and-test-verification.md)
+- [Verified CFTC TFF acquisition and pilot evidence](02-replication/02-03-cftc-tff-2022-acquisition-and-pilot-evidence.md)
+- [Machine-readable CFTC TFF evidence](02-replication/02-03-cftc-tff-2022-evidence.yaml)
 - `.github/workflows/replication-integrity.yml`
+- `.github/workflows/cftc-tff-historical-2022-ingestion.yml`
+- `.github/workflows/cftc-tff-2022-pilot-derivation.yml`
 - `src/hybrid_trader/replication/`
 - `tests/test_replication_*.py`
 
 Report 2.3 currently records:
 
 - the original committed implementation was independently reconstructed from authenticated GitHub commit content;
-- the original 11 deterministic tests passed again in a separate temporary environment;
-- provenance hardening added four tests, and the hardened suite passed 15 tests;
-- the repository Ruff rule selection passed locally;
-- strict mypy passed locally for all nine replication source files;
-- replication-package statement coverage passed locally at 85.44% against an 80% gate;
-- Python compilation passed;
-- a GitHub Actions verification workflow was committed, but no workflow run or combined status was observed, so hosted CI remains unverified;
 - an over-permissive factor-audit verdict was found and corrected;
-- unverified local files can no longer receive an artifact audit pass;
-- `ARTIFACT_AUDIT_PASS` requires immutable official provenance, matching checksum and byte count, a license snapshot, immutable storage identity, and declared return units;
-- the official CFTC TFF API is reachable, but immutable raw ingestion is still pending;
-- AQR workbooks, Moreira–Muir factor artifacts, licensed futures histories, and Binance/OKX pilot archives have not yet been immutably ingested;
+- the hardened local replication suite passed Ruff, strict mypy, 15 tests, 85.44% statement coverage, and compilation;
+- the dedicated CFTC annual-ZIP workflow passed in GitHub Actions;
+- the dedicated CFTC end-to-end acquisition/parser/pilot workflow passed in GitHub Actions;
+- the official CFTC 2022 TFF Futures Only ZIP was acquired with raw SHA-256 `94c9c1f...88601`;
+- its only member, `FinFutYY.txt`, passed CRC and has SHA-256 `7c309cb7...8bb3b`;
+- the exact source schema has 87 fields and fingerprint `fe012305...45d42`;
+- the full-year profile contains 2,719 unique report-date/contract rows across 52 dates;
+- 56 consolidated rows have recorded unit reconciliation differences, with no material accounting failure;
+- the `2022-09-13` pilot contains 54 unique market codes and zero reconciliation difference;
+- the canonical pilot CSV has SHA-256 `1be0028b...d268b`;
+- raw and derived bundles are staged in GitHub Actions artifacts until 2026-10-16;
+- Actions staging is retention-limited and is not long-term immutable ingestion;
+- the CFTC PRE API identity is verified, but row-level cross-check is pending because repeated GitHub-runner calls returned HTTP 503;
+- AQR workbooks, Moreira–Muir factor artifacts, licensed traditional-futures histories, Chi et al. source data, and Binance/OKX pilot artifacts remain unavailable or un-ingested;
 - no paper-level numerical replication is complete;
 - all six empirical edge verdicts remain `INCONCLUSIVE`.
 
@@ -142,8 +149,10 @@ Five leaf reports form one section-level synthesis. The five section syntheses f
 - Source-page verification is not raw-artifact acquisition.
 - API reachability is not immutable ingestion.
 - Raw acquisition is not immutable ingestion until checksum, retrieval, license, and storage evidence exist.
-- An artifact audit pass is not an empirical paper pass.
-- A local static-analysis pass is not a hosted CI pass.
+- Actions staging is not long-term immutable storage.
+- A derived-data pass is not an artifact-audit pass.
+- An artifact-audit pass is not a paper-replication pass.
+- A paper-replication pass is not an economic-edge pass.
 - Blocked or licensed data must remain blocked or pending; a convenient substitute cannot inherit an exact verdict.
 - An admitted hypothesis remains unproven until it survives genuinely new forward data and realistic execution.
 - The final outcome may legitimately be to reject every candidate.
