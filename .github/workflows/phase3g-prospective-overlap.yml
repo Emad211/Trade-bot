@@ -91,8 +91,8 @@ jobs:
             test -n "$trajectory"
             cp "$trajectory" "$output/state/maturity_trajectory.jsonl"
             python - <<'PY'
-          import os
           from hybrid_trader.phase3g_trajectory import verify_phase3g_trajectory
+
           state = verify_phase3g_trajectory(
               "artifacts/phase3g-overlap/state/maturity_trajectory.jsonl"
           )
@@ -130,7 +130,10 @@ jobs:
           set -euo pipefail
           python - <<'PY'
           import json
+          import os
           from pathlib import Path
+
+          import pandas as pd
 
           from hybrid_trader.phase3g_overlap import Phase3GOverlapManifest
           from hybrid_trader.phase3g_trajectory import verify_phase3g_trajectory
@@ -138,7 +141,7 @@ jobs:
 
           root = Path("artifacts/phase3g-overlap")
           overlap = Phase3GOverlapManifest.model_validate_json(
-              (root / "overlap_manifest.json").read_text()
+              (root / "overlap_manifest.json").read_text(encoding="utf-8")
           )
           frame, dataset = read_semantic_dataset(root / "dataset")
           trajectory = verify_phase3g_trajectory(
@@ -151,15 +154,18 @@ jobs:
           if overlap.model_fitting_executed or overlap.prospective_decisions_created:
               raise RuntimeError("Phase 3G attempted model fitting or a decision")
           event_columns = [
-              column for column in dataset.semantic_feature_columns
+              column
+              for column in dataset.semantic_feature_columns
               if column.endswith("_event_count")
           ]
-          first_available = None
+          first_available: pd.Timestamp | None = None
           semantic_ledger = Path(os.environ["SEMANTIC_ROOT"]) / "semantic_events.jsonl"
           for line in semantic_ledger.read_bytes().splitlines():
               record = json.loads(line)
-              value = record["available_at"]
-              first_available = value if first_available is None else min(first_available, value)
+              value = pd.Timestamp(record["available_at"])
+              first_available = (
+                  value if first_available is None else min(first_available, value)
+              )
           if first_available is not None:
               before = frame["decision_time"] < first_available
               if frame.loc[before, event_columns].to_numpy(dtype=float).sum() != 0.0:
@@ -172,42 +178,68 @@ jobs:
               "dataset_content_sha256": overlap.dataset_content_sha256,
               "trajectory_entry_id": overlap.trajectory_entry_id,
               "trajectory_count": overlap.trajectory_count,
-              "relevant_semantic_record_count": overlap.semantic_record_count,
+              "semantic_record_count": overlap.semantic_record_count,
               "active_decision_row_count": overlap.active_decision_row_count,
               "matured_labeled_row_count": overlap.matured_labeled_row_count,
               "maturity_status": overlap.maturity_status,
               "research_model_fitting_allowed": overlap.research_model_fitting_allowed,
               "model_fitting_executed": False,
               "prospective_decisions_created": False,
-              "semantic_event_sum": float(frame[event_columns].to_numpy(dtype=float).sum()),
+              "semantic_event_sum": float(
+                  frame[event_columns].to_numpy(dtype=float).sum()
+              ),
           }
           (root / "verification.json").write_text(
-              json.dumps(summary, sort_keys=True, indent=2) + "\n"
+              json.dumps(summary, sort_keys=True, indent=2) + "\n",
+              encoding="utf-8",
           )
           PY
       - name: Record source provenance
         shell: bash
         run: |
           set -euo pipefail
-          root=artifacts/phase3g-overlap
-          cat > "$root/run_context.json" <<EOF
-          {
-            "schema_version": "1.0",
-            "workflow_run_id": "$GITHUB_RUN_ID",
-            "source_commit_sha": "$GITHUB_SHA",
-            "as_of": "$PHASE3G_AS_OF",
-            "semantic_run_id": "$SEMANTIC_RUN_ID",
-            "semantic_artifact_id": $SEMANTIC_ARTIFACT_ID,
-            "semantic_artifact_digest": "$SEMANTIC_ARTIFACT_DIGEST",
-            "previous_phase3g_run_id": ${PREVIOUS_PHASE3G_RUN_ID:-null},
-            "previous_phase3g_artifact_id": ${PREVIOUS_PHASE3G_ARTIFACT_ID:-null},
-            "previous_phase3g_artifact_digest": ${PREVIOUS_PHASE3G_ARTIFACT_DIGEST:+"$PREVIOUS_PHASE3G_ARTIFACT_DIGEST"},
-            "trajectory_restored": $TRAJECTORY_RESTORED,
-            "credentials_used": false,
-            "model_fitting_executed": false,
-            "prospective_decisions_created": false
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          def optional_int(name: str) -> int | None:
+              value = os.environ.get(name, "")
+              return int(value) if value else None
+
+          def optional_text(name: str) -> str | None:
+              value = os.environ.get(name, "")
+              return value or None
+
+          root = Path("artifacts/phase3g-overlap")
+          payload = {
+              "schema_version": "1.0",
+              "workflow_run_id": os.environ["GITHUB_RUN_ID"],
+              "source_commit_sha": os.environ["GITHUB_SHA"],
+              "as_of": os.environ["PHASE3G_AS_OF"],
+              "semantic_run_id": os.environ["SEMANTIC_RUN_ID"],
+              "semantic_artifact_id": int(os.environ["SEMANTIC_ARTIFACT_ID"]),
+              "semantic_artifact_digest": os.environ["SEMANTIC_ARTIFACT_DIGEST"],
+              "previous_phase3g_run_id": optional_text(
+                  "PREVIOUS_PHASE3G_RUN_ID"
+              ),
+              "previous_phase3g_artifact_id": optional_int(
+                  "PREVIOUS_PHASE3G_ARTIFACT_ID"
+              ),
+              "previous_phase3g_artifact_digest": optional_text(
+                  "PREVIOUS_PHASE3G_ARTIFACT_DIGEST"
+              ),
+              "trajectory_restored": os.environ["TRAJECTORY_RESTORED"] == "true",
+              "credentials_used": False,
+              "model_fitting_executed": False,
+              "prospective_decisions_created": False,
           }
-          EOF
+          (root / "run_context.json").write_text(
+              json.dumps(payload, sort_keys=True, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+          root=artifacts/phase3g-overlap
           printf '%s\n' "$GITHUB_SHA" > "$root/source_commit_sha.txt"
           printf '%s\n' "$GITHUB_RUN_ID" > "$root/workflow_run_id.txt"
           find "$root" -type f ! -name SHA256SUMS -print0 \
