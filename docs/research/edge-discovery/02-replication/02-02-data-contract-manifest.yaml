@@ -1,0 +1,239 @@
+schema_version: '1.0'
+document:
+  id: DATA-CONTRACT-2.2
+  title: Data, Timing, and Information-Contract Reconstruction
+  date: '2026-07-18'
+  status: COMPLETE
+  branch: agent/edge-research-reports
+  human_report: 02-02-data-timing-information-contract-reconstruction.md
+  companions:
+  - 02-02-source-license-registry.yaml
+  - 02-02-instrument-universe-manifest.yaml
+  - 02-02-lineage-timing-schema.yaml
+  parent: 02-01-replication-selection-manifest.yaml
+  next_report: 02-03-exact-empirical-and-code-replication.md
+authorization:
+  document_acquisition: true
+  data_acquisition: true
+  normalization: true
+  lineage_construction: true
+  quality_testing: true
+  formula_unit_tests: true
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_backtest: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+binding_principles:
+- availability time governs usability
+- report date is not release time
+- raw artifacts are append-only
+- provider replacements create revisions
+- continuous futures cannot create executable PnL
+- same-contract return is mandatory
+- every roll has a roll ledger
+- instrument metadata is effective-dated
+- universe membership is point-in-time
+- funding interval and formula are data
+- mark, index, and last prices are distinct
+- license terms and redistribution rights are versioned
+- public constructive replication cannot inherit an exact verdict
+- no empirical fitting before acquisition and quality gates pass
+required_clocks:
+- event_time
+- observation_start
+- observation_end
+- exchange_time
+- report_as_of_time
+- scheduled_release_time
+- actual_release_time
+- source_update_time
+- retrieved_at
+- ingested_at
+- normalized_at
+- available_at
+- decision_time
+- order_submit_time
+- exchange_ack_time
+- fill_time
+- system_record_time
+- revision_effective_time
+acquisition_tracks:
+- track_id: PUBLIC_FACTOR_AUDIT
+  sources:
+  - AQR_TSMOM_ORIGINAL
+  - AQR_TSMOM_MAINTAINED
+  - MOREIRA_MUIR_AUTHOR_DATA
+  decision: GO_DATA_ONLY
+  allowed_outputs:
+  - checksummed raw files
+  - vintage diffs
+  - published table audits
+- track_id: PUBLIC_REGULATOR_PIPELINE
+  sources:
+  - CFTC_COT
+  decision: GO_DATA_ONLY
+  allowed_outputs:
+  - release ledger
+  - category mapping
+  - revision ledger
+  - parser QA
+- track_id: LICENSED_FUTURES_EXACT
+  sources:
+  - CME_DATAMINE
+  - ICE_HISTORICAL
+  - LME_HISTORICAL
+  - REFINITIV_DATASTREAM
+  - BLOOMBERG
+  - CRB
+  decision: GO_CONDITIONAL_ON_LICENSE_AND_FIELD_AUDIT
+  procurement_questions:
+  - expired contract coverage
+  - settlements and corrections
+  - first notice and last trade dates
+  - volume and open interest
+  - contract specification history
+  - generic-to-native mapping
+  - derived-data rights
+  - publication and redistribution rights
+  - cost
+- track_id: PUBLIC_CRYPTO_CONSTRUCTIVE
+  sources:
+  - BINANCE_PUBLIC_DATA
+  - BINANCE_API_AND_RULES
+  - OKX_HISTORICAL_DATA
+  - OKX_API_AND_RULES
+  decision: GO_DATA_ONLY_AS_NEW_EXPERIMENT
+  allowed_outputs:
+  - raw archive audit
+  - instrument version ledger
+  - funding ledger
+  - historical accounting
+  paper_execution: false
+hypothesis_decisions:
+- hypothesis_id: EDGE-FUT-TREND-001
+  public_track: GO_PUBLIC_FACTOR_AUDIT
+  exact_track: EXACT_PENDING_LICENSE
+  first_data_work:
+  - download and hash AQR original and maintained factor vintages
+  - extract exact 58-instrument appendix and vendor IDs
+  - prepare traditional futures license field matrix
+  hard_data_kills:
+  - raw exact universe cannot be identified
+  - licensed data lacks expired contracts
+  - same-contract returns cannot be reconstructed
+- hypothesis_id: EDGE-RISK-POLICY-001
+  public_track: GO_PUBLIC_FACTOR_AUDIT
+  exact_commodity_track: EXACT_PENDING_LICENSE
+  dependency: frozen upstream return series
+  hard_data_kills:
+  - full-sample scaler required for OOS result
+  - upstream series not immutable
+  - cost and turnover unavailable
+- hypothesis_id: EDGE-FUT-CARRY-001
+  public_track: FORMULA_AND_FIELD_FEASIBILITY_ONLY
+  exact_track: EXACT_PENDING_LICENSE
+  hard_data_kills:
+  - no maturity-specific histories
+  - second/third nearby unavailable
+  - roll and contract PnL cannot be separated
+- hypothesis_id: EDGE-FUT-POSITION-001
+  public_track: GO_CFTC_TIMING_PIPELINE
+  exact_price_track: EXACT_PENDING_LICENSE
+  hard_data_kills:
+  - actual or conservative release time unavailable
+  - report categories cannot be mapped
+  - price instruments cannot be linked to CFTC markets
+- hypothesis_id: EDGE-CRYPTO-BASIS-001
+  exact_track: INCONCLUSIVE_PENDING_AUTHOR_OR_LICENSE_ACCESS
+  constructive_track: GO_DATA_ONLY_NEW_EXPERIMENT
+  hard_data_kills:
+  - current universe projected backward
+  - instrument/funding rule history missing
+  - single venue result presented as general
+- hypothesis_id: EDGE-CRYPTO-RV-001
+  historical_track: GO_DATA_AND_ACCOUNTING_ONLY
+  paper_execution: NOT_AUTHORIZED
+  hard_data_kills:
+  - two-leg capital path incomplete
+  - funding formula or interval missing
+  - mark/index/last semantics unresolved
+  - margin and collateral unavailable
+return_contract:
+  same_contract_required: true
+  cross_contract_gap_as_pnl: false
+  continuous_adjusted_series:
+    allowed:
+    - visualization
+    - predeclared signals
+    - diagnostic comparison
+    forbidden:
+    - executable PnL
+    - roll profit
+    - margin
+    - fill simulation
+    - cash-and-carry verdict
+  separate_outputs:
+  - currency_pnl
+  - simple_return
+  - log_return
+  - return_on_notional
+  - return_on_committed_capital
+cftc_contract:
+  report_date_equals_release_time: false
+  regular_schedule_is_default_not_proof: true
+  actual_release_preferred: true
+  conservative_inferred_release_allowed: true
+  families_separate:
+  - legacy_futures_only
+  - legacy_futures_and_options
+  - supplemental_cit
+  - disaggregated
+  - traders_in_financial_futures
+  revisions_append_only: true
+crypto_contract:
+  venues_separate: true
+  contract_forms_separate:
+  - LINEAR
+  - INVERSE
+  - QUANTO
+  prices_separate:
+  - LAST
+  - MARK
+  - INDEX
+  - PREMIUM_INDEX
+  funding_interval_fixed: false
+  rule_versions_required: true
+  finalized_candles_only: true
+  timestamp_unit_effective_dated: true
+  stablecoin_equals_one_assumption: false
+quality_gate_ids:
+- D1_SOURCE_IDENTITY
+- D2_LICENSE
+- D3_INSTRUMENT_IDENTITY
+- D4_TEMPORAL_INTEGRITY
+- D5_RETURN_INTEGRITY
+- D6_UNIVERSE_INTEGRITY
+- D7_REVISION_INTEGRITY
+- D8_COST_CAPITAL_COMPLETENESS
+- D9_REPRODUCIBILITY
+- D10_EXACTNESS_HONESTY
+report_2_3_entry_requirements:
+- raw artifacts acquired
+- licenses approved
+- instrument map complete
+- contract chain complete
+- timing ledger complete
+- raw checksums frozen
+- formula versions frozen
+- quality tests passed
+- exactness label assigned
+- protocol hash created
+first_permitted_sequence:
+- AQR TSMOM factor audit
+- Moreira-Muir public factor audit
+- CFTC release-time parser validation
+- Binance/OKX completeness and rule-version audit
+- traditional futures licensed-data acquisition decision
