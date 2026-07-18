@@ -86,13 +86,32 @@ jobs:
           CFTC_APP_TOKEN: ${{ secrets.CFTC_APP_TOKEN }}
         run: |
           mkdir -p build/diagnostics
+          : > build/diagnostics/acquisition.txt
+          code=1
           set +e
-          python scripts/ingest_cftc_tff_pilot.py \
-            --report-date 2022-09-13 \
-            --output-dir build/cftc-tff-pilot \
-            > build/diagnostics/acquisition.txt 2>&1
-          code=$?
-          cat build/diagnostics/acquisition.txt
+          for attempt in 1 2 3 4 5; do
+            attempt_log="build/diagnostics/acquisition-attempt-${attempt}.txt"
+            echo "=== attempt ${attempt} ===" | tee -a build/diagnostics/acquisition.txt
+            python scripts/ingest_cftc_tff_pilot.py \
+              --report-date 2022-09-13 \
+              --output-dir build/cftc-tff-pilot \
+              > "$attempt_log" 2>&1
+            code=$?
+            cat "$attempt_log" | tee -a build/diagnostics/acquisition.txt
+            if [[ $code -eq 0 ]]; then
+              break
+            fi
+            if grep -Eq "HTTP Error (429|500|502|503|504)|URLError|timed out|Temporary failure" "$attempt_log"; then
+              if [[ $attempt -lt 5 ]]; then
+                delay=$((attempt * 3))
+                echo "Transient acquisition failure; retrying after ${delay}s" \
+                  | tee -a build/diagnostics/acquisition.txt
+                sleep "$delay"
+                continue
+              fi
+            fi
+            break
+          done
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           exit 0
 
@@ -102,7 +121,7 @@ jobs:
         with:
           name: cftc-ingestion-acquisition-diagnostics-${{ github.sha }}
           path: |
-            build/diagnostics/acquisition.txt
+            build/diagnostics/acquisition*.txt
             build/cftc-tff-pilot/
           if-no-files-found: error
           retention-days: 30
