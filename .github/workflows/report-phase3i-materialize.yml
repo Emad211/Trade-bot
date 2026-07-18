@@ -1,5 +1,6 @@
 name: report-phase3i-materialize
 
+# Trigger after workflow registration.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
