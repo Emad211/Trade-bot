@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pandas as pd
 import pytest
-
 from hybrid_trader.replication.futures import build_roll_ledger, same_contract_returns
 
 
