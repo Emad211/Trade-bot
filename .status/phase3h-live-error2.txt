@@ -1,0 +1,83 @@
+1:pilot	Run the bounded source-diversity capture	﻿2026-07-18T12:57:46.2561907Z ##[group]Run python scripts/capture_phase3c_avalai_events.py \
+2:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2562472Z ^[[36;1mpython scripts/capture_phase3c_avalai_events.py \^[[0m
+3:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2562895Z ^[[36;1m  --config configs/phase3c_avalai_event_sources.yaml \^[[0m
+4:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2563286Z ^[[36;1m  --output artifacts/phase3h-avalai-pilot \^[[0m
+5:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2563631Z ^[[36;1m  --maximum-new-semantic-records 4^[[0m
+6:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2623871Z shell: /usr/bin/bash -e {0}
+7:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2624148Z env:
+8:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2624601Z   AVALAI_API_KEY: ***
+9:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2627059Z   GH_TOKEN: ***
+10:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2627597Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+11:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2628059Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+12:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2628506Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+13:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2628907Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+14:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2629324Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+15:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2629784Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+16:pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2630140Z ##[endgroup]
+17:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2187363Z Traceback (most recent call last):
+18:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2197570Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/event_capture.py", line 266, in capture_events
+19:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2198558Z     new_document_count, _ = append_documents(
+20:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2222793Z                             ^^^^^^^^^^^^^^^^^
+21:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2224926Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/event_ledger.py", line 95, in append_documents
+22:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2225828Z     raise ValueError(
+23:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2226446Z ValueError: Existing document identity was observed under conflicting source metadata
+24:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2227000Z 
+25:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2227298Z The above exception was the direct cause of the following exception:
+26:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2227760Z 
+27:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2227917Z Traceback (most recent call last):
+28:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2228768Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/capture_phase3c_avalai_events.py", line 48, in <module>
+29:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2229561Z     main()
+30:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2230244Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/capture_phase3c_avalai_events.py", line 26, in main
+31:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2231016Z     result = capture_avalai_events(
+32:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2231409Z              ^^^^^^^^^^^^^^^^^^^^^^
+33:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2232488Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/avalai_capture.py", line 241, in capture_avalai_events
+34:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2233368Z     raise capture_failure
+35:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2234201Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/avalai_capture.py", line 187, in capture_avalai_events
+36:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2235244Z     capture_manifest = capture_events(config.capture, root, **capture_kwargs)
+37:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2235894Z                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+38:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2236769Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/event_capture.py", line 347, in capture_events
+39:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2237913Z     raise EventCaptureFailure(str(failure), manifest_path=manifest_path) from failure
+40:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2239074Z hybrid_trader.event_capture_models.EventCaptureFailure: Existing document identity was observed under conflicting source metadata
+41:pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.3136539Z ##[error]Process completed with exit code 1.
+=== final 300 lines ===
+pilot	Run the bounded source-diversity capture	﻿2026-07-18T12:57:46.2561907Z ##[group]Run python scripts/capture_phase3c_avalai_events.py \
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2562472Z ^[[36;1mpython scripts/capture_phase3c_avalai_events.py \^[[0m
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2562895Z ^[[36;1m  --config configs/phase3c_avalai_event_sources.yaml \^[[0m
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2563286Z ^[[36;1m  --output artifacts/phase3h-avalai-pilot \^[[0m
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2563631Z ^[[36;1m  --maximum-new-semantic-records 4^[[0m
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2623871Z shell: /usr/bin/bash -e {0}
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2624148Z env:
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2624601Z   AVALAI_API_KEY: ***
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2627059Z   GH_TOKEN: ***
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2627597Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2628059Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2628506Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2628907Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2629324Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2629784Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+pilot	Run the bounded source-diversity capture	2026-07-18T12:57:46.2630140Z ##[endgroup]
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2187363Z Traceback (most recent call last):
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2197570Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/event_capture.py", line 266, in capture_events
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2198558Z     new_document_count, _ = append_documents(
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2222793Z                             ^^^^^^^^^^^^^^^^^
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2224926Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/event_ledger.py", line 95, in append_documents
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2225828Z     raise ValueError(
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2226446Z ValueError: Existing document identity was observed under conflicting source metadata
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2227000Z 
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2227298Z The above exception was the direct cause of the following exception:
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2227760Z 
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2227917Z Traceback (most recent call last):
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2228768Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/capture_phase3c_avalai_events.py", line 48, in <module>
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2229561Z     main()
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2230244Z   File "/home/runner/work/Trade-bot/Trade-bot/scripts/capture_phase3c_avalai_events.py", line 26, in main
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2231016Z     result = capture_avalai_events(
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2231409Z              ^^^^^^^^^^^^^^^^^^^^^^
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2232488Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/avalai_capture.py", line 241, in capture_avalai_events
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2233368Z     raise capture_failure
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2234201Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/avalai_capture.py", line 187, in capture_avalai_events
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2235244Z     capture_manifest = capture_events(config.capture, root, **capture_kwargs)
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2235894Z                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2236769Z   File "/home/runner/work/Trade-bot/Trade-bot/src/hybrid_trader/event_capture.py", line 347, in capture_events
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2237913Z     raise EventCaptureFailure(str(failure), manifest_path=manifest_path) from failure
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.2239074Z hybrid_trader.event_capture_models.EventCaptureFailure: Existing document identity was observed under conflicting source metadata
+pilot	Run the bounded source-diversity capture	2026-07-18T12:58:02.3136539Z ##[error]Process completed with exit code 1.
