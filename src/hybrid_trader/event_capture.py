@@ -31,6 +31,7 @@ from hybrid_trader.event_relevance import (
     evaluate_relevance,
     relevance_decisions_sha256,
 )
+from hybrid_trader.event_selection import select_semantic_envelopes
 from hybrid_trader.feed_source import FeedFetchResult, PublicFeedSource
 from hybrid_trader.semantic_extraction import (
     KeywordSemanticExtractor,
@@ -242,16 +243,16 @@ def capture_events(
 
             _, _, _, existing_document_ids = verify_document_ledger(document_ledger)
             semantic_state = verify_semantic_ledger(semantic_ledger)
+            selected_envelopes = select_semantic_envelopes(
+                ordered_envelopes,
+                extraction_key=extractor.extraction_key,
+                existing_extraction_keys=semantic_state.extraction_keys,
+                strategy=spec.semantic_selection_strategy,
+                source_order=tuple(source.source_id for source in spec.sources),
+                maximum_records=maximum_new_semantic_records,
+            )
             records_to_append: list[SemanticEventRecord] = []
-            for envelope in ordered_envelopes:
-                extraction_key = extractor.extraction_key(envelope)
-                if extraction_key in semantic_state.extraction_keys:
-                    continue
-                if (
-                    maximum_new_semantic_records is not None
-                    and len(records_to_append) >= maximum_new_semantic_records
-                ):
-                    break
+            for envelope in selected_envelopes:
                 if envelope.document.document_id in existing_document_ids:
                     recovered_semantic_count += 1
                 records_to_append.append(
