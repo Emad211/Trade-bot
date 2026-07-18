@@ -13,7 +13,7 @@ Build a defensible path from economic hypotheses to a live trading system withou
 | Report | Scope | Status |
 |---|---|---|
 | [1.1 — Edge Definition and Proof Standard](01-edge-map/01-01-edge-definition-and-proof-standard.md) | Formal definition of edge, evidence hierarchy, hard rejection gates, and required hypothesis contract | Complete |
-| 1.2 — Taxonomy of Edge Mechanisms | Risk premia, behavioral mispricing, information, relative value, liquidity provision, execution and risk-management edge | In progress |
+| [1.2 — Taxonomy of Edge Mechanisms](01-edge-map/01-02-taxonomy-of-edge-mechanisms.md) | Risk premia, behavioral mispricing, information, relative value, liquidity provision, execution, and risk-policy edge | Complete |
 | 1.3 — Market, Instrument, Horizon, Competition, and Capacity Map | Where each edge can realistically exist and whether an independent operator can compete | Planned |
 | 1.4 — Falsification and Evidence Design | Negative controls, robustness, trial accounting, prospective tests, and kill criteria | Planned |
 | 1.5 — Edge Map Synthesis | Ranked hypotheses and explicit decisions on what enters replication | Planned |
