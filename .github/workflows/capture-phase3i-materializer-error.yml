@@ -1,0 +1,37 @@
+name: capture-phase3i-materializer-error
+
+on:
+  push:
+    branches: ["agent/phase3c-hardening-runner"]
+    paths:
+      - ".github/workflows/capture-phase3i-materializer-error.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase3c-hardening-runner
+      - name: Capture Phase 3I materializer failure
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .status
+          gh run view 29646308759 --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/phase3i-materializer.log
+          {
+            grep -nE 'Would reformat|error:|Error|FAILED|AssertionError|Traceback|Found [0-9]+ error|ValueError|TypeError|RuntimeError' /tmp/phase3i-materializer.log || true
+            echo '=== final 260 lines ==='
+            tail -n 260 /tmp/phase3i-materializer.log
+          } > .status/phase3i-materializer-error.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .status/phase3i-materializer-error.txt
+          git commit -m "capture Phase 3I materializer failure" || true
+          git push origin HEAD:agent/phase3c-hardening-runner
