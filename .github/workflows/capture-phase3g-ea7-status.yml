@@ -1,0 +1,34 @@
+name: capture-phase3g-ea7-status
+
+on:
+  push:
+    branches: ["agent/phase3c-hardening-runner"]
+    paths:
+      - ".github/workflows/capture-phase3g-ea7-status.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGET_SHA: ea7b66701d771bd6b6f80578a0783ffea9564efc
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase3c-hardening-runner
+      - name: Capture exact-head Phase 3G status
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .status
+          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-3g-prospective-overlap&per_page=100")
+          jq --arg sha "$TARGET_SHA" '{runs:[.workflow_runs[] | select(.head_sha == $sha) | {id,name,status,conclusion,html_url,head_sha,created_at,updated_at}]}' <<<"$runs" > .status/phase3g-ea7-status.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .status/phase3g-ea7-status.json
+          git commit -m "capture Phase 3G ea7 status" || true
+          git push origin HEAD:agent/phase3c-hardening-runner
