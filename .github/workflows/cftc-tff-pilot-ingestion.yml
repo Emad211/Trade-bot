@@ -1,0 +1,164 @@
+name: CFTC TFF Pilot Ingestion
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - .github/workflows/cftc-tff-pilot-ingestion.yml
+      - src/hybrid_trader/replication/cftc_ingestion.py
+      - scripts/ingest_cftc_tff_pilot.py
+      - tests/test_cftc_ingestion.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cftc-tff-pilot-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  acquire-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out the triggering commit
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install the project and verification tools
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev,replication]"
+
+      - name: Run project lint rules for the ingestion path
+        run: >-
+          python -m ruff check
+          src/hybrid_trader/replication/cftc_ingestion.py
+          scripts/ingest_cftc_tff_pilot.py
+          tests/test_cftc_ingestion.py
+
+      - name: Run strict typing for the ingestion module
+        run: python -m mypy --strict --ignore-missing-imports src/hybrid_trader/replication/cftc_ingestion.py
+
+      - name: Run ingestion unit tests
+        run: python -m pytest -q tests/test_cftc_ingestion.py
+
+      - name: Download and validate the frozen official CFTC pilot
+        env:
+          CFTC_APP_TOKEN: ${{ secrets.CFTC_APP_TOKEN }}
+        run: >-
+          python scripts/ingest_cftc_tff_pilot.py
+          --report-date 2022-09-13
+          --output-dir build/cftc-tff-pilot
+
+      - name: Independently verify the persisted hash and manifest
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path("build/cftc-tff-pilot")
+          raw_path = root / "tff_futures_only_2022-09-13.raw.json"
+          manifest_path = root / "acquisition-manifest.json"
+          validation_path = root / "validation.json"
+          for path in (raw_path, manifest_path, validation_path):
+              if not path.is_file() or path.stat().st_size == 0:
+                  raise SystemExit(f"Missing or empty output: {path}")
+          raw = raw_path.read_bytes()
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          validation = json.loads(validation_path.read_text(encoding="utf-8"))
+          digest = hashlib.sha256(raw).hexdigest()
+          if digest != manifest["sha256"]:
+              raise SystemExit("SHA-256 mismatch after persistence")
+          if len(raw) != manifest["byte_count"]:
+              raise SystemExit("Byte-count mismatch after persistence")
+          if validation["row_count"] <= 0:
+              raise SystemExit("The pilot contains no rows")
+          if validation["row_count"] != validation["unique_id_count"]:
+              raise SystemExit("The pilot contains duplicate IDs")
+          if manifest["artifact_audit_pass"] is not False:
+              raise SystemExit("Acquisition must not self-promote to artifact audit pass")
+          print(json.dumps(manifest, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload the raw acquisition bundle
+        id: upload_bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: cftc-tff-pilot-2022-09-13-${{ github.sha }}
+          path: build/cftc-tff-pilot/
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+      - name: Create the Actions staging receipt
+        env:
+          BUNDLE_ARTIFACT_ID: ${{ steps.upload_bundle.outputs.artifact-id }}
+          BUNDLE_ARTIFACT_URL: ${{ steps.upload_bundle.outputs.artifact-url }}
+          BUNDLE_ARTIFACT_DIGEST: ${{ steps.upload_bundle.outputs.artifact-digest }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+          artifact_id = os.environ.get("BUNDLE_ARTIFACT_ID", "").strip()
+          artifact_url = os.environ.get("BUNDLE_ARTIFACT_URL", "").strip()
+          artifact_digest = os.environ.get("BUNDLE_ARTIFACT_DIGEST", "").strip()
+          if not artifact_id or not artifact_url or not artifact_digest:
+              raise SystemExit("Upload action did not return complete artifact evidence")
+          receipt = {
+              "schema_version": "1.0",
+              "repository": os.environ["GITHUB_REPOSITORY"],
+              "commit_sha": os.environ["GITHUB_SHA"],
+              "workflow": os.environ["GITHUB_WORKFLOW"],
+              "run_id": os.environ["GITHUB_RUN_ID"],
+              "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
+              "created_at": datetime.now(UTC).isoformat(),
+              "bundle_artifact_id": artifact_id,
+              "bundle_artifact_url": artifact_url,
+              "bundle_artifact_digest": artifact_digest,
+              "storage_state": "ACTIONS_ARTIFACT_STAGED_RETENTION_90_DAYS",
+              "immutable_long_term_ingestion": False,
+              "artifact_audit_pass": False,
+              "paper_replication_pass": False,
+              "economic_edge_verdict": "INCONCLUSIVE",
+          }
+          destination = Path("build/cftc-tff-pilot-receipt.json")
+          destination.write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(receipt, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload the staging receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: cftc-tff-pilot-receipt-${{ github.sha }}
+          path: build/cftc-tff-pilot-receipt.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Record the non-promotional workflow summary
+        run: |
+          {
+            echo "## CFTC TFF pilot ingestion"
+            echo
+            echo "- Dataset: gpe5-46if"
+            echo "- Frozen report date: 2022-09-13"
+            echo "- Raw bytes downloaded: yes, if this job is green"
+            echo "- Local SHA-256 manifest: generated"
+            echo "- Actions artifact: staged for 90 days"
+            echo "- Long-term immutable ingestion: no"
+            echo "- Paper replication: no"
+            echo "- Economic edge: not established"
+          } >> "$GITHUB_STEP_SUMMARY"
