@@ -37,20 +37,23 @@ def _raw(rows: list[dict[str, str]]) -> bytes:
     return json.dumps(rows, separators=(",", ":"), sort_keys=True).encode()
 
 
-def test_build_query_url_is_frozen_and_ordered() -> None:
+def test_build_query_url_is_narrow_and_does_not_server_sort() -> None:
     url = build_query_url(report_date=date(2022, 9, 13), limit=5000)
     assert "gpe5-46if.json" in url
-    assert "%24order=id+ASC" in url
-    assert "2022-09-13T00%3A00%3A00.000" in url
+    assert "%24select=" in url
+    assert "report_date_as_yyyy_mm_dd=2022-09-13T00%3A00%3A00.000" in url
+    assert "%24order" not in url
 
 
-def test_validate_accepts_ordered_accounting_consistent_rows() -> None:
-    first = _row("220913020601F")
-    second = _row("220913020604F")
+def test_validate_accepts_unordered_rows_and_records_inversions() -> None:
+    first = _row("220913020604F")
+    second = _row("220913020601F")
     result = parse_and_validate(_raw([first, second]))
     assert result.row_count == 2
     assert result.unique_id_count == 2
     assert result.accounting_identity_rows_checked == 2
+    assert result.raw_order_inversion_count == 1
+    assert result.canonical_sort_key == "id"
 
 
 def test_validate_rejects_duplicate_ids() -> None:
@@ -71,8 +74,8 @@ def test_validate_rejects_wrong_date_and_accounting() -> None:
         parse_and_validate(_raw([wrong_accounting]))
 
 
-def test_bundle_preserves_raw_bytes_and_records_hash(tmp_path: Path) -> None:
-    raw = _raw([_row()])
+def test_bundle_preserves_raw_and_creates_canonical_hash(tmp_path: Path) -> None:
+    raw = _raw([_row("220913020604F"), _row("220913020601F")])
     validation = parse_and_validate(raw)
     artifact = HTTPArtifact(raw, 200, "application/json; charset=utf-8", '"etag"', None)
     manifest = write_pilot_bundle(
@@ -83,9 +86,14 @@ def test_bundle_preserves_raw_bytes_and_records_hash(tmp_path: Path) -> None:
         retrieved_at=datetime(2026, 7, 18, tzinfo=UTC),
     )
     stored = (tmp_path / "tff_futures_only_2022-09-13.raw.json").read_bytes()
+    canonical = (tmp_path / "tff_futures_only_2022-09-13.canonical.json").read_bytes()
+    canonical_rows = json.loads(canonical)
     assert stored == raw
-    assert manifest["sha256"] == hashlib.sha256(raw).hexdigest()
-    assert manifest["byte_count"] == len(raw)
+    assert [row["id"] for row in canonical_rows] == ["220913020601F", "220913020604F"]
+    assert manifest["raw_sha256"] == hashlib.sha256(raw).hexdigest()
+    assert manifest["raw_byte_count"] == len(raw)
+    assert manifest["canonical_sha256"] == hashlib.sha256(canonical).hexdigest()
+    assert manifest["canonical_byte_count"] == len(canonical)
     assert manifest["artifact_audit_pass"] is False
     assert manifest["source_access_state"] == "RAW_ARTIFACT_ACQUIRED_NOT_YET_ACTIONS_STAGED"
 
@@ -93,11 +101,13 @@ def test_bundle_preserves_raw_bytes_and_records_hash(tmp_path: Path) -> None:
 def test_ingest_quarantines_downloaded_bytes_when_validation_fails(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    raw = _raw([_row("220913020604F"), _row("220913020601F")])
+    invalid_row = _row()
+    invalid_row["nonrept_positions_long_all"] = "19"
+    raw = _raw([invalid_row])
     artifact = HTTPArtifact(raw, 200, "application/json; charset=utf-8", '"etag"', None)
     monkeypatch.setattr(cftc_ingestion, "fetch_official_bytes", lambda *args, **kwargs: artifact)
 
-    with pytest.raises(CFTCPilotError, match="collation"):
+    with pytest.raises(CFTCPilotError, match="Long-side accounting"):
         cftc_ingestion.ingest_pilot(tmp_path)
 
     stored = (tmp_path / "tff_futures_only_2022-09-13.raw.json").read_bytes()
@@ -105,7 +115,7 @@ def test_ingest_quarantines_downloaded_bytes_when_validation_fails(
         (tmp_path / "validation-failure-manifest.json").read_text(encoding="utf-8")
     )
     assert stored == raw
-    assert failure["sha256"] == hashlib.sha256(raw).hexdigest()
+    assert failure["raw_sha256"] == hashlib.sha256(raw).hexdigest()
     assert failure["validation_status"] == "FAILED_QUARANTINED"
     assert failure["artifact_audit_pass"] is False
     assert failure["source_access_state"] == (
