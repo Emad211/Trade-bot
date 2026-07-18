@@ -1,6 +1,6 @@
 name: phase3h-avalai-pilot
 
-# Final bounded live pilot after full offline validation.
+# Restore state through the workflow-specific Actions endpoint.
 on:
   workflow_dispatch:
   push:
@@ -46,12 +46,8 @@ jobs:
           set -euo pipefail
           root=artifacts/phase3h-avalai-pilot
           mkdir -p "$root" /tmp/phase3h-previous
-          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?status=success&per_page=100")
-          previous_run_id=$(jq -r '
-            [.workflow_runs[]
-              | select(.name == "phase3e-longitudinal-events")
-            ][0].id // empty
-          ' <<<"$runs")
+          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/phase3e-longitudinal-events.yml/runs?status=success&per_page=100")
+          previous_run_id=$(jq -r '.workflow_runs[0].id // empty' <<<"$runs")
           test -n "$previous_run_id"
           artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${previous_run_id}/artifacts?per_page=100")
           artifact=$(jq -c '
