@@ -37,11 +37,11 @@ Admission authorizes research replication only. It does not authorize paper trad
 |---|---|---|
 | [2.1 — Anchor Papers, Opposing Evidence, Modern Updates, Data, and Replication-Code Selection](02-replication/02-01-anchor-opposition-code-selection.md) | Binding paper roles, exactness classes, official data routes, code-admission rules, table-level targets, and kill criteria | Complete |
 | [2.2 — Data, Timing, and Information-Contract Reconstruction](02-replication/02-02-data-timing-information-contract-reconstruction.md) | Availability clocks, immutable raw artifacts, source licenses, point-in-time instruments, futures rolls, regulator releases, crypto contract versions, lineage, costs, and acquisition decisions | Complete |
-| 2.3 — Exact Empirical and Code Replication | Controlled acquisition, public-factor audits, direct opposing tests, table reconstruction, and exact-versus-constructive verdicts | Next |
-| 2.4 | Sensitivity, cost, failure, and disagreement analysis | Planned |
+| [2.3 — Controlled Empirical and Code Replication](02-replication/02-03-controlled-empirical-and-code-replication.md) | Tested replication primitives, official-source verification, acquisition blockers, machine-readable verdicts, and empirical completion gates | Partially complete — implementation validated; official artifacts pending |
+| 2.4 — Sensitivity, Cost, Failure, and Disagreement Analysis | Conditional sensitivity analysis on numerically reconstructed evidence | Blocked until Report 2.3 artifact gates pass |
 | 2.5 | Replication dossier and continue/stop decisions | Planned |
 
-Report 2.1 selects what must be replicated. Report 2.2 freezes what each datum means and when it becomes usable.
+Report 2.1 selects what must be replicated. Report 2.2 freezes what each datum means and when it becomes usable. Report 2.3 implements and tests the replication invariants, but it does not claim a paper-level numerical replication without the official source artifacts.
 
 Report 2.2 machine-readable contracts:
 
@@ -50,15 +50,24 @@ Report 2.2 machine-readable contracts:
 - [Instrument and point-in-time universe manifest](02-replication/02-02-instrument-universe-manifest.yaml)
 - [Lineage and timing schema](02-replication/02-02-lineage-timing-schema.yaml)
 
-The first permitted Report 2.3 sequence is:
+Report 2.3 companion and implementation:
 
-1. AQR TSMOM original-versus-maintained factor audit;
-2. Moreira–Muir public factor and formula audit;
-3. CFTC report-release, category, and revision parser validation;
-4. Binance/OKX archive completeness and effective-dated rule audit;
-5. traditional-futures licensed-data procurement decision.
+- [Replication execution manifest](02-replication/02-03-replication-execution-manifest.yaml)
+- `src/hybrid_trader/replication/`
+- `tests/test_replication_*.py`
 
-Exact traditional-futures replication remains pending licensed expired-contract histories. Chi et al. remains exact-inconclusive until the original licensed data are obtained. Public Binance/OKX work is a separately identified constructive experiment. Empirical fitting, paper trading, live trading, leverage, and capital deployment remain unauthorized.
+Report 2.3 currently records:
+
+- 11 deterministic unit tests passed in the isolated execution environment;
+- Python compilation passed;
+- Ruff was not available in that environment and is not reported as passed;
+- AQR, Moreira–Muir, and CFTC official metadata were verified, but reusable official raw artifacts were not acquired through the current tool boundary;
+- exact traditional-futures replication remains pending licensed expired-contract histories;
+- Chi et al. remains exact-inconclusive until its original licensed data are obtained;
+- Binance/OKX work remains a separately identified constructive experiment;
+- all six empirical edge verdicts remain `INCONCLUSIVE`.
+
+Empirical fitting, parameter tuning, a strategy tournament, paper trading, live trading, leverage, and capital deployment remain unauthorized.
 
 ### 3. Dataset and Experiment System
 
@@ -117,6 +126,9 @@ Five leaf reports form one section-level synthesis. The five section syntheses f
 - A single timestamp field is prohibited; `available_at` governs usability.
 - Continuous futures may support signal diagnostics but cannot create executable PnL.
 - Public data under provider terms are not assumed redistributable.
+- Implementation tests are not empirical paper replications.
+- Source-page verification is not raw-artifact acquisition.
+- Blocked or licensed data must remain blocked or pending; a convenient substitute cannot inherit an exact verdict.
 - An admitted hypothesis remains unproven until it survives genuinely new forward data and realistic execution.
 - The final outcome may legitimately be to reject every candidate.
 
