@@ -1,0 +1,25 @@
+{
+  "captured_at": "2026-07-18T12:54:26Z",
+  "runs": [
+    {
+      "id": 29645028083,
+      "name": "phase3h-avalai-pilot",
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "81a68f026e8f223d101625c1a246981f752c4117",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29645028083",
+      "created_at": "2026-07-18T12:49:39Z",
+      "updated_at": "2026-07-18T12:50:15Z"
+    },
+    {
+      "id": 29644873725,
+      "name": "phase3h-avalai-pilot",
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "b1c3aaf1bc91c0baf19b10d7588c70646f39984f",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29644873725",
+      "created_at": "2026-07-18T12:44:29Z",
+      "updated_at": "2026-07-18T12:45:06Z"
+    }
+  ]
+}
