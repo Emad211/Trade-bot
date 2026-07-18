@@ -1,0 +1,33 @@
+name: capture-phase3g-run-tail
+
+on:
+  push:
+    branches: ["agent/phase3c-hardening-runner"]
+    paths:
+      - ".github/workflows/capture-phase3g-run-tail.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase3c-hardening-runner
+      - name: Save final log section
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .status
+          gh run view 29641684148 --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/run.log
+          tail -n 180 /tmp/run.log > .status/phase3g-run-tail.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .status/phase3g-run-tail.txt
+          git commit -m "capture final Phase 3G run section" || true
+          git push origin HEAD:agent/phase3c-hardening-runner
