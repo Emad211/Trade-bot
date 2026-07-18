@@ -24,22 +24,22 @@ DEFAULT_USER_AGENT = (
     "Emad211-Trade-bot-replication/1.0 (+https://github.com/Emad211/Trade-bot)"
 )
 RAW_FILENAME = "tff_futures_only_2022-09-13.raw.json"
+CANONICAL_FILENAME = "tff_futures_only_2022-09-13.canonical.json"
 
-REQUIRED_FIELDS = frozenset(
-    {
-        "id",
-        "market_and_exchange_names",
-        "report_date_as_yyyy_mm_dd",
-        "cftc_contract_market_code",
-        "commodity_name",
-        "open_interest_all",
-        "tot_rept_positions_long_all",
-        "tot_rept_positions_short",
-        "nonrept_positions_long_all",
-        "nonrept_positions_short_all",
-        "futonly_or_combined",
-    }
+SELECT_FIELDS = (
+    "id",
+    "market_and_exchange_names",
+    "report_date_as_yyyy_mm_dd",
+    "cftc_contract_market_code",
+    "commodity_name",
+    "open_interest_all",
+    "tot_rept_positions_long_all",
+    "tot_rept_positions_short",
+    "nonrept_positions_long_all",
+    "nonrept_positions_short_all",
+    "futonly_or_combined",
 )
+REQUIRED_FIELDS = frozenset(SELECT_FIELDS)
 
 
 class CFTCPilotError(RuntimeError):
@@ -65,17 +65,19 @@ class PilotValidation:
     min_id: str
     max_id: str
     accounting_identity_rows_checked: int
+    raw_order_inversion_count: int
+    canonical_sort_key: str
 
 
 def build_query_url(*, report_date: date = DEFAULT_REPORT_DATE, limit: int = DEFAULT_LIMIT) -> str:
-    """Build a deterministic, ordered Socrata query for one frozen report date."""
+    """Build a narrow official Socrata query for one frozen report date."""
 
     if limit <= 0 or limit > 50_000:
         raise ValueError("limit must be between 1 and 50000")
     timestamp = f"{report_date.isoformat()}T00:00:00.000"
     params = {
-        "$where": f"report_date_as_yyyy_mm_dd='{timestamp}'",
-        "$order": "id ASC",
+        "$select": ",".join(SELECT_FIELDS),
+        "report_date_as_yyyy_mm_dd": timestamp,
         "$limit": str(limit),
     }
     return f"{RESOURCE_URL}?{urlencode(params)}"
@@ -111,6 +113,22 @@ def fetch_official_bytes(
     return HTTPArtifact(raw, status, content_type, etag, last_modified)
 
 
+def _decode_rows(raw_bytes: bytes) -> list[Mapping[str, Any]]:
+    try:
+        decoded = json.loads(raw_bytes)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise CFTCPilotError("Response is not valid UTF-8 JSON") from exc
+    if not isinstance(decoded, list) or not decoded:
+        raise CFTCPilotError("Expected a non-empty JSON array")
+
+    rows: list[Mapping[str, Any]] = []
+    for index, value in enumerate(decoded):
+        if not isinstance(value, dict):
+            raise CFTCPilotError(f"Row {index} is not a JSON object")
+        rows.append(cast(Mapping[str, Any], value))
+    return rows
+
+
 def _as_int(row: Mapping[str, Any], field: str) -> int:
     value = row.get(field)
     if value is None or value == "":
@@ -124,26 +142,21 @@ def _as_int(row: Mapping[str, Any], field: str) -> int:
     return result
 
 
-def _first_order_inversions(ids: Sequence[str], *, limit: int = 5) -> list[tuple[str, str]]:
-    return [(left, right) for left, right in pairwise(ids) if left > right][:limit]
+def canonicalize_rows(raw_bytes: bytes) -> bytes:
+    """Create a stable, derived JSON representation sorted by the business row ID."""
+
+    rows = _decode_rows(raw_bytes)
+    canonical_rows = sorted(rows, key=lambda row: str(row.get("id", "")))
+    return (
+        json.dumps(canonical_rows, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+        + "\n"
+    ).encode("utf-8")
 
 
 def parse_and_validate(raw_bytes: bytes, *, report_date: date = DEFAULT_REPORT_DATE) -> PilotValidation:
     """Parse and fail closed on identity, date, schema, and accounting defects."""
 
-    try:
-        decoded = json.loads(raw_bytes)
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise CFTCPilotError("Response is not valid UTF-8 JSON") from exc
-    if not isinstance(decoded, list) or not decoded:
-        raise CFTCPilotError("Expected a non-empty JSON array")
-
-    rows: list[Mapping[str, Any]] = []
-    for index, value in enumerate(decoded):
-        if not isinstance(value, dict):
-            raise CFTCPilotError(f"Row {index} is not a JSON object")
-        rows.append(cast(Mapping[str, Any], value))
-
+    rows = _decode_rows(raw_bytes)
     expected_timestamp = f"{report_date.isoformat()}T00:00:00.000"
     ids: list[str] = []
     all_columns: set[str] = set()
@@ -180,12 +193,7 @@ def parse_and_validate(raw_bytes: bytes, *, report_date: date = DEFAULT_REPORT_D
 
     if len(ids) != len(set(ids)):
         raise CFTCPilotError("Duplicate CFTC row ids detected")
-    if ids != sorted(ids):
-        inversions = _first_order_inversions(ids)
-        raise CFTCPilotError(
-            "Rows are not ordered under Python code-point collation; "
-            f"first adjacent inversions={inversions!r}"
-        )
+    inversion_count = sum(1 for left, right in pairwise(ids) if left > right)
 
     return PilotValidation(
         dataset_id=DATASET_ID,
@@ -196,6 +204,8 @@ def parse_and_validate(raw_bytes: bytes, *, report_date: date = DEFAULT_REPORT_D
         min_id=min(ids),
         max_id=max(ids),
         accounting_identity_rows_checked=accounting_checked,
+        raw_order_inversion_count=inversion_count,
+        canonical_sort_key="id",
     )
 
 
@@ -227,8 +237,8 @@ def _artifact_evidence(
         "etag": artifact.etag,
         "last_modified": artifact.last_modified,
         "raw_filename": RAW_FILENAME,
-        "byte_count": len(artifact.raw_bytes),
-        "sha256": hashlib.sha256(artifact.raw_bytes).hexdigest(),
+        "raw_byte_count": len(artifact.raw_bytes),
+        "raw_sha256": hashlib.sha256(artifact.raw_bytes).hexdigest(),
     }
 
 
@@ -276,15 +286,18 @@ def write_pilot_bundle(
     source_url: str,
     retrieved_at: datetime,
 ) -> dict[str, Any]:
-    """Persist raw bytes plus a non-promotional acquisition and validation manifest."""
+    """Persist raw and canonical bytes plus a non-promotional validation manifest."""
 
     if retrieved_at.tzinfo is None:
         raise ValueError("retrieved_at must be timezone-aware")
     output_dir.mkdir(parents=True, exist_ok=True)
     raw_path = output_dir / RAW_FILENAME
+    canonical_path = output_dir / CANONICAL_FILENAME
     validation_path = output_dir / "validation.json"
     manifest_path = output_dir / "acquisition-manifest.json"
+    canonical_bytes = canonicalize_rows(artifact.raw_bytes)
     _atomic_write(raw_path, artifact.raw_bytes)
+    _atomic_write(canonical_path, canonical_bytes)
 
     validation_payload = asdict(validation)
     _atomic_write(
@@ -292,12 +305,15 @@ def write_pilot_bundle(
         (json.dumps(validation_payload, indent=2, sort_keys=True) + "\n").encode("utf-8"),
     )
     manifest: dict[str, Any] = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         **_artifact_evidence(
             artifact=artifact,
             source_url=source_url,
             retrieved_at=retrieved_at,
         ),
+        "canonical_filename": CANONICAL_FILENAME,
+        "canonical_byte_count": len(canonical_bytes),
+        "canonical_sha256": hashlib.sha256(canonical_bytes).hexdigest(),
         "validation": validation_payload,
         "validation_status": "PASS",
         "source_access_state": "RAW_ARTIFACT_ACQUIRED_NOT_YET_ACTIONS_STAGED",
