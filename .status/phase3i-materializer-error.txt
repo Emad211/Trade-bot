@@ -1,0 +1,55 @@
+40:materialize	Format and validate Phase 3I	2026-07-18T13:32:21.1665069Z src/hybrid_trader/phase3i_health.py:228: error: Incompatible types in assignment (expression has type "AvalAICallRecord", variable has type "SemanticEventRecord")  [assignment]
+41:materialize	Format and validate Phase 3I	2026-07-18T13:32:21.1666771Z src/hybrid_trader/phase3i_health.py:229: error: "SemanticEventRecord" has no attribute "status"  [attr-defined]
+42:materialize	Format and validate Phase 3I	2026-07-18T13:32:21.1668324Z src/hybrid_trader/phase3i_health.py:232: error: Incompatible types in assignment (expression has type "SemanticEventRecord", target has type "AvalAICallRecord")  [assignment]
+43:materialize	Format and validate Phase 3I	2026-07-18T13:32:21.1670555Z src/hybrid_trader/phase3i_health.py:279: error: "object" has no attribute "document_id"  [attr-defined]
+44:materialize	Format and validate Phase 3I	2026-07-18T13:32:21.1671620Z src/hybrid_trader/phase3i_health.py:283: error: "object" has no attribute "source_quality"  [attr-defined]
+45:materialize	Format and validate Phase 3I	2026-07-18T13:32:21.1672645Z src/hybrid_trader/phase3i_health.py:283: error: "object" has no attribute "asset_tags"  [attr-defined]
+46:materialize	Format and validate Phase 3I	2026-07-18T13:32:25.7839465Z Found 6 errors in 1 file (checked 80 source files)
+=== final 260 lines ===
+materialize	Format and validate Phase 3I	﻿2026-07-18T13:32:12.7161723Z ##[group]Run ruff format \
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7162085Z ^[[36;1mruff format \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7162366Z ^[[36;1m  scripts/select_phase3i_semantic_state.py \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7162702Z ^[[36;1m  scripts/assess_phase3i_state.py \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7163026Z ^[[36;1m  src/hybrid_trader/phase3i_lineage.py \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7163358Z ^[[36;1m  src/hybrid_trader/phase3i_health.py \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7163688Z ^[[36;1m  src/hybrid_trader/phase3i_trajectory.py \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7164012Z ^[[36;1m  tests/test_phase3i_lineage.py \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7164298Z ^[[36;1m  tests/test_phase3i_health.py \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7164591Z ^[[36;1m  tests/test_phase3i_trajectory.py^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7164891Z ^[[36;1mruff check --fix \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7165171Z ^[[36;1m  scripts/select_phase3i_semantic_state.py \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7165487Z ^[[36;1m  scripts/assess_phase3i_state.py \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7165793Z ^[[36;1m  src/hybrid_trader/phase3i_lineage.py \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7166140Z ^[[36;1m  src/hybrid_trader/phase3i_health.py \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7166461Z ^[[36;1m  src/hybrid_trader/phase3i_trajectory.py \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7166777Z ^[[36;1m  tests/test_phase3i_lineage.py \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7167065Z ^[[36;1m  tests/test_phase3i_health.py \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7167349Z ^[[36;1m  tests/test_phase3i_trajectory.py^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7167639Z ^[[36;1mmypy --python-version 3.12 src^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7167903Z ^[[36;1mpytest \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7168123Z ^[[36;1m  tests/test_phase3i_lineage.py \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7168401Z ^[[36;1m  tests/test_phase3i_health.py \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7168687Z ^[[36;1m  tests/test_phase3i_trajectory.py \^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7169394Z ^[[36;1m  -q^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7169616Z ^[[36;1mpytest -m 'not optional_ml' -q^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7169903Z ^[[36;1mpytest -m optional_ml -q^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7170174Z ^[[36;1mpython -m pip check^[[0m
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7232195Z shell: /usr/bin/bash -e {0}
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7232466Z env:
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7232737Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7233180Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7233629Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7234012Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7234398Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7234786Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7235109Z ##[endgroup]
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7393139Z 2 files reformatted, 6 files left unchanged
+materialize	Format and validate Phase 3I	2026-07-18T13:32:12.7476902Z All checks passed!
+materialize	Format and validate Phase 3I	2026-07-18T13:32:21.1665069Z src/hybrid_trader/phase3i_health.py:228: error: Incompatible types in assignment (expression has type "AvalAICallRecord", variable has type "SemanticEventRecord")  [assignment]
+materialize	Format and validate Phase 3I	2026-07-18T13:32:21.1666771Z src/hybrid_trader/phase3i_health.py:229: error: "SemanticEventRecord" has no attribute "status"  [attr-defined]
+materialize	Format and validate Phase 3I	2026-07-18T13:32:21.1668324Z src/hybrid_trader/phase3i_health.py:232: error: Incompatible types in assignment (expression has type "SemanticEventRecord", target has type "AvalAICallRecord")  [assignment]
+materialize	Format and validate Phase 3I	2026-07-18T13:32:21.1670555Z src/hybrid_trader/phase3i_health.py:279: error: "object" has no attribute "document_id"  [attr-defined]
+materialize	Format and validate Phase 3I	2026-07-18T13:32:21.1671620Z src/hybrid_trader/phase3i_health.py:283: error: "object" has no attribute "source_quality"  [attr-defined]
+materialize	Format and validate Phase 3I	2026-07-18T13:32:21.1672645Z src/hybrid_trader/phase3i_health.py:283: error: "object" has no attribute "asset_tags"  [attr-defined]
+materialize	Format and validate Phase 3I	2026-07-18T13:32:25.7839465Z Found 6 errors in 1 file (checked 80 source files)
+materialize	Format and validate Phase 3I	2026-07-18T13:32:25.8105859Z ##[error]Process completed with exit code 1.
