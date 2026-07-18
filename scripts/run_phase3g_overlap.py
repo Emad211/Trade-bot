@@ -26,9 +26,7 @@ def _aware_datetime(value: str, *, label: str) -> datetime:
 
 def _source_commit(value: str | None) -> str:
     resolved = value or os.environ.get("GITHUB_SHA", "")
-    if len(resolved) != 40 or any(
-        character not in "0123456789abcdef" for character in resolved
-    ):
+    if len(resolved) != 40 or any(character not in "0123456789abcdef" for character in resolved):
         raise ValueError("A lowercase 40-character source commit SHA is required")
     return resolved
 
