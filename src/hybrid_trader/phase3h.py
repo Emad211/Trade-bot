@@ -95,11 +95,7 @@ class Phase3HPilotAssessment(BaseModel):
 def _jsonl_records(path: Path, model: type[BaseModel]) -> tuple[BaseModel, ...]:
     if not path.is_file():
         return ()
-    return tuple(
-        model.model_validate_json(line)
-        for line in path.read_bytes().splitlines()
-        if line
-    )
+    return tuple(model.model_validate_json(line) for line in path.read_bytes().splitlines() if line)
 
 
 def _latest_provider_run(root: Path) -> tuple[EventCaptureManifest, AvalAIProviderRunManifest]:
@@ -159,9 +155,7 @@ def assess_phase3h_pilot(
     call_by_id = {record.call_id: record for record in call_records}
     new_calls = tuple(call_by_id[call_id] for call_id in provider.new_call_ids)
     new_keys = {record.extraction_key for record in new_calls}
-    new_semantic = tuple(
-        record for record in semantic_records if record.extraction_key in new_keys
-    )
+    new_semantic = tuple(record for record in semantic_records if record.extraction_key in new_keys)
     if len(new_semantic) != provider.successful_call_count:
         raise RuntimeError("New successful calls do not map one-to-one to semantic records")
     if len({record.extraction_key for record in new_semantic}) != len(new_semantic):
@@ -169,12 +163,8 @@ def assess_phase3h_pilot(
 
     semantic_sources = tuple(sorted({record.source_id for record in new_semantic}))
     semantic_assets = tuple(sorted({record.signal.asset for record in new_semantic}))
-    missing_sources = tuple(
-        sorted(set(declared.required_new_sources).difference(semantic_sources))
-    )
-    missing_assets = tuple(
-        sorted(set(declared.required_new_assets).difference(semantic_assets))
-    )
+    missing_sources = tuple(sorted(set(declared.required_new_sources).difference(semantic_sources)))
+    missing_assets = tuple(sorted(set(declared.required_new_assets).difference(semantic_assets)))
     zero_accepted = {
         attempt.source_id
         for attempt in capture.source_attempts
