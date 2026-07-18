@@ -37,7 +37,7 @@ Admission authorizes research replication only. It does not authorize paper trad
 |---|---|---|
 | [2.1 — Anchor Papers, Opposing Evidence, Modern Updates, Data, and Replication-Code Selection](02-replication/02-01-anchor-opposition-code-selection.md) | Binding paper roles, exactness classes, official data routes, code-admission rules, table-level targets, and kill criteria | Complete |
 | [2.2 — Data, Timing, and Information-Contract Reconstruction](02-replication/02-02-data-timing-information-contract-reconstruction.md) | Availability clocks, immutable raw artifacts, source licenses, point-in-time instruments, futures rolls, regulator releases, crypto contract versions, lineage, costs, and acquisition decisions | Complete |
-| [2.3 — Controlled Empirical and Code Replication](02-replication/02-03-controlled-empirical-and-code-replication.md) | Tested replication primitives, official-source verification, acquisition blockers, machine-readable verdicts, and empirical completion gates | Partially complete — independently reverified; official artifacts pending |
+| [2.3 — Current Controlling Status](02-replication/02-03-current-controlling-status.md) | Independently reverified implementation, provenance hardening, corrected source states, static checks, and empirical completion gates | Partially complete — implementation verified; official artifacts pending |
 | 2.4 — Sensitivity, Cost, Failure, and Disagreement Analysis | Conditional sensitivity analysis on numerically reconstructed evidence | Blocked until Report 2.3 artifact gates pass |
 | 2.5 | Replication dossier and continue/stop decisions | Planned |
 
@@ -52,6 +52,8 @@ Report 2.2 machine-readable contracts:
 
 Report 2.3 evidence and implementation:
 
+- [Current controlling status](02-replication/02-03-current-controlling-status.md)
+- [Initial controlled execution snapshot](02-replication/02-03-controlled-empirical-and-code-replication.md)
 - [Replication execution manifest](02-replication/02-03-replication-execution-manifest.yaml)
 - [Independent reality verification and correction log](02-replication/02-03-independent-reality-verification-log.md)
 - [Static analysis, test, and coverage verification](02-replication/02-03-static-analysis-and-test-verification.md)
