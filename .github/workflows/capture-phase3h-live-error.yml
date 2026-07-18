@@ -1,0 +1,37 @@
+name: capture-phase3h-live-error
+
+on:
+  push:
+    branches: ["agent/phase3c-hardening-runner"]
+    paths:
+      - ".github/workflows/capture-phase3h-live-error.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase3c-hardening-runner
+      - name: Capture failed Phase 3H pilot log
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .status
+          gh run view 29645028083 --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/phase3h-live-error.log
+          {
+            grep -nE 'Traceback|Error|Exception|RuntimeError|ValueError|FAILED|error:|not found|No such|missing|digest|artifact|state' /tmp/phase3h-live-error.log || true
+            echo '=== final 220 lines ==='
+            tail -n 220 /tmp/phase3h-live-error.log
+          } > .status/phase3h-live-error.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .status/phase3h-live-error.txt
+          git commit -m "capture Phase 3H live-pilot failure" || true
+          git push origin HEAD:agent/phase3c-hardening-runner
