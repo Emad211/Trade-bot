@@ -14,11 +14,15 @@ from hybrid_trader.event_documents import FeedSourceSpec
 class EventCaptureSpec(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    schema_version: str = "1.3"
+    schema_version: str = "1.4"
     sources: tuple[FeedSourceSpec, ...]
     extractor: Literal["keyword_baseline", "avalai_structured"] = "keyword_baseline"
     timeout_seconds: int = Field(default=30, ge=1, le=300)
     minimum_successful_sources: int = Field(default=1, ge=1)
+    semantic_selection_strategy: Literal[
+        "global_order",
+        "source_round_robin",
+    ] = "global_order"
 
     @model_validator(mode="after")
     def validate_sources(self) -> EventCaptureSpec:
