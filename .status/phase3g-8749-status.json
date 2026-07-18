@@ -1,0 +1,34 @@
+{
+  "runs": [
+    {
+      "id": 29641292386,
+      "name": "ci",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29641292386",
+      "head_sha": "8749c9fd4a861065e2ae48a5f751a0fc00e845c1",
+      "created_at": "2026-07-18T10:42:31Z",
+      "updated_at": "2026-07-18T10:43:18Z"
+    },
+    {
+      "id": 29641291051,
+      "name": "ci",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29641291051",
+      "head_sha": "8749c9fd4a861065e2ae48a5f751a0fc00e845c1",
+      "created_at": "2026-07-18T10:42:28Z",
+      "updated_at": "2026-07-18T10:43:20Z"
+    },
+    {
+      "id": 29641291052,
+      "name": "phase3g-workflow-hardening",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29641291052",
+      "head_sha": "8749c9fd4a861065e2ae48a5f751a0fc00e845c1",
+      "created_at": "2026-07-18T10:42:28Z",
+      "updated_at": "2026-07-18T10:43:56Z"
+    }
+  ]
+}
