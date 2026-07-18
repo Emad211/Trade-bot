@@ -131,7 +131,7 @@ jobs:
         if: ${{ steps.acquire.outputs.exit_code != '0' }}
         run: exit 1
 
-      - name: Independently verify the persisted hash and manifest
+      - name: Independently verify the persisted hashes and manifest
         run: |
           python - <<'PY'
           import hashlib
@@ -140,19 +140,26 @@ jobs:
 
           root = Path("build/cftc-tff-pilot")
           raw_path = root / "tff_futures_only_2022-09-13.raw.json"
+          canonical_path = root / "tff_futures_only_2022-09-13.canonical.json"
           manifest_path = root / "acquisition-manifest.json"
           validation_path = root / "validation.json"
-          for path in (raw_path, manifest_path, validation_path):
+          for path in (raw_path, canonical_path, manifest_path, validation_path):
               if not path.is_file() or path.stat().st_size == 0:
                   raise SystemExit(f"Missing or empty output: {path}")
           raw = raw_path.read_bytes()
+          canonical = canonical_path.read_bytes()
           manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
           validation = json.loads(validation_path.read_text(encoding="utf-8"))
-          digest = hashlib.sha256(raw).hexdigest()
-          if digest != manifest["sha256"]:
-              raise SystemExit("SHA-256 mismatch after persistence")
-          if len(raw) != manifest["byte_count"]:
-              raise SystemExit("Byte-count mismatch after persistence")
+          raw_digest = hashlib.sha256(raw).hexdigest()
+          canonical_digest = hashlib.sha256(canonical).hexdigest()
+          if raw_digest != manifest["raw_sha256"]:
+              raise SystemExit("Raw SHA-256 mismatch after persistence")
+          if len(raw) != manifest["raw_byte_count"]:
+              raise SystemExit("Raw byte-count mismatch after persistence")
+          if canonical_digest != manifest["canonical_sha256"]:
+              raise SystemExit("Canonical SHA-256 mismatch after persistence")
+          if len(canonical) != manifest["canonical_byte_count"]:
+              raise SystemExit("Canonical byte-count mismatch after persistence")
           if validation["row_count"] <= 0:
               raise SystemExit("The pilot contains no rows")
           if validation["row_count"] != validation["unique_id_count"]:
@@ -229,8 +236,7 @@ jobs:
             echo
             echo "- Dataset: gpe5-46if"
             echo "- Frozen report date: 2022-09-13"
-            echo "- Raw bytes downloaded: yes, if this job is green"
-            echo "- Local SHA-256 manifest: generated"
+            echo "- Raw and canonical SHA-256 manifests: generated"
             echo "- Actions artifact: staged for 90 days"
             echo "- Long-term immutable ingestion: no"
             echo "- Paper replication: no"
