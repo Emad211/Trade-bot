@@ -1,3 +1,5 @@
+"""Assess the selected semantic state and advance the Phase 3I trajectory."""
+
 from __future__ import annotations
 
 import argparse
