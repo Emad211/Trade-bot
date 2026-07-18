@@ -1,0 +1,274 @@
+190:materialize	Install and validate Phase 3G	2026-07-18T10:20:37.6407546Z Found 4 errors (4 fixed, 0 remaining).
+224:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0410945Z             raise ValueError("Phase 3G market and semantic dataset snapshot hashes disagree")
+226:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0412109Z             raise ValueError("Phase 3G market and dataset source commits disagree")
+228:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0412908Z             raise ValueError("Phase 3G market and semantic dataset as_of values disagree")
+255:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0422681Z E       pydantic_core._pydantic_core.ValidationError: 1 validation error for Phase3GTrajectoryEntry
+256:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0423549Z E         Value error, Phase 3G trajectory entry ID is not self-consistent [type=value_error, input_value={'entry_id': '8b2f5e3688f...cisions_created': False}, input_type=dict]
+257:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0424389Z E           For further information visit https://errors.pydantic.dev/2.13/v/value_error
+259:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0424917Z src/hybrid_trader/phase3g_trajectory.py:125: ValidationError
+292:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0437221Z             raise ValueError("Phase 3G market and semantic dataset snapshot hashes disagree")
+294:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0438134Z             raise ValueError("Phase 3G market and dataset source commits disagree")
+296:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0438908Z             raise ValueError("Phase 3G market and semantic dataset as_of values disagree")
+323:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0448451Z E       pydantic_core._pydantic_core.ValidationError: 1 validation error for Phase3GTrajectoryEntry
+324:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0449325Z E         Value error, Phase 3G trajectory entry ID is not self-consistent [type=value_error, input_value={'entry_id': '8b2f5e3688f...cisions_created': False}, input_type=dict]
+325:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0450134Z E           For further information visit https://errors.pydantic.dev/2.13/v/value_error
+327:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0450621Z src/hybrid_trader/phase3g_trajectory.py:125: ValidationError
+358:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0463069Z             raise ValueError("Phase 3G market and semantic dataset snapshot hashes disagree")
+360:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0463985Z             raise ValueError("Phase 3G market and dataset source commits disagree")
+362:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0464766Z             raise ValueError("Phase 3G market and semantic dataset as_of values disagree")
+389:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0474329Z E       pydantic_core._pydantic_core.ValidationError: 1 validation error for Phase3GTrajectoryEntry
+390:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0475461Z E         Value error, Phase 3G trajectory entry ID is not self-consistent [type=value_error, input_value={'entry_id': '8b2f5e3688f...cisions_created': False}, input_type=dict]
+391:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0476546Z E           For further information visit https://errors.pydantic.dev/2.13/v/value_error
+393:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0477040Z src/hybrid_trader/phase3g_trajectory.py:125: ValidationError
+442:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0494668Z             raise ValueError("Phase 3G market and semantic dataset snapshot hashes disagree")
+444:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0495589Z             raise ValueError("Phase 3G market and dataset source commits disagree")
+446:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0496367Z             raise ValueError("Phase 3G market and semantic dataset as_of values disagree")
+473:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0505657Z E       pydantic_core._pydantic_core.ValidationError: 1 validation error for Phase3GTrajectoryEntry
+474:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0506530Z E         Value error, Phase 3G trajectory entry ID is not self-consistent [type=value_error, input_value={'entry_id': '039b8a75adb...cisions_created': False}, input_type=dict]
+475:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0507340Z E           For further information visit https://errors.pydantic.dev/2.13/v/value_error
+477:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0525651Z src/hybrid_trader/phase3g_trajectory.py:125: ValidationError
+479:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0527178Z FAILED tests/test_phase3g_trajectory.py::test_phase3g_trajectory_appends_and_verifies_chain - pydantic_core._pydantic_core.ValidationError: 1 validation error for Phase3GTrajectoryEntry
+482:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0771033Z FAILED tests/test_phase3g_trajectory.py::test_phase3g_trajectory_rejects_duplicates_and_nonadvancing_time - pydantic_core._pydantic_core.ValidationError: 1 validation error for Phase3GTrajectoryEntry
+485:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0777032Z FAILED tests/test_phase3g_trajectory.py::test_phase3g_trajectory_detects_tampering - pydantic_core._pydantic_core.ValidationError: 1 validation error for Phase3GTrajectoryEntry
+488:materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0781273Z FAILED tests/test_phase3g_overlap.py::test_phase3g_overlap_builds_active_rows_without_backfill - pydantic_core._pydantic_core.ValidationError: 1 validation error for Phase3GTrajectoryEntry
+=== tail ===
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0421829Z             entry_id=canonical_sha256(payload),
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0422103Z             **payload,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0422303Z         )
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0422681Z E       pydantic_core._pydantic_core.ValidationError: 1 validation error for Phase3GTrajectoryEntry
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0423549Z E         Value error, Phase 3G trajectory entry ID is not self-consistent [type=value_error, input_value={'entry_id': '8b2f5e3688f...cisions_created': False}, input_type=dict]
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0424389Z E           For further information visit https://errors.pydantic.dev/2.13/v/value_error
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0424751Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0424917Z src/hybrid_trader/phase3g_trajectory.py:125: ValidationError
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0425370Z _______ test_phase3g_trajectory_rejects_duplicates_and_nonadvancing_time _______
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0425681Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0425918Z tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-0/test_phase3g_trajectory_reject0')
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0426249Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0426433Z     def test_phase3g_trajectory_rejects_duplicates_and_nonadvancing_time(
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0426822Z         tmp_path: Path,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0427131Z     ) -> None:
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0427351Z         as_of = datetime(2026, 7, 18, 8, tzinfo=UTC)
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0427648Z >       entry = make_phase3g_trajectory_entry(
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0427925Z             _market(as_of=as_of),
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0428198Z             _dataset(as_of=as_of, content_sha="2" * 64),
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0428491Z             recorded_at=as_of,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0428710Z         )
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0428805Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0428912Z tests/test_phase3g_trajectory.py:149: 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0429222Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0429466Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0430305Z market = Phase3GMarketManifest(schema_version='1.0', run_id='bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',...=False, trading_decisions_created=False, created_at=datetime.datetime(2026, 7, 18, 8, 0, tzinfo=datetime.timezone.utc))
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0432241Z dataset = SemanticDatasetManifest(schema_version='1.0', dataset_id='semantic-222222222222', content_sha256='22222222222222222222...ons=('insufficient_semantic_records',)), created_at=datetime.datetime(2026, 7, 18, 8, 0, tzinfo=datetime.timezone.utc))
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0433308Z recorded_at = datetime.datetime(2026, 7, 18, 8, 0, tzinfo=datetime.timezone.utc)
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0433700Z previous_entry_sha256 = None
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0433857Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0433954Z     def make_phase3g_trajectory_entry(
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0434253Z         market: Phase3GMarketManifest,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0434535Z         dataset: SemanticDatasetManifest,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0434947Z         *,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0435137Z         recorded_at: datetime,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0435393Z         previous_entry_sha256: str | None = None,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0435687Z     ) -> Phase3GTrajectoryEntry:
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0436043Z         """Bind one semantic dataset to the exact prospective market snapshot."""
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0436408Z     
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0436700Z         if dataset.market_snapshot_sha256 != market.combined_snapshot_sha256:
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0437221Z             raise ValueError("Phase 3G market and semantic dataset snapshot hashes disagree")
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0437694Z         if dataset.source_commit_sha != market.source_commit_sha:
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0438134Z             raise ValueError("Phase 3G market and dataset source commits disagree")
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0438519Z         if dataset.as_of != market.as_of:
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0438908Z             raise ValueError("Phase 3G market and semantic dataset as_of values disagree")
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0439462Z         maturity = dataset.maturity
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0439722Z         payload: dict[str, object] = {
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0439978Z             "schema_version": "1.0",
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0440267Z             "previous_entry_sha256": previous_entry_sha256,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0440572Z             "recorded_at": recorded_at,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0440828Z             "as_of": dataset.as_of,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0441131Z             "source_commit_sha": dataset.source_commit_sha,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0441437Z             "market_run_id": market.run_id,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0442035Z             "market_snapshot_sha256": market.combined_snapshot_sha256,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0442388Z             "dataset_id": dataset.dataset_id,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0442708Z             "dataset_content_sha256": dataset.content_sha256,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0443107Z             "semantic_ledger_head_sha256": dataset.semantic_ledger_head_sha256,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0443591Z             "relevant_semantic_record_count": maturity.relevant_semantic_record_count,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0444109Z             "unique_availability_date_count": maturity.unique_availability_date_count,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0444546Z             "unique_source_count": maturity.unique_source_count,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0444947Z             "active_decision_row_count": maturity.active_decision_row_count,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0445389Z             "matured_labeled_row_count": maturity.matured_labeled_row_count,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0445767Z             "maturity_status": maturity.status,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0446153Z             "research_model_fitting_allowed": maturity.research_model_fitting_allowed,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0446560Z             "paper_or_live_trading_allowed": False,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0446861Z             "prospective_decisions_created": False,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0447124Z         }
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0447323Z >       return Phase3GTrajectoryEntry(
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0447600Z             entry_id=canonical_sha256(payload),
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0447882Z             **payload,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0448079Z         )
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0448451Z E       pydantic_core._pydantic_core.ValidationError: 1 validation error for Phase3GTrajectoryEntry
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0449325Z E         Value error, Phase 3G trajectory entry ID is not self-consistent [type=value_error, input_value={'entry_id': '8b2f5e3688f...cisions_created': False}, input_type=dict]
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0450134Z E           For further information visit https://errors.pydantic.dev/2.13/v/value_error
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0450462Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0450621Z src/hybrid_trader/phase3g_trajectory.py:125: ValidationError
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0451045Z __________________ test_phase3g_trajectory_detects_tampering ___________________
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0451326Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0451801Z tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-0/test_phase3g_trajectory_detect0')
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0452167Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0452533Z     def test_phase3g_trajectory_detects_tampering(tmp_path: Path) -> None:
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0453154Z         as_of = datetime(2026, 7, 18, 8, tzinfo=UTC)
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0453465Z >       entry = make_phase3g_trajectory_entry(
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0453743Z             _market(as_of=as_of),
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0454017Z             _dataset(as_of=as_of, content_sha="2" * 64),
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0454313Z             recorded_at=as_of,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0454535Z         )
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0454638Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0454739Z tests/test_phase3g_trajectory.py:185: 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0455053Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0455289Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0456136Z market = Phase3GMarketManifest(schema_version='1.0', run_id='bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',...=False, trading_decisions_created=False, created_at=datetime.datetime(2026, 7, 18, 8, 0, tzinfo=datetime.timezone.utc))
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0457828Z dataset = SemanticDatasetManifest(schema_version='1.0', dataset_id='semantic-222222222222', content_sha256='22222222222222222222...ons=('insufficient_semantic_records',)), created_at=datetime.datetime(2026, 7, 18, 8, 0, tzinfo=datetime.timezone.utc))
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0459053Z recorded_at = datetime.datetime(2026, 7, 18, 8, 0, tzinfo=datetime.timezone.utc)
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0459448Z previous_entry_sha256 = None
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0459602Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0459703Z     def make_phase3g_trajectory_entry(
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0459977Z         market: Phase3GMarketManifest,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0460253Z         dataset: SemanticDatasetManifest,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0460515Z         *,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0460706Z         recorded_at: datetime,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0460967Z         previous_entry_sha256: str | None = None,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0461263Z     ) -> Phase3GTrajectoryEntry:
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0461884Z         """Bind one semantic dataset to the exact prospective market snapshot."""
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0462255Z     
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0462544Z         if dataset.market_snapshot_sha256 != market.combined_snapshot_sha256:
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0463069Z             raise ValueError("Phase 3G market and semantic dataset snapshot hashes disagree")
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0463548Z         if dataset.source_commit_sha != market.source_commit_sha:
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0463985Z             raise ValueError("Phase 3G market and dataset source commits disagree")
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0464377Z         if dataset.as_of != market.as_of:
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0464766Z             raise ValueError("Phase 3G market and semantic dataset as_of values disagree")
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0465172Z         maturity = dataset.maturity
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0465432Z         payload: dict[str, object] = {
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0465692Z             "schema_version": "1.0",
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0465983Z             "previous_entry_sha256": previous_entry_sha256,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0466299Z             "recorded_at": recorded_at,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0466556Z             "as_of": dataset.as_of,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0466845Z             "source_commit_sha": dataset.source_commit_sha,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0467151Z             "market_run_id": market.run_id,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0467483Z             "market_snapshot_sha256": market.combined_snapshot_sha256,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0467842Z             "dataset_id": dataset.dataset_id,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0468168Z             "dataset_content_sha256": dataset.content_sha256,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0468569Z             "semantic_ledger_head_sha256": dataset.semantic_ledger_head_sha256,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0469052Z             "relevant_semantic_record_count": maturity.relevant_semantic_record_count,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0469563Z             "unique_availability_date_count": maturity.unique_availability_date_count,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0470003Z             "unique_source_count": maturity.unique_source_count,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0470406Z             "active_decision_row_count": maturity.active_decision_row_count,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0470858Z             "matured_labeled_row_count": maturity.matured_labeled_row_count,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0471375Z             "maturity_status": maturity.status,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0471995Z             "research_model_fitting_allowed": maturity.research_model_fitting_allowed,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0472408Z             "paper_or_live_trading_allowed": False,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0472711Z             "prospective_decisions_created": False,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0472978Z         }
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0473192Z >       return Phase3GTrajectoryEntry(
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0473478Z             entry_id=canonical_sha256(payload),
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0473750Z             **payload,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0473950Z         )
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0474329Z E       pydantic_core._pydantic_core.ValidationError: 1 validation error for Phase3GTrajectoryEntry
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0475461Z E         Value error, Phase 3G trajectory entry ID is not self-consistent [type=value_error, input_value={'entry_id': '8b2f5e3688f...cisions_created': False}, input_type=dict]
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0476546Z E           For further information visit https://errors.pydantic.dev/2.13/v/value_error
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0476874Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0477040Z src/hybrid_trader/phase3g_trajectory.py:125: ValidationError
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0477495Z ___________ test_phase3g_overlap_builds_active_rows_without_backfill ___________
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0477793Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0478027Z tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-0/test_phase3g_overlap_builds_ac0')
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0478359Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0478593Z     def test_phase3g_overlap_builds_active_rows_without_backfill(tmp_path: Path) -> None:
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0479016Z         primary = _bars()
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0479247Z         secondary = _bars(offset=2.0)
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0479631Z         as_of = primary["available_at"].iloc[-1].to_pydatetime() + timedelta(hours=1)
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0480060Z         semantic_available = as_of - timedelta(hours=20)
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0480378Z         state = tmp_path / "semantic-state"
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0480696Z         _state(state, available_at=semantic_available)
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0481048Z         frames = {"venue-a": primary, "venue-b": secondary}
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0481334Z     
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0481659Z >       manifest = run_phase3g_overlap(
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0481939Z             market_spec=_market_spec(as_of),
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0482307Z             benchmark_config=load_config("configs/btc_spot_4h_smoke.yaml"),
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0482673Z             semantic_state_root=state,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0482945Z             output_dir=tmp_path / "overlap",
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0483213Z             source_commit_sha="a" * 40,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0483488Z             feature_spec=SemanticFeatureSpec(
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0483765Z                 windows_hours=(4, 24, 72),
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0484035Z                 allowed_assets=("BTC",),
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0484276Z             ),
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0484563Z             spot_factory=lambda venue: FakeSpot(frames[venue.exchange_id]),
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0484934Z             recorded_at=as_of,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0485159Z         )
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0485263Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0485371Z tests/test_phase3g_overlap.py:133: 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0485678Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0486085Z src/hybrid_trader/phase3g_overlap.py:183: in run_phase3g_overlap
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0486444Z     entry = make_phase3g_trajectory_entry(
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0486767Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0486999Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0487788Z market = Phase3GMarketManifest(schema_version='1.0', run_id='2bdf68a2643c0337380f908b5c44dabd2f9872e7c8896f48ed6322a129d4c2a6',...se, trading_decisions_created=False, created_at=datetime.datetime(2026, 7, 7, 17, 0, 30, tzinfo=datetime.timezone.utc))
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0489435Z dataset = SemanticDatasetManifest(schema_version='1.0', dataset_id='semantic-5e994222dba2', content_sha256='5e994222dba2ee62eb5b...nsufficient_matured_labeled_rows')), created_at=datetime.datetime(2026, 7, 7, 17, 0, 30, tzinfo=datetime.timezone.utc))
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0490659Z recorded_at = datetime.datetime(2026, 7, 7, 17, 0, 30, tzinfo=datetime.timezone.utc)
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0491066Z previous_entry_sha256 = None
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0491222Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0491320Z     def make_phase3g_trajectory_entry(
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0491715Z         market: Phase3GMarketManifest,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0491993Z         dataset: SemanticDatasetManifest,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0492262Z         *,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0492450Z         recorded_at: datetime,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0492708Z         previous_entry_sha256: str | None = None,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0493003Z     ) -> Phase3GTrajectoryEntry:
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0493357Z         """Bind one semantic dataset to the exact prospective market snapshot."""
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0493719Z     
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0494006Z         if dataset.market_snapshot_sha256 != market.combined_snapshot_sha256:
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0494668Z             raise ValueError("Phase 3G market and semantic dataset snapshot hashes disagree")
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0495148Z         if dataset.source_commit_sha != market.source_commit_sha:
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0495589Z             raise ValueError("Phase 3G market and dataset source commits disagree")
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0495977Z         if dataset.as_of != market.as_of:
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0496367Z             raise ValueError("Phase 3G market and semantic dataset as_of values disagree")
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0496781Z         maturity = dataset.maturity
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0497041Z         payload: dict[str, object] = {
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0497299Z             "schema_version": "1.0",
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0497589Z             "previous_entry_sha256": previous_entry_sha256,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0497894Z             "recorded_at": recorded_at,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0498165Z             "as_of": dataset.as_of,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0498452Z             "source_commit_sha": dataset.source_commit_sha,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0498776Z             "market_run_id": market.run_id,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0499111Z             "market_snapshot_sha256": market.combined_snapshot_sha256,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0499464Z             "dataset_id": dataset.dataset_id,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0499780Z             "dataset_content_sha256": dataset.content_sha256,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0500178Z             "semantic_ledger_head_sha256": dataset.semantic_ledger_head_sha256,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0500660Z             "relevant_semantic_record_count": maturity.relevant_semantic_record_count,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0501171Z             "unique_availability_date_count": maturity.unique_availability_date_count,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0501731Z             "unique_source_count": maturity.unique_source_count,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0502130Z             "active_decision_row_count": maturity.active_decision_row_count,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0502566Z             "matured_labeled_row_count": maturity.matured_labeled_row_count,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0502945Z             "maturity_status": maturity.status,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0503334Z             "research_model_fitting_allowed": maturity.research_model_fitting_allowed,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0503746Z             "paper_or_live_trading_allowed": False,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0504049Z             "prospective_decisions_created": False,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0504314Z         }
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0504519Z >       return Phase3GTrajectoryEntry(
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0504808Z             entry_id=canonical_sha256(payload),
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0505080Z             **payload,
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0505278Z         )
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0505657Z E       pydantic_core._pydantic_core.ValidationError: 1 validation error for Phase3GTrajectoryEntry
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0506530Z E         Value error, Phase 3G trajectory entry ID is not self-consistent [type=value_error, input_value={'entry_id': '039b8a75adb...cisions_created': False}, input_type=dict]
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0507340Z E           For further information visit https://errors.pydantic.dev/2.13/v/value_error
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0525334Z 
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0525651Z src/hybrid_trader/phase3g_trajectory.py:125: ValidationError
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0526275Z =========================== short test summary info ============================
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0527178Z FAILED tests/test_phase3g_trajectory.py::test_phase3g_trajectory_appends_and_verifies_chain - pydantic_core._pydantic_core.ValidationError: 1 validation error for Phase3GTrajectoryEntry
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0528392Z   Value error, Phase 3G trajectory entry ID is not self-consistent [type=value_error, input_value={'entry_id': '8b2f5e3688f...cisions_created': False}, input_type=dict]
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0768742Z     For further information visit https://errors.pydantic.dev/2.13/v/value_error
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0771033Z FAILED tests/test_phase3g_trajectory.py::test_phase3g_trajectory_rejects_duplicates_and_nonadvancing_time - pydantic_core._pydantic_core.ValidationError: 1 validation error for Phase3GTrajectoryEntry
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0774023Z   Value error, Phase 3G trajectory entry ID is not self-consistent [type=value_error, input_value={'entry_id': '8b2f5e3688f...cisions_created': False}, input_type=dict]
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0775450Z     For further information visit https://errors.pydantic.dev/2.13/v/value_error
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0777032Z FAILED tests/test_phase3g_trajectory.py::test_phase3g_trajectory_detects_tampering - pydantic_core._pydantic_core.ValidationError: 1 validation error for Phase3GTrajectoryEntry
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0778805Z   Value error, Phase 3G trajectory entry ID is not self-consistent [type=value_error, input_value={'entry_id': '8b2f5e3688f...cisions_created': False}, input_type=dict]
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0779937Z     For further information visit https://errors.pydantic.dev/2.13/v/value_error
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0781273Z FAILED tests/test_phase3g_overlap.py::test_phase3g_overlap_builds_active_rows_without_backfill - pydantic_core._pydantic_core.ValidationError: 1 validation error for Phase3GTrajectoryEntry
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0783123Z   Value error, Phase 3G trajectory entry ID is not self-consistent [type=value_error, input_value={'entry_id': '039b8a75adb...cisions_created': False}, input_type=dict]
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.0784281Z     For further information visit https://errors.pydantic.dev/2.13/v/value_error
+materialize	Install and validate Phase 3G	2026-07-18T10:20:52.1548010Z ##[error]Process completed with exit code 1.
