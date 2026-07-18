@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 
 import pandas as pd
 import pytest
-
 from hybrid_trader.replication.crypto import (
     ContractLinearity,
     InstrumentVersion,
