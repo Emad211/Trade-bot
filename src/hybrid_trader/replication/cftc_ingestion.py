@@ -10,6 +10,7 @@ import tempfile
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
 from datetime import UTC, date, datetime
+from itertools import pairwise
 from pathlib import Path
 from typing import Any, cast
 from urllib.parse import urlencode
@@ -124,7 +125,7 @@ def _as_int(row: Mapping[str, Any], field: str) -> int:
 
 
 def _first_order_inversions(ids: Sequence[str], *, limit: int = 5) -> list[tuple[str, str]]:
-    return [(left, right) for left, right in zip(ids, ids[1:]) if left > right][:limit]
+    return [(left, right) for left, right in pairwise(ids) if left > right][:limit]
 
 
 def parse_and_validate(raw_bytes: bytes, *, report_date: date = DEFAULT_REPORT_DATE) -> PilotValidation:
