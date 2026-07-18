@@ -1,0 +1,20 @@
+{
+  "artifact_checksums_verified": true,
+  "artifact_digest": "sha256:d87d626ff69a9f07181a8c029ce29650219ac1a91c2ca56b99dc0b3af3601bb0",
+  "artifact_id": 8430291832,
+  "artifact_name": "phase3i-overlap-29646846973",
+  "dataset_content_verified": true,
+  "model_fitting_executed": false,
+  "phase3g_trajectory_chain_verified": true,
+  "phase3i_trajectory_chain_verified": true,
+  "prospective_decisions_created": false,
+  "schema_version": "1.0",
+  "selected_semantic_artifact_digest": "sha256:ec077f99caadaa28fc3142a9482b4f6160f4a338759692341825719d241fad91",
+  "selected_semantic_artifact_id": 8429886030,
+  "selected_semantic_workflow": "phase3h-avalai-pilot",
+  "selection_identity_verified": true,
+  "source_commit_sha": "1e3071d457173f2f6644f3beeaa04cccc0ae53b5",
+  "source_health_identity_verified": true,
+  "workflow_run_id": "29646846973",
+  "workflow_url": "https://github.com/Emad211/Trade-bot/actions/runs/29646846973"
+}
