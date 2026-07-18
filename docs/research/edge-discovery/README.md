@@ -37,11 +37,11 @@ Admission authorizes research replication only. It does not authorize paper trad
 |---|---|---|
 | [2.1 — Anchor Papers, Opposing Evidence, Modern Updates, Data, and Replication-Code Selection](02-replication/02-01-anchor-opposition-code-selection.md) | Binding paper roles, exactness classes, official data routes, code-admission rules, table-level targets, and kill criteria | Complete |
 | [2.2 — Data, Timing, and Information-Contract Reconstruction](02-replication/02-02-data-timing-information-contract-reconstruction.md) | Availability clocks, immutable raw artifacts, source licenses, point-in-time instruments, futures rolls, regulator releases, crypto contract versions, lineage, costs, and acquisition decisions | Complete |
-| [2.3 — Controlled Empirical and Code Replication](02-replication/02-03-controlled-empirical-and-code-replication.md) | Tested replication primitives, official-source verification, acquisition blockers, machine-readable verdicts, and empirical completion gates | Partially complete — implementation validated; official artifacts pending |
+| [2.3 — Controlled Empirical and Code Replication](02-replication/02-03-controlled-empirical-and-code-replication.md) | Tested replication primitives, official-source verification, acquisition blockers, machine-readable verdicts, and empirical completion gates | Partially complete — independently reverified; official artifacts pending |
 | 2.4 — Sensitivity, Cost, Failure, and Disagreement Analysis | Conditional sensitivity analysis on numerically reconstructed evidence | Blocked until Report 2.3 artifact gates pass |
 | 2.5 | Replication dossier and continue/stop decisions | Planned |
 
-Report 2.1 selects what must be replicated. Report 2.2 freezes what each datum means and when it becomes usable. Report 2.3 implements and tests the replication invariants, but it does not claim a paper-level numerical replication without the official source artifacts.
+Report 2.1 selects what must be replicated. Report 2.2 freezes what each datum means and when it becomes usable. Report 2.3 implements and tests replication invariants, but it does not claim a paper-level numerical replication without official source artifacts.
 
 Report 2.2 machine-readable contracts:
 
@@ -50,21 +50,26 @@ Report 2.2 machine-readable contracts:
 - [Instrument and point-in-time universe manifest](02-replication/02-02-instrument-universe-manifest.yaml)
 - [Lineage and timing schema](02-replication/02-02-lineage-timing-schema.yaml)
 
-Report 2.3 companion and implementation:
+Report 2.3 evidence and implementation:
 
 - [Replication execution manifest](02-replication/02-03-replication-execution-manifest.yaml)
+- [Independent reality verification and correction log](02-replication/02-03-independent-reality-verification-log.md)
 - `src/hybrid_trader/replication/`
 - `tests/test_replication_*.py`
 
 Report 2.3 currently records:
 
-- 11 deterministic unit tests passed in the isolated execution environment;
+- the original committed implementation was independently reconstructed from GitHub commit content;
+- the original 11 deterministic tests passed again in a separate temporary environment;
+- provenance hardening added four tests, and the hardened suite passed 15 tests;
 - Python compilation passed;
-- Ruff was not available in that environment and is not reported as passed;
-- AQR, Moreira–Muir, and CFTC official metadata were verified, but reusable official raw artifacts were not acquired through the current tool boundary;
-- exact traditional-futures replication remains pending licensed expired-contract histories;
-- Chi et al. remains exact-inconclusive until its original licensed data are obtained;
-- Binance/OKX work remains a separately identified constructive experiment;
+- Ruff and mypy were unavailable in the isolated environment and are not reported as passed;
+- no GitHub CI status has yet been reported;
+- an over-permissive factor-audit verdict was found and corrected;
+- unverified local files can no longer receive an artifact audit pass;
+- `ARTIFACT_AUDIT_PASS` requires immutable official provenance, matching checksum and byte count, a license snapshot, immutable storage identity, and declared return units;
+- the official CFTC TFF API is reachable, but immutable raw ingestion is still pending;
+- AQR workbooks, Moreira–Muir factor artifacts, licensed futures histories, and Binance/OKX pilot archives have not yet been immutably ingested;
 - all six empirical edge verdicts remain `INCONCLUSIVE`.
 
 Empirical fitting, parameter tuning, a strategy tournament, paper trading, live trading, leverage, and capital deployment remain unauthorized.
@@ -128,6 +133,9 @@ Five leaf reports form one section-level synthesis. The five section syntheses f
 - Public data under provider terms are not assumed redistributable.
 - Implementation tests are not empirical paper replications.
 - Source-page verification is not raw-artifact acquisition.
+- API reachability is not immutable ingestion.
+- Raw acquisition is not immutable ingestion until checksum, retrieval, license, and storage evidence exist.
+- An artifact audit pass is not an empirical paper pass.
 - Blocked or licensed data must remain blocked or pending; a convenient substitute cannot inherit an exact verdict.
 - An admitted hypothesis remains unproven until it survives genuinely new forward data and realistic execution.
 - The final outcome may legitimately be to reject every candidate.
