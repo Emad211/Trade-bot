@@ -26,6 +26,12 @@ from hybrid_trader.event_capture_state import (
 )
 from hybrid_trader.event_documents import DocumentEnvelope, FeedSourceSpec
 from hybrid_trader.event_ledger import append_documents, verify_document_ledger
+from hybrid_trader.event_relevance import (
+    RelevanceDecision,
+    evaluate_relevance,
+    relevance_decisions_sha256,
+)
+from hybrid_trader.event_selection import select_semantic_envelopes
 from hybrid_trader.feed_source import FeedFetchResult, PublicFeedSource
 from hybrid_trader.semantic_extraction import (
     KeywordSemanticExtractor,
@@ -117,6 +123,7 @@ def capture_events(
 
         attempts: list[SourceCaptureAttempt] = []
         envelopes: list[DocumentEnvelope] = []
+        relevance_decisions: list[RelevanceDecision] = []
         raw_records_staging: list[tuple[str, Path, str, int]] = []
         for source_spec in spec.sources:
             try:
@@ -133,6 +140,20 @@ def capture_events(
                         len(result.payload),
                     )
                 )
+                source_relevance = tuple(
+                    evaluate_relevance(envelope, source_spec.relevance)
+                    for envelope in result.parse_result.documents
+                )
+                accepted_documents = [
+                    envelope
+                    for envelope, decision in zip(
+                        result.parse_result.documents,
+                        source_relevance,
+                        strict=True,
+                    )
+                    if decision.accepted
+                ]
+                relevance_decisions.extend(source_relevance)
                 attempts.append(
                     SourceCaptureAttempt(
                         source_id=source_spec.source_id,
@@ -146,10 +167,14 @@ def capture_events(
                         duplicate_documents=result.parse_result.duplicate_count,
                         skipped_documents=result.parse_result.skipped_count,
                         truncated_documents=result.parse_result.truncated_count,
+                        relevance_accepted_documents=len(accepted_documents),
+                        relevance_rejected_documents=(
+                            len(result.parse_result.documents) - len(accepted_documents)
+                        ),
                         warnings=result.parse_result.warnings,
                     )
                 )
-                envelopes.extend(result.parse_result.documents)
+                envelopes.extend(accepted_documents)
             except Exception as exc:
                 attempts.append(
                     SourceCaptureAttempt(
@@ -163,6 +188,17 @@ def capture_events(
                     )
                 )
 
+        ordered_relevance_decisions = tuple(
+            sorted(
+                relevance_decisions,
+                key=lambda item: (item.source_id, item.document_id, item.decision_id),
+            )
+        )
+        relevance_sha = relevance_decisions_sha256(ordered_relevance_decisions)
+        relevance_accepted_count = sum(
+            decision.accepted for decision in ordered_relevance_decisions
+        )
+        relevance_rejected_count = len(ordered_relevance_decisions) - relevance_accepted_count
         extractor = extractor_factory()
         config_sha = canonical_sha256(spec.model_dump(mode="json"))
         successful = tuple(
@@ -207,16 +243,16 @@ def capture_events(
 
             _, _, _, existing_document_ids = verify_document_ledger(document_ledger)
             semantic_state = verify_semantic_ledger(semantic_ledger)
+            selected_envelopes = select_semantic_envelopes(
+                ordered_envelopes,
+                extraction_key=extractor.extraction_key,
+                existing_extraction_keys=semantic_state.extraction_keys,
+                strategy=spec.semantic_selection_strategy,
+                source_order=tuple(source.source_id for source in spec.sources),
+                maximum_records=maximum_new_semantic_records,
+            )
             records_to_append: list[SemanticEventRecord] = []
-            for envelope in ordered_envelopes:
-                extraction_key = extractor.extraction_key(envelope)
-                if extraction_key in semantic_state.extraction_keys:
-                    continue
-                if (
-                    maximum_new_semantic_records is not None
-                    and len(records_to_append) >= maximum_new_semantic_records
-                ):
-                    break
+            for envelope in selected_envelopes:
                 if envelope.document.document_id in existing_document_ids:
                     recovered_semantic_count += 1
                 records_to_append.append(
@@ -247,7 +283,7 @@ def capture_events(
         capture_completed_at = fixed_time or datetime.now(UTC)
         status: Literal["success", "failed"] = "failed" if failure is not None else "success"
         identity = {
-            "schema_version": "1.1",
+            "schema_version": "1.2",
             "status": status,
             "config_sha256": config_sha,
             "capture_started_at": capture_started_at.isoformat(),
@@ -255,6 +291,10 @@ def capture_events(
             "source_attempts": [attempt.model_dump(mode="json") for attempt in attempts],
             "document_ledger_head_sha256": document_head,
             "semantic_ledger_head_sha256": semantic_state.head_sha256,
+            "relevance_decision_count": len(ordered_relevance_decisions),
+            "relevance_accepted_document_count": relevance_accepted_count,
+            "relevance_rejected_document_count": relevance_rejected_count,
+            "relevance_decisions_sha256": relevance_sha,
             "failure_type": type(failure).__name__ if failure is not None else None,
             "failure_message": str(failure)[:1000] if failure is not None else None,
         }
@@ -286,6 +326,10 @@ def capture_events(
             recovered_semantic_record_count=recovered_semantic_count,
             semantic_ledger_head_sha256=semantic_state.head_sha256,
             cross_source_duplicate_content_count=duplicate_content_count(envelopes),
+            relevance_decision_count=len(ordered_relevance_decisions),
+            relevance_accepted_document_count=relevance_accepted_count,
+            relevance_rejected_document_count=relevance_rejected_count,
+            relevance_decisions_sha256=relevance_sha,
             extractor_model_id=extractor.model_id,
             extractor_model_revision=extractor.model_revision,
             extractor_prompt_sha256=extractor.prompt_sha256,
@@ -297,6 +341,7 @@ def capture_events(
             raw_root=raw_root,
             raw_staging=raw_staging,
             manifest=manifest,
+            relevance_decisions=ordered_relevance_decisions,
         )
         if failure is not None:
             raise EventCaptureFailure(str(failure), manifest_path=manifest_path) from failure

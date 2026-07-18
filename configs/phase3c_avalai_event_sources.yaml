@@ -1,10 +1,11 @@
 schema_version: "1.0"
 
 capture:
-  schema_version: "1.2"
+  schema_version: "1.4"
   extractor: avalai_structured
   timeout_seconds: 30
-  minimum_successful_sources: 1
+  minimum_successful_sources: 2
+  semantic_selection_strategy: source_round_robin
   sources:
     - source_id: bitcoin-core-releases
       feed_url: https://github.com/bitcoin/bitcoin/releases.atom
@@ -12,7 +13,9 @@ capture:
       source_quality: 0.95
       asset_tags: [BTC]
       required: true
-      max_items: 50
+      max_items: 10
+      maximum_payload_bytes: 2000000
+      maximum_clock_skew_seconds: 900
 
     - source_id: geth-releases
       feed_url: https://github.com/ethereum/go-ethereum/releases.atom
@@ -20,7 +23,58 @@ capture:
       source_quality: 0.90
       asset_tags: [ETH]
       required: false
-      max_items: 50
+      max_items: 10
+      maximum_payload_bytes: 2000000
+      maximum_clock_skew_seconds: 900
+
+    - source_id: bitcoin-optech-newsletters
+      feed_url: https://bitcoinops.org/feed.xml
+      allowed_domains: [bitcoinops.org]
+      source_quality: 0.92
+      asset_tags: [BTC]
+      required: false
+      max_items: 8
+      maximum_payload_bytes: 3000000
+      maximum_clock_skew_seconds: 900
+
+    - source_id: federal-reserve-monetary-policy
+      feed_url: https://www.federalreserve.gov/feeds/press_monetary.xml
+      allowed_domains: [federalreserve.gov, www.federalreserve.gov]
+      source_quality: 0.98
+      asset_tags: [MARKET]
+      required: false
+      max_items: 10
+      maximum_payload_bytes: 3000000
+      maximum_clock_skew_seconds: 900
+
+    - source_id: sec-press-releases
+      feed_url: https://www.sec.gov/news/pressreleases.rss
+      allowed_domains: [sec.gov, www.sec.gov]
+      source_quality: 0.98
+      asset_tags: [BTC, MARKET]
+      required: false
+      max_items: 20
+      maximum_payload_bytes: 3000000
+      maximum_clock_skew_seconds: 900
+      relevance:
+        schema_version: "1.0"
+        include_any_terms:
+          - bitcoin
+          - blockchain
+          - crypto asset
+          - crypto-asset
+          - cryptocurrency
+          - digital asset
+          - distributed ledger
+          - stablecoin
+          - tokenization
+          - tokenisation
+          - virtual currency
+        exclude_any_terms:
+          - internship
+          - job fair
+          - vacancy
+          - vacancies
 
 avalai:
   base_url: https://api.avalai.ir/v1

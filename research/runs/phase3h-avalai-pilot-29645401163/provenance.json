@@ -1,0 +1,19 @@
+{
+  "artifact_checksums_verified": true,
+  "artifact_digest": "sha256:ec077f99caadaa28fc3142a9482b4f6160f4a338759692341825719d241fad91",
+  "artifact_id": 8429886030,
+  "artifact_name": "phase3h-avalai-pilot-29645401163",
+  "credential_pattern_detected": false,
+  "nested_checksums_verified": true,
+  "previous_artifact_digest": "sha256:41a4afc354faecd4cbbad2a7ef55e6f00e21d48eb904bf4b0f8d8d5cf0f05ba8",
+  "previous_artifact_id": 8404763802,
+  "previous_workflow_run_id": "29575275480",
+  "prospective_decisions_created": false,
+  "provider_raw_responses_persisted": false,
+  "schema_version": "1.0",
+  "secret_material_persisted": false,
+  "source_commit_sha": "824d13d51de2bdd302454fe36a7f0a945966cc91",
+  "state_restored": true,
+  "workflow_run_id": "29645401163",
+  "workflow_url": "https://github.com/Emad211/Trade-bot/actions/runs/29645401163"
+}

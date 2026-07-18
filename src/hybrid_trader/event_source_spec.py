@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+import unicodedata
 from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -12,6 +14,40 @@ from hybrid_trader.event_url import (
     url_is_allowed,
     validate_public_hostname,
 )
+
+_WHITESPACE = re.compile(r"\s+")
+
+
+def _normalize_relevance_term(value: str) -> str:
+    normalized = unicodedata.normalize("NFKC", value).casefold()
+    return _WHITESPACE.sub(" ", normalized).strip()
+
+
+class FeedRelevanceSpec(BaseModel):
+    """Deterministic title/summary filter applied before semantic inference."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    schema_version: str = "1.0"
+    include_any_terms: tuple[str, ...] = ()
+    exclude_any_terms: tuple[str, ...] = ()
+
+    @field_validator("include_any_terms", "exclude_any_terms")
+    @classmethod
+    def normalize_terms(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        normalized = tuple(_normalize_relevance_term(term) for term in value)
+        if any(not term for term in normalized):
+            raise ValueError("Relevance terms must be non-empty")
+        if len(set(normalized)) != len(normalized):
+            raise ValueError("Relevance terms cannot contain duplicates")
+        return normalized
+
+    @model_validator(mode="after")
+    def validate_term_sets(self) -> FeedRelevanceSpec:
+        overlap = set(self.include_any_terms).intersection(self.exclude_any_terms)
+        if overlap:
+            raise ValueError(f"Relevance include/exclude terms overlap: {sorted(overlap)}")
+        return self
 
 
 class FeedSourceSpec(BaseModel):
@@ -28,6 +64,7 @@ class FeedSourceSpec(BaseModel):
     max_items: int = Field(default=100, ge=1, le=1000)
     maximum_payload_bytes: int = Field(default=5_000_000, ge=1_024, le=50_000_000)
     maximum_clock_skew_seconds: int = Field(default=900, ge=0, le=86_400)
+    relevance: FeedRelevanceSpec | None = None
 
     @field_validator("feed_url")
     @classmethod

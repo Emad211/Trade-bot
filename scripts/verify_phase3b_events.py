@@ -8,6 +8,10 @@ from pathlib import Path
 from hybrid_trader.event_capture_models import EventCaptureManifest
 from hybrid_trader.event_capture_state import canonical_sha256
 from hybrid_trader.event_ledger import verify_document_ledger
+from hybrid_trader.event_relevance import (
+    RelevanceDecision,
+    relevance_decisions_sha256,
+)
 from hybrid_trader.semantic_extraction import verify_semantic_ledger
 
 
@@ -20,22 +24,30 @@ def _sha256(path: Path) -> str:
 
 
 def _capture_id(manifest: EventCaptureManifest) -> str:
-    return canonical_sha256(
-        {
-            "schema_version": manifest.schema_version,
-            "status": manifest.status,
-            "config_sha256": manifest.config_sha256,
-            "capture_started_at": manifest.capture_started_at.isoformat(),
-            "capture_completed_at": manifest.capture_completed_at.isoformat(),
-            "source_attempts": [
-                attempt.model_dump(mode="json") for attempt in manifest.source_attempts
-            ],
-            "document_ledger_head_sha256": manifest.document_ledger_head_sha256,
-            "semantic_ledger_head_sha256": manifest.semantic_ledger_head_sha256,
-            "failure_type": manifest.failure_type,
-            "failure_message": manifest.failure_message,
-        }
-    )
+    payload: dict[str, object] = {
+        "schema_version": manifest.schema_version,
+        "status": manifest.status,
+        "config_sha256": manifest.config_sha256,
+        "capture_started_at": manifest.capture_started_at.isoformat(),
+        "capture_completed_at": manifest.capture_completed_at.isoformat(),
+        "source_attempts": [
+            attempt.model_dump(mode="json") for attempt in manifest.source_attempts
+        ],
+        "document_ledger_head_sha256": manifest.document_ledger_head_sha256,
+        "semantic_ledger_head_sha256": manifest.semantic_ledger_head_sha256,
+        "failure_type": manifest.failure_type,
+        "failure_message": manifest.failure_message,
+    }
+    if manifest.schema_version != "1.1":
+        payload.update(
+            {
+                "relevance_decision_count": manifest.relevance_decision_count,
+                "relevance_accepted_document_count": (manifest.relevance_accepted_document_count),
+                "relevance_rejected_document_count": (manifest.relevance_rejected_document_count),
+                "relevance_decisions_sha256": manifest.relevance_decisions_sha256,
+            }
+        )
+    return canonical_sha256(payload)
 
 
 def verify_phase3b_root(root: Path) -> dict[str, object]:
@@ -78,12 +90,35 @@ def verify_phase3b_root(root: Path) -> dict[str, object]:
             if name in inventory:
                 raise RuntimeError(f"Duplicate compact checksum entry: {name}")
             inventory[name] = digest
-        expected = {"capture_manifest.json", "raw_payloads.json", "source_attempts.json"}
+        expected = {
+            "capture_manifest.json",
+            "raw_payloads.json",
+            "source_attempts.json",
+        }
+        if manifest.schema_version != "1.1":
+            expected.add("relevance_decisions.json")
         if set(inventory) != expected:
             raise RuntimeError("Unexpected compact capture checksum inventory")
         for name, digest in inventory.items():
             if _sha256(capture_dir / name) != digest:
                 raise RuntimeError(f"Compact capture checksum mismatch: {name}")
+
+        if manifest.schema_version != "1.1":
+            decisions = tuple(
+                RelevanceDecision.model_validate(item)
+                for item in json.loads(
+                    (capture_dir / "relevance_decisions.json").read_text(encoding="utf-8")
+                )
+            )
+            if len(decisions) != manifest.relevance_decision_count:
+                raise RuntimeError("Capture relevance decision count does not match")
+            accepted = sum(decision.accepted for decision in decisions)
+            if accepted != manifest.relevance_accepted_document_count:
+                raise RuntimeError("Capture accepted relevance count does not match")
+            if len(decisions) - accepted != manifest.relevance_rejected_document_count:
+                raise RuntimeError("Capture rejected relevance count does not match")
+            if relevance_decisions_sha256(decisions) != manifest.relevance_decisions_sha256:
+                raise RuntimeError("Capture relevance decision hash does not match")
 
         successful_sources = {
             attempt.source_id for attempt in manifest.source_attempts if attempt.status == "success"

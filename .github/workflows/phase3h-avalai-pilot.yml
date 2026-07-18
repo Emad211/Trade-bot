@@ -1,0 +1,150 @@
+name: phase3h-avalai-pilot
+
+# Restore state through the workflow-specific Actions endpoint.
+on:
+  workflow_dispatch:
+  push:
+    branches: ["agent/phase-3h-source-diversity"]
+    paths:
+      - ".github/workflows/phase3h-avalai-pilot.yml"
+      - "configs/phase3c_avalai_event_sources.yaml"
+      - "src/hybrid_trader/event_capture.py"
+      - "src/hybrid_trader/event_capture_models.py"
+      - "src/hybrid_trader/event_relevance.py"
+      - "src/hybrid_trader/event_selection.py"
+      - "src/hybrid_trader/phase3h.py"
+      - "scripts/assess_phase3h_pilot.py"
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      AVALAI_API_KEY: ${{ secrets.AVALAI_API_KEY }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Require and mask repository secret
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${AVALAI_API_KEY:-}"
+          echo "::add-mask::$AVALAI_API_KEY"
+      - name: Install the research package
+        run: python -m pip install -e .
+      - name: Restore the latest verified Phase 3E compact state
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=artifacts/phase3h-avalai-pilot
+          mkdir -p "$root" /tmp/phase3h-previous
+          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/phase3e-longitudinal-events.yml/runs?status=success&per_page=100")
+          previous_run_id=$(jq -r '.workflow_runs[0].id // empty' <<<"$runs")
+          test -n "$previous_run_id"
+          artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${previous_run_id}/artifacts?per_page=100")
+          artifact=$(jq -c '
+            [.artifacts[]
+              | select(.expired == false)
+              | select(.name | startswith("phase3e-longitudinal-state-"))
+            ][0] // empty
+          ' <<<"$artifacts")
+          test -n "$artifact"
+          previous_artifact_id=$(jq -r .id <<<"$artifact")
+          previous_artifact_digest=$(jq -r .digest <<<"$artifact")
+          artifact_name=$(jq -r .name <<<"$artifact")
+          gh run download "$previous_run_id" --name "$artifact_name" --dir /tmp/phase3h-previous
+          state_dir=$(find /tmp/phase3h-previous -type d -name state -print -quit)
+          test -n "$state_dir"
+          cp -a "$state_dir" "$root/state"
+          rm -f "$root/state/.capture.lock"
+          python scripts/verify_phase3c_provider.py "$root"
+
+          export PHASE3H_ROOT="$root"
+          export PREVIOUS_RUN_ID="$previous_run_id"
+          export PREVIOUS_ARTIFACT_ID="$previous_artifact_id"
+          export PREVIOUS_ARTIFACT_DIGEST="$previous_artifact_digest"
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["PHASE3H_ROOT"])
+          payload = {
+              "schema_version": "1.0",
+              "workflow_run_id": os.environ["GITHUB_RUN_ID"],
+              "source_commit_sha": os.environ["GITHUB_SHA"],
+              "previous_workflow_run_id": os.environ["PREVIOUS_RUN_ID"],
+              "previous_artifact_id": int(os.environ["PREVIOUS_ARTIFACT_ID"]),
+              "previous_artifact_digest": os.environ["PREVIOUS_ARTIFACT_DIGEST"],
+              "state_restored": True,
+          }
+          (root / "phase3e_run_context.json").write_text(
+              json.dumps(payload, sort_keys=True, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+      - name: Run the bounded source-diversity capture
+        run: |
+          python scripts/capture_phase3c_avalai_events.py \
+            --config configs/phase3c_avalai_event_sources.yaml \
+            --output artifacts/phase3h-avalai-pilot \
+            --maximum-new-semantic-records 4
+      - name: Verify the complete provider and relevance state
+        run: python scripts/verify_phase3c_provider.py artifacts/phase3h-avalai-pilot
+      - name: Assess source, asset, relevance and budget diversity
+        run: |
+          python scripts/assess_phase3h_pilot.py \
+            artifacts/phase3h-avalai-pilot \
+            --max-new-calls 4 \
+            --max-total-tokens 8000 \
+            --max-failed-calls 0 \
+            --max-attempts-per-call 4 \
+            --minimum-successful-sources 2 \
+            --minimum-new-semantic-sources 2 \
+            --minimum-new-assets 2 \
+            --required-new-source bitcoin-optech-newsletters \
+            --required-new-source federal-reserve-monetary-policy \
+            --required-new-asset BTC \
+            --required-new-asset MARKET \
+            --minimum-relevance-rejections 1
+      - name: Enforce credential and non-activation boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=artifacts/phase3h-avalai-pilot
+          test ! -s "$root/state/prospective_decisions.jsonl"
+          if grep -R -F -- "$AVALAI_API_KEY" "$root"; then
+            echo "The repository secret appeared in Phase 3H evidence." >&2
+            exit 1
+          fi
+          if grep -R -E -i \
+              'authorization[[:space:]]*[:=]|bearer[[:space:]]+|\b(aa|sk)-[A-Za-z0-9_-]{6,}' \
+              "$root/state"; then
+            echo "Credential-shaped material appeared in compact state." >&2
+            exit 1
+          fi
+          unset AVALAI_API_KEY
+      - name: Record provenance and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=artifacts/phase3h-avalai-pilot
+          printf '%s\n' "$GITHUB_SHA" > "$root/source_commit_sha.txt"
+          printf '%s\n' "$GITHUB_RUN_ID" > "$root/workflow_run_id.txt"
+          find "$root" -type f ! -name SHA256SUMS -print0 \
+            | sort -z | xargs -0 sha256sum > "$root/SHA256SUMS"
+      - name: Upload bounded Phase 3H evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase3h-avalai-pilot-${{ github.run_id }}
+          path: artifacts/phase3h-avalai-pilot/
+          if-no-files-found: error
+          retention-days: 90

@@ -13,6 +13,7 @@ from typing import Any
 
 from hybrid_trader.event_capture_models import EventCaptureManifest
 from hybrid_trader.event_documents import DocumentEnvelope
+from hybrid_trader.event_relevance import RelevanceDecision
 
 
 def canonical_sha256(payload: Any) -> str:
@@ -101,6 +102,7 @@ def finalize_capture_files(
     raw_root: Path,
     raw_staging: Path,
     manifest: EventCaptureManifest,
+    relevance_decisions: tuple[RelevanceDecision, ...] = (),
 ) -> Path:
     capture_dir = state_root / "captures" / manifest.capture_id
     raw_capture_dir = raw_root / manifest.capture_id
@@ -118,10 +120,15 @@ def finalize_capture_files(
         capture_dir / "raw_payloads.json",
         [record.model_dump(mode="json") for record in manifest.raw_payloads],
     )
+    write_json(
+        capture_dir / "relevance_decisions.json",
+        [decision.model_dump(mode="json") for decision in relevance_decisions],
+    )
     write_json(capture_dir / "capture_manifest.json", manifest.model_dump(mode="json"))
     checksum_paths = [
         capture_dir / "capture_manifest.json",
         capture_dir / "raw_payloads.json",
+        capture_dir / "relevance_decisions.json",
         capture_dir / "source_attempts.json",
     ]
     checksum_lines = [f"{sha256_file(path)}  {path.name}" for path in sorted(checksum_paths)]
