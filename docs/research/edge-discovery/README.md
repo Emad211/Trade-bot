@@ -35,11 +35,24 @@ Admission authorizes research replication only. It does not authorize paper trad
 
 | Report | Scope | Status |
 |---|---|---|
-| 2.1 | Anchor-paper, opposing-paper, modern-update, implementation-paper, and replication-code selection | Next |
-| 2.2 | Data, timing, and information-contract reconstruction | Planned |
+| [2.1 — Anchor Papers, Opposing Evidence, Modern Updates, Data, and Replication-Code Selection](02-replication/02-01-anchor-opposition-code-selection.md) | Binding paper roles, exactness classes, official data routes, code-admission rules, table-level targets, and kill criteria | Complete |
+| 2.2 — Data, Timing, and Information-Contract Reconstruction | Paper-by-paper instruments, point-in-time universes, contract chains, licenses, timestamps, lineage, cost/collateral contracts, and acquisition go/no-go decisions | Next |
 | 2.3 | Exact empirical and code replication | Planned |
 | 2.4 | Sensitivity, cost, failure, and disagreement analysis | Planned |
 | 2.5 | Replication dossier and continue/stop decisions | Planned |
+
+The machine-readable evidence selections, replication classes, required tests, and hard-kill rules are stored in [the Report 2.1 replication selection manifest](02-replication/02-01-replication-selection-manifest.yaml).
+
+Report 2.1 freezes this replication queue:
+
+1. `EDGE-FUT-TREND-001` — canonical trend claim versus historical-mean, bootstrap, roll, and crowding challenges;
+2. `EDGE-RISK-POLICY-001` — recursive out-of-sample, matched-risk and net-cost overlay tests;
+3. `EDGE-FUT-CARRY-001` — same-contract curve premia, basis-momentum, roll validity, latent-risk interpretation, and turnover;
+4. `EDGE-FUT-POSITION-001` — public-release timing, speculative pressure, negative controls, and incremental factor tests;
+5. `EDGE-CRYPTO-BASIS-001` — licensed anchor replication plus a separately identified modern multi-venue reconstruction;
+6. `EDGE-CRYPTO-RV-001` — exact two-leg capital-path, funding, execution, collateral, and venue-risk replication.
+
+Failure to obtain licensed anchor data must produce `INCONCLUSIVE_EXACT_REPLICATION`; a public substitute may be useful, but it receives a new constructive-replication identity and cannot be mislabeled as an exact pass.
 
 ### 3. Dataset and Experiment System
 
@@ -93,6 +106,8 @@ Five leaf reports form one section-level synthesis. The five section syntheses f
 - No strategy is promoted because it uses a complex model, a famous paper, or a high backtest Sharpe ratio.
 - Data availability time, executable prices, realistic costs, failure modes, and capacity are part of the hypothesis itself.
 - Primitive effects must be reported separately before signal integration.
+- Exact, near-exact, constructive, and theoretical reproductions are separate experiment identities.
+- No hypothesis may skip its strongest selected opposing evidence.
 - An admitted hypothesis remains unproven until it survives genuinely new forward data and realistic execution.
 - The final outcome may legitimately be to reject every candidate.
 
