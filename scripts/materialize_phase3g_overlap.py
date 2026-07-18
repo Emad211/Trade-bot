@@ -93,15 +93,30 @@ def patch_trajectory() -> None:
 ''',
         '''    candidate = Phase3GTrajectoryEntry.model_construct(
         entry_id="0" * 64,
-        **payload,
+        schema_version="1.0",
+        previous_entry_sha256=previous_entry_sha256,
+        recorded_at=recorded_at,
+        as_of=dataset.as_of,
+        source_commit_sha=dataset.source_commit_sha,
+        market_run_id=market.run_id,
+        market_snapshot_sha256=market.combined_snapshot_sha256,
+        dataset_id=dataset.dataset_id,
+        dataset_content_sha256=dataset.content_sha256,
+        semantic_ledger_head_sha256=dataset.semantic_ledger_head_sha256,
+        relevant_semantic_record_count=maturity.relevant_semantic_record_count,
+        unique_availability_date_count=maturity.unique_availability_date_count,
+        unique_source_count=maturity.unique_source_count,
+        active_decision_row_count=maturity.active_decision_row_count,
+        matured_labeled_row_count=maturity.matured_labeled_row_count,
+        maturity_status=maturity.status,
+        research_model_fitting_allowed=maturity.research_model_fitting_allowed,
+        paper_or_live_trading_allowed=False,
+        prospective_decisions_created=False,
     )
     canonical_payload = trajectory_identity_payload(candidate)
-    return Phase3GTrajectoryEntry.model_validate(
-        {
-            **candidate.model_dump(mode="json"),
-            "entry_id": canonical_sha256(canonical_payload),
-        }
-    )
+    validated_payload = candidate.model_dump(mode="json")
+    validated_payload["entry_id"] = canonical_sha256(canonical_payload)
+    return Phase3GTrajectoryEntry.model_validate(validated_payload)
 ''',
         label="canonical trajectory hash construction",
     )
