@@ -1,0 +1,360 @@
+schema_version: "1.0"
+document:
+  id: "REPLICATION-SELECTION-2.1"
+  title: "Anchor Papers, Opposing Evidence, Modern Updates, Data, and Replication-Code Selection"
+  date: "2026-07-18"
+  status: "COMPLETE"
+  branch: "agent/edge-research-reports"
+  human_report: "02-01-anchor-opposition-code-selection.md"
+  parent_manifest: "../01-edge-map/01-05-replication-admission-manifest.yaml"
+  next_report: "02-02-data-timing-information-contract-reconstruction.md"
+
+authorization:
+  literature_acquisition: true
+  data_access_audit: true
+  replication_protocol_design: true
+  empirical_fitting: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  automatic_promotion: false
+
+source_coverage:
+  scholar_gateway:
+    used: true
+    corpus_freshness: "2026-05"
+    searches:
+      - "diversified futures trend and time-series momentum"
+      - "futures carry, basis, curve and positioning"
+      - "volatility management and abstention"
+      - "cryptocurrency derivatives basis and relative value"
+  consensus:
+    used: false
+    reason: "monthly_search_quota_exhausted"
+  primary_web_sources:
+    - "official publisher pages"
+    - "official author data pages"
+    - "CFTC"
+    - "AQR"
+    - "BIS"
+    - "Binance"
+    - "OKX"
+    - "NBER"
+
+replication_classes:
+  - "EXACT_PUBLIC"
+  - "EXACT_LICENSED"
+  - "NEAR_EXACT_PUBLIC"
+  - "CONSTRUCTIVE_PUBLIC"
+  - "THEORETICAL_REPRODUCTION"
+  - "NOT_CURRENTLY_REPRODUCIBLE"
+
+evidence_roles:
+  - "ANCHOR_MECHANISM"
+  - "ANCHOR_EMPIRICAL"
+  - "OPPOSING_EVIDENCE"
+  - "MODERN_UPDATE"
+  - "IMPLEMENTATION_REFERENCE"
+  - "DATA_SOURCE"
+
+queue:
+  - order: 1
+    hypothesis_id: "EDGE-FUT-TREND-001"
+    first_decisive_question: >
+      Is trend profitability evidence of own-return predictability, or mostly a
+      volatility-scaled historical-mean and allocation effect?
+  - order: 2
+    hypothesis_id: "EDGE-RISK-POLICY-001"
+    first_decisive_question: >
+      Does a frozen volatility and no-trade overlay add out-of-sample utility
+      after matched risk, leverage constraints, turnover, and costs?
+  - order: 3
+    hypothesis_id: "EDGE-FUT-CARRY-001"
+    first_decisive_question: >
+      Do implementable same-contract curve and carry returns survive roll,
+      factor, margin, and transaction-cost corrections?
+  - order: 4
+    hypothesis_id: "EDGE-FUT-POSITION-001"
+    first_decisive_question: >
+      Does public positioning add information beyond carry, trend, and market
+      risk after the actual publication delay?
+  - order: 5
+    hypothesis_id: "EDGE-CRYPTO-BASIS-001"
+    first_decisive_question: >
+      Does derivatives state generalize beyond one licensed OKX sample and one
+      exceptional market regime?
+  - order: 6
+    hypothesis_id: "EDGE-CRYPTO-RV-001"
+    first_decisive_question: >
+      Does two-leg carry remain positive after the full capital, funding,
+      execution, collateral, stablecoin, and venue-risk path?
+
+hypotheses:
+  - id: "EDGE-FUT-TREND-001"
+    replication_classes:
+      - "NEAR_EXACT_PUBLIC"
+      - "EXACT_LICENSED"
+    selected_evidence:
+      - role: "ANCHOR_MECHANISM"
+        citation: "Moskowitz, Ooi, and Pedersen (2012), Time Series Momentum"
+        doi: "10.1016/j.jfineco.2011.11.003"
+      - role: "OPPOSING_EVIDENCE"
+        citation: "Huang, Li, Wang, and Zhou (2020), Time Series Momentum: Is It There?"
+        doi: "10.1016/j.jfineco.2019.08.004"
+      - role: "OPPOSING_EVIDENCE"
+        citation: "Shang, Serra, and Garcia (2022), Ride the Trend"
+        doi: "10.1111/1477-9552.12485"
+      - role: "MODERN_UPDATE"
+        citation: "Uhl (2025), Speculators and Time Series Momentum"
+        doi: "10.1002/rfe.1228"
+    public_data:
+      - "AQR Time Series Momentum Factors"
+    licensed_requirements:
+      - "raw contract-level futures and forwards used by the anchor"
+    required_tests:
+      - "asset_level_predictability"
+      - "pooled_fixed_effects_predictability"
+      - "wild_and_pairs_bootstrap"
+      - "historical_mean_benchmark"
+      - "same_contract_return_audit"
+      - "volatility_scaling_decomposition"
+      - "post_publication_factor_extension"
+      - "crowding_interaction"
+    hard_kills:
+      - "unrealizable_roll_yield"
+      - "failure_against_historical_mean_benchmark"
+      - "bootstrap_invalidates_predictability_without_asset_level_support"
+      - "post_publication_economic_null"
+
+  - id: "EDGE-RISK-POLICY-001"
+    dependency: "frozen_upstream_strategy"
+    replication_classes:
+      - "NEAR_EXACT_PUBLIC"
+      - "EXACT_LICENSED"
+    selected_evidence:
+      - role: "ANCHOR_MECHANISM"
+        citation: "Moreira and Muir (2017), Volatility-Managed Portfolios"
+        doi: "10.1111/jofi.12513"
+      - role: "OPPOSING_EVIDENCE"
+        citation: "Kang and Kwon (2021), Volatility-Managed Commodity Futures Portfolios"
+        doi: "10.1002/fut.22175"
+      - role: "MODERN_UPDATE"
+        citation: "DeMiguel, Martin-Utrera, and Uppal (2024), A Multifactor Perspective"
+        doi: "10.1111/jofi.13395"
+    public_data:
+      - "Tyler Muir Vol-Managed Factors Data"
+      - "Kenneth French Data Library"
+      - "AQR factor datasets"
+    required_tests:
+      - "matched_unconditional_volatility"
+      - "recursive_out_of_sample_weights"
+      - "managed_only_vs_optimal_combination"
+      - "transaction_costs"
+      - "leverage_caps"
+      - "no_trade_band"
+      - "cost_aware_abstention"
+    hard_kills:
+      - "improvement_only_from_lower_risk"
+      - "nonpositive_oos_net_utility"
+      - "requires_uncapped_leverage"
+      - "full_sample_parameter_dependency"
+
+  - id: "EDGE-FUT-CARRY-001"
+    replication_classes:
+      - "EXACT_LICENSED"
+      - "CONSTRUCTIVE_PUBLIC"
+    selected_evidence:
+      - role: "ANCHOR_MECHANISM"
+        citation: "Szymanowska et al. (2014), An Anatomy of Commodity Futures Risk Premia"
+        doi: "10.1111/jofi.12096"
+      - role: "ANCHOR_EMPIRICAL"
+        citation: "Boons and Prado (2019), Basis-Momentum"
+        doi: "10.1111/jofi.12738"
+      - role: "OPPOSING_EVIDENCE"
+        citation: "Shang, Serra, and Garcia (2022), Ride the Trend"
+        doi: "10.1111/1477-9552.12485"
+      - role: "OPPOSING_EVIDENCE"
+        citation: "Yiyi et al. (2025), Commodity Futures Characteristics and Asset Pricing Models"
+        doi: "10.1002/fut.22559"
+      - role: "MODERN_UPDATE"
+        citation: "Qian, Jiang, and Liu (2025), Factor Momentum"
+        doi: "10.1002/fut.70022"
+    licensed_requirements:
+      - "contract-level settlement curves"
+      - "volume and open interest"
+      - "historical specifications and calendars"
+      - "defensible costs and margin data"
+    required_tests:
+      - "spot_and_term_premium_decomposition"
+      - "basis_momentum_incremental_test"
+      - "slope_curvature_decomposition"
+      - "same_contract_returns"
+      - "calendar_spread_execution"
+      - "latent_beta_vs_alpha"
+      - "turnover_erosion"
+    hard_kills:
+      - "cross_contract_price_jump_counted_as_return"
+      - "basis_momentum_subsumed_by_simple_basis"
+      - "conservative_cost_failure"
+      - "illiquid_or_sector_concentration"
+
+  - id: "EDGE-FUT-POSITION-001"
+    replication_classes:
+      - "EXACT_PUBLIC"
+      - "EXACT_LICENSED"
+      - "CONSTRUCTIVE_PUBLIC"
+    selected_evidence:
+      - role: "ANCHOR_MECHANISM"
+        citation: "Fan et al. (2020), Speculative Pressure"
+        doi: "10.1002/fut.22085"
+      - role: "MODERN_UPDATE"
+        citation: "Marechal (2023), A Tale of Two Premiums Revisited"
+        doi: "10.1002/fut.22396"
+      - role: "MODERN_UPDATE"
+        citation: "Uhl (2025), Speculators and Time Series Momentum"
+        doi: "10.1002/rfe.1228"
+    public_data:
+      - "CFTC historical COT files"
+    licensed_requirements:
+      - "Datastream or equivalent raw futures returns"
+    timing_contract:
+      report_as_of: "Tuesday"
+      standard_release: "Friday 15:30 America/New_York"
+      earliest_decision: "after verified public release receipt"
+    required_tests:
+      - "category_mapping_audit"
+      - "release_lag_ladder"
+      - "speculative_pressure_sorts"
+      - "fixed_income_negative_control"
+      - "carry_trend_liquidity_spanning"
+      - "open_interest_placebo"
+    hard_kills:
+      - "tuesday_backdating"
+      - "future_category_mapping"
+      - "subsumed_by_carry_and_trend"
+      - "single_definition_dependence"
+
+  - id: "EDGE-CRYPTO-BASIS-001"
+    replication_classes:
+      - "EXACT_LICENSED"
+      - "CONSTRUCTIVE_PUBLIC"
+      - "THEORETICAL_REPRODUCTION"
+    selected_evidence:
+      - role: "ANCHOR_EMPIRICAL"
+        citation: "Chi et al. (2023), Risk Factors in Cryptocurrency Futures"
+        doi: "10.1002/fut.22425"
+      - role: "ANCHOR_MECHANISM"
+        citation: "Ackerer, Hugonnier, and Jermann, Perpetual Futures Pricing"
+        doi: "10.1111/mafi.70018"
+      - role: "MODERN_UPDATE"
+        citation: "Shynkevich (2026), Trading Periodicity and Algorithmic Divide"
+        doi: "10.1002/fut.70089"
+      - role: "MODERN_UPDATE"
+        citation: "Schmeling, Schrimpf, and Todorov (2026), Crypto Carry"
+        doi: "10.1287/mnsc.2024.05069"
+    public_data:
+      - "OKX historical data and API"
+      - "Binance Vision"
+    licensed_requirements:
+      - "GrandLine/1Token OKX 2017-2021 dataset for exact anchor replication"
+    required_tests:
+      - "point_in_time_universe"
+      - "all_lookback_and_holding_variants"
+      - "long_short_attribution"
+      - "basis_vs_basis_momentum_spanning"
+      - "multi_venue_modern_extension"
+      - "funding_formula_versioning"
+      - "linear_inverse_quanto_contract_tests"
+    hard_kills:
+      - "isolated_five_day_optimum"
+      - "failure_outside_original_sample"
+      - "long_market_beta_dominance"
+      - "single_venue_failure"
+
+  - id: "EDGE-CRYPTO-RV-001"
+    replication_classes:
+      - "EXACT_PUBLIC"
+      - "NEAR_EXACT_PUBLIC"
+      - "CONSTRUCTIVE_PUBLIC"
+      - "THEORETICAL_REPRODUCTION"
+    selected_evidence:
+      - role: "ANCHOR_EMPIRICAL"
+        citation: "De Blasis and Webb (2022), Arbitrage and Contract Design"
+        doi: "10.1002/fut.22305"
+      - role: "ANCHOR_MECHANISM"
+        citation: "Schmeling, Schrimpf, and Todorov (2026), Crypto Carry"
+        doi: "10.1287/mnsc.2024.05069"
+      - role: "ANCHOR_MECHANISM"
+        citation: "Ackerer, Hugonnier, and Jermann, Perpetual Futures Pricing"
+        doi: "10.1111/mafi.70018"
+      - role: "OPPOSING_EVIDENCE"
+        citation: "De Blasis and Webb: opportunities concentrated in dislocations"
+        doi: "10.1002/fut.22305"
+    public_data:
+      - "Binance Vision"
+      - "OKX historical data"
+      - "Crypto Carry supplemental files"
+    engineering_references:
+      - "Hummingbot"
+      - "NautilusTrader"
+      - "official exchange APIs"
+    required_tests:
+      - "complete_two_leg_pnl"
+      - "funding_and_financing"
+      - "margin_and_collateral"
+      - "orphan_and_partial_fills"
+      - "mark_vs_last_price"
+      - "stablecoin_and_venue_haircuts"
+      - "restart_and_reconciliation"
+      - "prospective_paper_ledger"
+    hard_kills:
+      - "requires_leverage"
+      - "costs_eliminate_carry"
+      - "orphan_fill_stress_exceeds_expected_profit"
+      - "single_funding_reversal_failure"
+      - "paper_reconciliation_failure"
+
+accepted_engineering_references:
+  - name: "Hummingbot"
+    use: "crypto connector and multi-leg operational semantics"
+    empirical_proof: false
+  - name: "NautilusTrader"
+    use: "event-driven domain, backtest/live semantic alignment, state recovery"
+    empirical_proof: false
+  - name: "Freqtrade"
+    use: "look-ahead diagnostics concepts"
+    empirical_proof: false
+  - name: "CCXT"
+    use: "optional access normalization while preserving raw exchange payloads"
+    empirical_proof: false
+  - name: "bkelly-lab/ReplicationCrisis"
+    use: "replication governance and factor research organization"
+    empirical_proof: false
+  - name: "joelowj/mtl-tsmom"
+    use: "later model challenger after canonical trend replication"
+    empirical_proof: false
+
+rejected_code_categories:
+  - "anonymous_gists"
+  - "unlicensed_code"
+  - "single_notebook_without_tests"
+  - "future_adjusted_continuous_price_backtests"
+  - "final_test_hyperparameter_tuning"
+  - "arbitrage_without_two_leg_state"
+  - "high_return_crypto_code_dependent_on_extreme_leverage"
+  - "ai_generated_code_without_provenance"
+
+report_2_2_required_outputs:
+  - "paper_by_paper_instrument_manifest"
+  - "point_in_time_universe_manifest"
+  - "contract_chain_and_roll_specification"
+  - "source_and_license_registry"
+  - "observation_release_receive_decision_execution_timestamps"
+  - "raw_to_derived_lineage_graph"
+  - "cost_financing_margin_collateral_contract"
+  - "source_and_formula_versioning"
+  - "exact_vs_constructive_boundary"
+  - "data_acquisition_go_no_go"
+  - "immutable_sample_cutoffs"
+  - "adversarial_data_quality_tests"
