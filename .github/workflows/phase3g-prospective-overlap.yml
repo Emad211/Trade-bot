@@ -1,0 +1,119 @@
+name: phase3g-prospective-overlap
+
+# Manual historical reproduction only; scheduled overlap moved to Phase 3I.
+on:
+  workflow_dispatch:
+    inputs:
+      semantic_run_id:
+        description: "Optional successful Phase 3E run ID; latest is used when omitted"
+        required: false
+        type: string
+      as_of:
+        description: "Optional timezone-aware observation cutoff"
+        required: false
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install public exchange dependencies
+        run: python -m pip install -e '.[exchange]'
+      - name: Restore one verified Phase 3E semantic state
+        shell: bash
+        run: |
+          set -euo pipefail
+          semantic_root=/tmp/phase3g-semantic-root
+          mkdir -p "$semantic_root" /tmp/phase3g-semantic-download
+          semantic_run_id="${{ inputs.semantic_run_id }}"
+          if [ -z "$semantic_run_id" ]; then
+            runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/phase3e-longitudinal-events.yml/runs?status=success&per_page=100")
+            semantic_run_id=$(jq -r '.workflow_runs[0].id // empty' <<<"$runs")
+          fi
+          test -n "$semantic_run_id"
+          artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${semantic_run_id}/artifacts?per_page=100")
+          artifact=$(jq -c '
+            [.artifacts[]
+              | select(.expired == false)
+              | select(.name | startswith("phase3e-longitudinal-state-"))
+            ][0] // empty
+          ' <<<"$artifacts")
+          test -n "$artifact"
+          artifact_name=$(jq -r .name <<<"$artifact")
+          gh run download "$semantic_run_id" \
+            --name "$artifact_name" \
+            --dir /tmp/phase3g-semantic-download
+          state_dir=$(find /tmp/phase3g-semantic-download -type d -name state -print -quit)
+          test -n "$state_dir"
+          cp -a "$state_dir" "$semantic_root/state"
+          rm -f "$semantic_root/state/.capture.lock"
+          python scripts/verify_phase3c_provider.py "$semantic_root"
+          test ! -s "$semantic_root/state/prospective_decisions.jsonl"
+          echo "SEMANTIC_ROOT=$semantic_root/state" >> "$GITHUB_ENV"
+          echo "SEMANTIC_RUN_ID=$semantic_run_id" >> "$GITHUB_ENV"
+      - name: Resolve observation cutoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          as_of="${{ inputs.as_of }}"
+          if [ -z "$as_of" ]; then
+            as_of=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          fi
+          echo "PHASE3G_AS_OF=$as_of" >> "$GITHUB_ENV"
+      - name: Build one manual overlap artifact
+        run: |
+          python scripts/run_phase3g_overlap.py \
+            --market-config configs/phase3g_market_overlap.yaml \
+            --benchmark-config configs/btc_spot_4h_smoke.yaml \
+            --semantic-state-root "$SEMANTIC_ROOT" \
+            --output artifacts/phase3g-manual-overlap \
+            --trajectory-path artifacts/phase3g-manual-overlap/state/maturity_trajectory.jsonl \
+            --as-of "$PHASE3G_AS_OF" \
+            --source-commit-sha "$GITHUB_SHA"
+      - name: Verify non-activation and trajectory integrity
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from hybrid_trader.phase3g_overlap import Phase3GOverlapManifest
+          from hybrid_trader.phase3g_trajectory import verify_phase3g_trajectory
+
+          root = Path("artifacts/phase3g-manual-overlap")
+          overlap = Phase3GOverlapManifest.model_validate_json(
+              (root / "overlap_manifest.json").read_text(encoding="utf-8")
+          )
+          trajectory = verify_phase3g_trajectory(
+              root / "state" / "maturity_trajectory.jsonl"
+          )
+          if trajectory.count != 1 or trajectory.head_sha256 != overlap.trajectory_entry_id:
+              raise RuntimeError("Manual Phase 3G trajectory is invalid")
+          if overlap.model_fitting_executed or overlap.prospective_decisions_created:
+              raise RuntimeError("Manual Phase 3G reproduction attempted activation")
+          PY
+      - name: Record checksums and upload evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=artifacts/phase3g-manual-overlap
+          printf '%s\n' "$GITHUB_SHA" > "$root/source_commit_sha.txt"
+          printf '%s\n' "$GITHUB_RUN_ID" > "$root/workflow_run_id.txt"
+          find "$root" -type f ! -name SHA256SUMS -print0 \
+            | sort -z | xargs -0 sha256sum > "$root/SHA256SUMS"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase3g-manual-overlap-${{ github.run_id }}
+          path: artifacts/phase3g-manual-overlap/
+          if-no-files-found: error
+          retention-days: 90
