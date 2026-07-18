@@ -1,0 +1,45 @@
+name: phase3g-format
+
+on:
+  push:
+    branches: ["agent/phase-3g-prospective-overlap"]
+    paths:
+      - ".github/workflows/phase3g-format.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase-3g-prospective-overlap
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install development dependencies
+        run: python -m pip install -e '.[dev,ml]'
+      - name: Format and validate Phase 3G collector
+        run: |
+          ruff format src/hybrid_trader/phase3g_market.py tests/test_phase3g_market.py
+          ruff check --fix src/hybrid_trader/phase3g_market.py tests/test_phase3g_market.py
+          mypy --python-version 3.12 src
+          pytest tests/test_phase3g_market.py -q
+          pytest -m 'not optional_ml' -q
+          pytest -m optional_ml -q
+          python -m pip check
+      - name: Remove one-time formatter and commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/phase3g-format.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "format and validate Phase 3G market collector"
+          git push origin HEAD:agent/phase-3g-prospective-overlap
