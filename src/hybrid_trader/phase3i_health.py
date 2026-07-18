@@ -14,6 +14,7 @@ from hybrid_trader.avalai import AvalAICallRecord, verify_avalai_call_ledger
 from hybrid_trader.avalai_capture import AvalAIProviderRunManifest
 from hybrid_trader.event_capture_models import EventCaptureManifest, SourceCaptureAttempt
 from hybrid_trader.event_capture_state import canonical_sha256
+from hybrid_trader.event_documents import ProspectiveDocument
 from hybrid_trader.event_ledger import load_document_index, verify_document_ledger
 from hybrid_trader.semantic_extraction import SemanticEventRecord, verify_semantic_ledger
 
@@ -108,7 +109,10 @@ class Phase3ISourceHealthAssessment(BaseModel):
     def enforce_safety_and_totals(self) -> Phase3ISourceHealthAssessment:
         if self.model_fitting_allowed or self.paper_or_live_trading_allowed:
             raise ValueError("Phase 3I cannot authorize fitting or trading")
-        if sum(record.document_count for record in self.source_records) != self.total_document_count:
+        if (
+            sum(record.document_count for record in self.source_records)
+            != self.total_document_count
+        ):
             raise ValueError("Phase 3I source document totals do not reconcile")
         if (
             sum(record.semantic_record_count for record in self.source_records)
@@ -133,11 +137,7 @@ def health_identity_payload(assessment: Phase3ISourceHealthAssessment) -> dict[s
 def _load_jsonl(path: Path, model: type[BaseModel]) -> tuple[BaseModel, ...]:
     if not path.exists() or path.stat().st_size == 0:
         return ()
-    return tuple(
-        model.model_validate_json(raw)
-        for raw in path.read_bytes().splitlines()
-        if raw
-    )
+    return tuple(model.model_validate_json(raw) for raw in path.read_bytes().splitlines() if raw)
 
 
 def _latest_provider_run(root: Path) -> tuple[EventCaptureManifest, AvalAIProviderRunManifest]:
@@ -207,37 +207,37 @@ def assess_phase3i_source_health(
 
     semantic_by_document: dict[str, SemanticEventRecord] = {}
     semantic_by_extraction: dict[str, SemanticEventRecord] = {}
-    for record in semantic_records:
-        if record.document_id in semantic_by_document:
+    for semantic_record in semantic_records:
+        if semantic_record.document_id in semantic_by_document:
             raise ValueError("More than one semantic record exists for a document")
-        if record.extraction_key in semantic_by_extraction:
+        if semantic_record.extraction_key in semantic_by_extraction:
             raise ValueError("Semantic state contains duplicate extraction keys")
-        document = documents.get(record.document_id)
+        document = documents.get(semantic_record.document_id)
         if document is None:
             raise ValueError("Semantic record references a missing document")
-        if document.source_id != record.source_id:
+        if document.source_id != semantic_record.source_id:
             raise ValueError("Semantic record source disagrees with its document")
-        if document.source_quality != record.document_source_quality:
+        if document.source_quality != semantic_record.document_source_quality:
             raise ValueError("Semantic record source quality disagrees with its document")
-        if document.asset_tags != record.document_asset_tags:
+        if document.asset_tags != semantic_record.document_asset_tags:
             raise ValueError("Semantic record asset tags disagree with its document")
-        semantic_by_document[record.document_id] = record
-        semantic_by_extraction[record.extraction_key] = record
+        semantic_by_document[semantic_record.document_id] = semantic_record
+        semantic_by_extraction[semantic_record.extraction_key] = semantic_record
 
     successful_calls: dict[str, AvalAICallRecord] = {}
     failed_calls: dict[str, AvalAICallRecord] = {}
-    for record in call_records:
-        destination = successful_calls if record.status == "success" else failed_calls
-        if record.extraction_key in destination:
+    for call_record in call_records:
+        destination = successful_calls if call_record.status == "success" else failed_calls
+        if call_record.extraction_key in destination:
             raise ValueError("Provider ledger contains duplicate call status for an extraction")
-        destination[record.extraction_key] = record
+        destination[call_record.extraction_key] = call_record
     for extraction_key in successful_calls:
         if extraction_key not in semantic_by_extraction:
             raise ValueError("Successful provider call has no semantic record")
 
     latest_capture, latest_provider = _latest_provider_run(capture_root)
     attempt_by_source = _attempt_index(latest_capture.source_attempts)
-    call_by_id = {record.call_id: record for record in call_records}
+    call_by_id = {call_record.call_id: call_record for call_record in call_records}
     latest_call_sources: set[str] = set()
     for call_id in latest_provider.new_call_ids:
         call = call_by_id.get(call_id)
@@ -247,12 +247,12 @@ def assess_phase3i_source_health(
         if semantic is not None:
             latest_call_sources.add(semantic.source_id)
 
-    documents_by_source: dict[str, list[object]] = defaultdict(list)
+    documents_by_source: dict[str, list[ProspectiveDocument]] = defaultdict(list)
     for document in documents.values():
         documents_by_source[document.source_id].append(document)
     semantics_by_source: dict[str, list[SemanticEventRecord]] = defaultdict(list)
-    for record in semantic_records:
-        semantics_by_source[record.source_id].append(record)
+    for semantic_record in semantic_records:
+        semantics_by_source[semantic_record.source_id].append(semantic_record)
     successful_calls_by_source: Counter[str] = Counter()
     failed_calls_by_source: Counter[str] = Counter()
     for extraction_key in successful_calls:

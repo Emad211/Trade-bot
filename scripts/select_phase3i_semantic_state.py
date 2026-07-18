@@ -41,9 +41,7 @@ def main() -> None:
                 workflow_name=item["workflow_name"],
                 workflow_run_id=str(item["workflow_run_id"]),
                 run_created_at=_timestamp(item["run_created_at"], label="run_created_at"),
-                run_completed_at=_timestamp(
-                    item["run_completed_at"], label="run_completed_at"
-                ),
+                run_completed_at=_timestamp(item["run_completed_at"], label="run_completed_at"),
                 source_commit_sha=item["source_commit_sha"],
                 artifact_id=int(item["artifact_id"]),
                 artifact_name=item["artifact_name"],
