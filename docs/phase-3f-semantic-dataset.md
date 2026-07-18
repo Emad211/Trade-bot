@@ -102,26 +102,31 @@ historical backfill leakage and causes the workflow to fail.
 The expected first verdict is insufficient prospective sample. No model is fitted,
 no threshold is selected and the prospective decision ledger remains untouched.
 
-## First verified result
+## Final verified result
 
-Workflow run `29576654860` produced artifact `8405288031` with digest:
+The final exact-head workflow run `29586581122` used source commit
+`c1248daadb0313261c565c88291a77bb5b1926d6` and produced artifact `8409259039` with
+digest:
 
 ```text
-sha256:a78c1d880a42854614428b902479e6d9bf8ae545584c0ef71a11f64a73c07d0b
+sha256:d1d4ba1b34370667aeab95e9c3ba0dd5f58d2085550963a93843863537a00f6b
 ```
 
 Independent post-download verification established:
 
+- all six top-level checksum entries matched their files;
 - dataset ID `semantic-157007b0519c`;
-- dataset content SHA-256
+- canonical dataset content SHA-256
   `157007b0519c122d4a2851c5d4164e5dbcc3d828a5bfcd8067a3a840e7d6d3f6`;
+- market snapshot SHA-256
+  `fa8c7f3ddc75baa7fccc8b835b47c4bb75ca3e8dbdc208a27428d513da40f144`;
 - 7,632 candidate and matured labeled rows;
 - 3,915 positive and 3,717 negative targets;
 - eight relevant prospective semantic records;
-- one semantic availability date and one source;
+- one relevant availability date and one relevant source;
 - zero decision rows containing an observable semantic event;
-- zero total semantic event counts across every market row;
-- finite values across all 42 semantic feature columns;
+- zero total semantic event counts across every historical market row;
+- no decision or label timestamp later than the declared `as_of`;
 - no model fitting and no prospective decision.
 
 The maturity assessment correctly returned:
@@ -132,9 +137,7 @@ research_model_fitting_allowed = false
 paper_or_live_trading_allowed = false
 ```
 
-The artifact was generated on commit `33ad4c0c368ca576ff5b5c62206810e8df7f77be`.
-The completed implementation, including Ruff formatting and the canonical round-trip
-index contract, passed the full Python 3.11/3.12 CI matrix on commit
-`c1248daadb0313261c565c88291a77bb5b1926d6`. The cleanup did not alter the
-point-in-time inclusion or maturity semantics. Compact evidence is retained under
-`research/runs/phase3f-semantic-dataset-29576654860/`.
+The full Python 3.11/3.12 CI matrix, Ruff, strict Mypy, optional ML and clean-wheel
+package smoke all passed on the same source commit. Compact reviewed evidence is
+retained under `research/runs/phase3f-semantic-dataset-29586581122/`; the deterministic
+full dataset remains in its digest-addressed GitHub Actions artifact.
