@@ -247,9 +247,7 @@ def collect_phase3g_market(
             if available.isna().any():
                 raise ValueError("Spot source returned invalid availability timestamps")
             frame = frame.loc[
-                (frame.index >= start)
-                & (frame.index <= end)
-                & (available <= cutoff)
+                (frame.index >= start) & (frame.index <= end) & (available <= cutoff)
             ].copy()
             if frame.empty:
                 raise RuntimeError("Spot source returned no fully available bars")
@@ -295,7 +293,9 @@ def collect_phase3g_market(
                 )
             )
 
-    required_failures = [attempt for attempt in attempts if attempt.required and attempt.status == "failure"]
+    required_failures = [
+        attempt for attempt in attempts if attempt.required and attempt.status == "failure"
+    ]
     if required_failures:
         _write_json(
             root / "source_attempts.json",
@@ -311,9 +311,7 @@ def collect_phase3g_market(
             f"Phase 3G requires {spec.spot_required_count} spot sources; got {len(frames)}"
         )
 
-    primary = next(
-        venue.exchange_id for venue in spec.spot_sources if venue.exchange_id in frames
-    )
+    primary = next(venue.exchange_id for venue in spec.spot_sources if venue.exchange_id in frames)
     combined = frames[primary].copy()
     cross_reports: list[CrossVenueQualityReport] = []
     for exchange_id, secondary in frames.items():
@@ -341,9 +339,7 @@ def collect_phase3g_market(
         combined,
         root / "combined_snapshot",
         source=f"phase3g-primary:{primary}",
-        symbol=next(
-            venue.symbol for venue in spec.spot_sources if venue.exchange_id == primary
-        ),
+        symbol=next(venue.symbol for venue in spec.spot_sources if venue.exchange_id == primary),
         timeframe=spec.timeframe,
         source_latency_seconds=spec.source_latency_seconds,
         created_at=spec.as_of,
