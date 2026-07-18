@@ -62,8 +62,10 @@ class SourceCaptureAttempt(BaseModel):
     @model_validator(mode="after")
     def validate_relevance_counts(self) -> SourceCaptureAttempt:
         decided = self.relevance_accepted_documents + self.relevance_rejected_documents
-        if self.status == "success" and decided != self.parsed_documents:
-            raise ValueError("Source relevance counts must equal parsed_documents")
+        if self.status == "success" and decided not in (0, self.parsed_documents):
+            raise ValueError(
+                "Source relevance counts must be legacy-zero or equal parsed_documents"
+            )
         if self.status == "failed" and decided:
             raise ValueError("Failed source cannot contain relevance decisions")
         return self
