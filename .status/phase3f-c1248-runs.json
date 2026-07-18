@@ -1,0 +1,97 @@
+{
+  "runs": [
+    {
+      "id": 29586581122,
+      "name": "phase3f-semantic-dataset",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29586581122",
+      "head_sha": "c1248daadb0313261c565c88291a77bb5b1926d6",
+      "created_at": "2026-07-17T14:05:59Z",
+      "updated_at": "2026-07-17T14:06:40Z"
+    },
+    {
+      "id": 29586552780,
+      "name": "phase3f-semantic-dataset",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29586552780",
+      "head_sha": "c1248daadb0313261c565c88291a77bb5b1926d6",
+      "created_at": "2026-07-17T14:05:34Z",
+      "updated_at": "2026-07-17T14:06:21Z"
+    },
+    {
+      "id": 29585998799,
+      "name": "ci",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29585998799",
+      "head_sha": "c1248daadb0313261c565c88291a77bb5b1926d6",
+      "created_at": "2026-07-17T13:57:33Z",
+      "updated_at": "2026-07-17T13:58:56Z"
+    },
+    {
+      "id": 29585995501,
+      "name": "phase3f-semantic-dataset",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29585995501",
+      "head_sha": "c1248daadb0313261c565c88291a77bb5b1926d6",
+      "created_at": "2026-07-17T13:57:30Z",
+      "updated_at": "2026-07-17T13:58:26Z"
+    },
+    {
+      "id": 29585995618,
+      "name": "ci",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/Emad211/Trade-bot/actions/runs/29585995618",
+      "head_sha": "c1248daadb0313261c565c88291a77bb5b1926d6",
+      "created_at": "2026-07-17T13:57:30Z",
+      "updated_at": "2026-07-17T13:59:00Z"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 8409259039,
+      "name": "phase3f-semantic-dataset-29586581122",
+      "size_in_bytes": 839284,
+      "digest": "sha256:d1d4ba1b34370667aeab95e9c3ba0dd5f58d2085550963a93843863537a00f6b",
+      "expired": false,
+      "run_id": 29586581122
+    },
+    {
+      "id": 8409249239,
+      "name": "phase3f-semantic-dataset-29586552780",
+      "size_in_bytes": 839282,
+      "digest": "sha256:3dbe555a07275cf0cffa149837c3ee31f1878119b37f17beb266c226b5ed2686",
+      "expired": false,
+      "run_id": 29586552780
+    },
+    {
+      "id": 8409022585,
+      "name": "python-dist-843f2a1eb81fb9483ec7f4f279a146e2438d6968",
+      "size_in_bytes": 387398,
+      "digest": "sha256:cb2f4be62a89bc1fb073335d9b32462517ac3745327f4a39a448fc4b37f1667d",
+      "expired": false,
+      "run_id": 29585998799
+    },
+    {
+      "id": 8409029050,
+      "name": "phase3f-semantic-dataset-29585995501",
+      "size_in_bytes": 839282,
+      "digest": "sha256:1f4e1c0b2912257e1107f0bc41716a12195d50aebcc7c91bced6a48c555c49f8",
+      "expired": false,
+      "run_id": 29585995501
+    },
+    {
+      "id": 8409023562,
+      "name": "python-dist-c1248daadb0313261c565c88291a77bb5b1926d6",
+      "size_in_bytes": 387396,
+      "digest": "sha256:ae23464ad1b44b89aa820f51c0720d7eeefeb65ce16d5852f73a70587b1a3037",
+      "expired": false,
+      "run_id": 29585995618
+    }
+  ],
+  "captured_at": "2026-07-18T09:58:01Z"
+}
