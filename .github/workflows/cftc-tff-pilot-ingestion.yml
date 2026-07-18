@@ -96,14 +96,17 @@ jobs:
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           exit 0
 
-      - name: Upload acquisition diagnostics
+      - name: Upload acquisition diagnostics and quarantined bytes
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: cftc-ingestion-acquisition-diagnostics-${{ github.sha }}
-          path: build/diagnostics/acquisition.txt
+          path: |
+            build/diagnostics/acquisition.txt
+            build/cftc-tff-pilot/
           if-no-files-found: error
           retention-days: 30
+          compression-level: 0
 
       - name: Enforce acquisition result
         if: ${{ steps.acquire.outputs.exit_code != '0' }}
