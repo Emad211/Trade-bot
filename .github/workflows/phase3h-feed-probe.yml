@@ -1,0 +1,59 @@
+name: phase3h-feed-probe
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["agent/phase-3h-source-diversity"]
+    paths:
+      - ".github/workflows/phase3h-feed-probe.yml"
+      - "configs/phase3c_avalai_event_sources.yaml"
+      - "scripts/probe_phase3h_feeds.py"
+      - "src/hybrid_trader/event_relevance.py"
+      - "src/hybrid_trader/event_source_spec.py"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install package without provider credentials
+        run: python -m pip install -e .
+      - name: Probe public feeds and relevance decisions
+        run: |
+          test -z "${AVALAI_API_KEY:-}"
+          python scripts/probe_phase3h_feeds.py \
+            --config configs/phase3c_avalai_event_sources.yaml \
+            --output artifacts/phase3h-feed-probe \
+            --require-source bitcoin-optech-newsletters \
+            --require-source federal-reserve-monetary-policy
+      - name: Enforce zero provider and decision activity
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(
+              Path("artifacts/phase3h-feed-probe/feed_probe.json").read_text()
+          )
+          if report["provider_calls_created"] != 0:
+              raise RuntimeError("Feed probe created semantic-provider calls")
+          if report["prospective_decisions_created"] != 0:
+              raise RuntimeError("Feed probe created a prospective decision")
+          if report["missing_required_probe_sources"]:
+              raise RuntimeError("Required Phase 3H feed probe sources are missing")
+          PY
+      - name: Upload credential-free feed evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase3h-feed-probe-${{ github.run_id }}
+          path: artifacts/phase3h-feed-probe/
+          if-no-files-found: error
+          retention-days: 30
