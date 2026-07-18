@@ -1,6 +1,6 @@
 name: report-phase3i-materialize
 
-# Trigger after workflow registration.
+# Generation 2: report the source-only publication run.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
@@ -36,7 +36,7 @@ jobs:
           run_id=$(jq -r .id <<<"$run")
           jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
           {
-            echo '## Phase 3I materializer status'
+            echo '## Phase 3I source-only materializer status'
             echo
             echo "- run: $(jq -r .html_url <<<"$run")"
             echo "- conclusion: $(jq -r .conclusion <<<"$run")"
