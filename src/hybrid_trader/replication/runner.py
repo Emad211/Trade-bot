@@ -8,8 +8,15 @@ from typing import Any, Literal
 
 import pandas as pd
 
-from hybrid_trader.replication.artifacts import load_tabular_artifact, parse_month_column, sha256_file
-from hybrid_trader.replication.factor_audit import annualized_metrics, compare_factor_vintages
+from hybrid_trader.replication.artifacts import (
+    load_tabular_artifact,
+    parse_month_column,
+    sha256_file,
+)
+from hybrid_trader.replication.factor_audit import (
+    annualized_metrics,
+    compare_factor_vintages,
+)
 from hybrid_trader.replication.provenance import ArtifactProvenance
 from hybrid_trader.replication.verdicts import ReplicationStatus, ReplicationVerdict
 
