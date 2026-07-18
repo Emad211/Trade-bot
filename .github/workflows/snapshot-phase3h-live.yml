@@ -1,0 +1,34 @@
+name: snapshot-phase3h-live
+
+on:
+  push:
+    branches: ["agent/phase3c-hardening-runner"]
+    paths:
+      - ".github/workflows/snapshot-phase3h-live.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase3c-hardening-runner
+      - name: Snapshot Phase 3H live runs
+        shell: bash
+        run: |
+          set -euo pipefail
+          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-3h-source-diversity&per_page=100")
+          mkdir -p .status
+          jq '{captured_at:(now|todate),runs:[.workflow_runs[] | select(.name == "phase3h-avalai-pilot") | {id,name,status,conclusion,head_sha,html_url,created_at,updated_at}]}' \
+            <<<"$runs" > .status/phase3h-live-runs.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .status/phase3h-live-runs.json
+          git commit -m "snapshot Phase 3H live runs" || true
+          git push origin HEAD:agent/phase3c-hardening-runner
