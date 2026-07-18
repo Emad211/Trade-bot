@@ -36,23 +36,29 @@ Admission authorizes research replication only. It does not authorize paper trad
 | Report | Scope | Status |
 |---|---|---|
 | [2.1 — Anchor Papers, Opposing Evidence, Modern Updates, Data, and Replication-Code Selection](02-replication/02-01-anchor-opposition-code-selection.md) | Binding paper roles, exactness classes, official data routes, code-admission rules, table-level targets, and kill criteria | Complete |
-| 2.2 — Data, Timing, and Information-Contract Reconstruction | Paper-by-paper instruments, point-in-time universes, contract chains, licenses, timestamps, lineage, cost/collateral contracts, and acquisition go/no-go decisions | Next |
-| 2.3 | Exact empirical and code replication | Planned |
+| [2.2 — Data, Timing, and Information-Contract Reconstruction](02-replication/02-02-data-timing-information-contract-reconstruction.md) | Availability clocks, immutable raw artifacts, source licenses, point-in-time instruments, futures rolls, regulator releases, crypto contract versions, lineage, costs, and acquisition decisions | Complete |
+| 2.3 — Exact Empirical and Code Replication | Controlled acquisition, public-factor audits, direct opposing tests, table reconstruction, and exact-versus-constructive verdicts | Next |
 | 2.4 | Sensitivity, cost, failure, and disagreement analysis | Planned |
 | 2.5 | Replication dossier and continue/stop decisions | Planned |
 
-The machine-readable evidence selections, replication classes, required tests, and hard-kill rules are stored in [the Report 2.1 replication selection manifest](02-replication/02-01-replication-selection-manifest.yaml).
+Report 2.1 selects what must be replicated. Report 2.2 freezes what each datum means and when it becomes usable.
 
-Report 2.1 freezes this replication queue:
+Report 2.2 machine-readable contracts:
 
-1. `EDGE-FUT-TREND-001` — canonical trend claim versus historical-mean, bootstrap, roll, and crowding challenges;
-2. `EDGE-RISK-POLICY-001` — recursive out-of-sample, matched-risk and net-cost overlay tests;
-3. `EDGE-FUT-CARRY-001` — same-contract curve premia, basis-momentum, roll validity, latent-risk interpretation, and turnover;
-4. `EDGE-FUT-POSITION-001` — public-release timing, speculative pressure, negative controls, and incremental factor tests;
-5. `EDGE-CRYPTO-BASIS-001` — licensed anchor replication plus a separately identified modern multi-venue reconstruction;
-6. `EDGE-CRYPTO-RV-001` — exact two-leg capital-path, funding, execution, collateral, and venue-risk replication.
+- [Data-contract manifest](02-replication/02-02-data-contract-manifest.yaml)
+- [Source and license registry](02-replication/02-02-source-license-registry.yaml)
+- [Instrument and point-in-time universe manifest](02-replication/02-02-instrument-universe-manifest.yaml)
+- [Lineage and timing schema](02-replication/02-02-lineage-timing-schema.yaml)
 
-Failure to obtain licensed anchor data must produce `INCONCLUSIVE_EXACT_REPLICATION`; a public substitute may be useful, but it receives a new constructive-replication identity and cannot be mislabeled as an exact pass.
+The first permitted Report 2.3 sequence is:
+
+1. AQR TSMOM original-versus-maintained factor audit;
+2. Moreira–Muir public factor and formula audit;
+3. CFTC report-release, category, and revision parser validation;
+4. Binance/OKX archive completeness and effective-dated rule audit;
+5. traditional-futures licensed-data procurement decision.
+
+Exact traditional-futures replication remains pending licensed expired-contract histories. Chi et al. remains exact-inconclusive until the original licensed data are obtained. Public Binance/OKX work is a separately identified constructive experiment. Empirical fitting, paper trading, live trading, leverage, and capital deployment remain unauthorized.
 
 ### 3. Dataset and Experiment System
 
@@ -108,6 +114,9 @@ Five leaf reports form one section-level synthesis. The five section syntheses f
 - Primitive effects must be reported separately before signal integration.
 - Exact, near-exact, constructive, and theoretical reproductions are separate experiment identities.
 - No hypothesis may skip its strongest selected opposing evidence.
+- A single timestamp field is prohibited; `available_at` governs usability.
+- Continuous futures may support signal diagnostics but cannot create executable PnL.
+- Public data under provider terms are not assumed redistributable.
 - An admitted hypothesis remains unproven until it survives genuinely new forward data and realistic execution.
 - The final outcome may legitimately be to reject every candidate.
 
