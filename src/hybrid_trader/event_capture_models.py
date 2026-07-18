@@ -136,8 +136,7 @@ class EventCaptureManifest(BaseModel):
         if self.status == "failed" and not self.failure_type:
             raise ValueError("Failed captures must record a failure_type")
         if (
-            self.relevance_accepted_document_count
-            + self.relevance_rejected_document_count
+            self.relevance_accepted_document_count + self.relevance_rejected_document_count
             != self.relevance_decision_count
         ):
             raise ValueError("Capture relevance counts do not reconcile")

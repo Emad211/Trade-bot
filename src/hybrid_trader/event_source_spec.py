@@ -46,9 +46,7 @@ class FeedRelevanceSpec(BaseModel):
     def validate_term_sets(self) -> FeedRelevanceSpec:
         overlap = set(self.include_any_terms).intersection(self.exclude_any_terms)
         if overlap:
-            raise ValueError(
-                f"Relevance include/exclude terms overlap: {sorted(overlap)}"
-            )
+            raise ValueError(f"Relevance include/exclude terms overlap: {sorted(overlap)}")
         return self
 
 

@@ -121,15 +121,9 @@ def evaluate_relevance(
             reason="accepted_no_filter",
         )
 
-    searchable = normalize_relevance_text(
-        f"{envelope.document.title}\n{envelope.text}"
-    )
-    matched_include = tuple(
-        term for term in policy.include_any_terms if term in searchable
-    )
-    matched_exclude = tuple(
-        term for term in policy.exclude_any_terms if term in searchable
-    )
+    searchable = normalize_relevance_text(f"{envelope.document.title}\n{envelope.text}")
+    matched_include = tuple(term for term in policy.include_any_terms if term in searchable)
+    matched_exclude = tuple(term for term in policy.exclude_any_terms if term in searchable)
     if matched_exclude:
         return _decision(
             envelope,
@@ -151,9 +145,7 @@ def evaluate_relevance(
         policy_sha256=policy_sha,
         accepted=True,
         reason=(
-            "accepted_include_match"
-            if policy.include_any_terms
-            else "accepted_no_include_terms"
+            "accepted_include_match" if policy.include_any_terms else "accepted_no_include_terms"
         ),
         matched_include_terms=matched_include,
     )
