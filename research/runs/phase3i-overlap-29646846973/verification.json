@@ -1,0 +1,33 @@
+{
+  "dataset_content_sha256": "e84544eb00938baa19e52e29c97dea59aeb8df30682d4097f6ae4f22ed5bf92c",
+  "dataset_id": "semantic-e84544eb0093",
+  "document_source_count": 4,
+  "failed_optional_sources": [],
+  "failed_required_sources": [],
+  "maturity_status": "insufficient_prospective_sample",
+  "metadata_drift_sources": [],
+  "model_fitting_executed": false,
+  "pending_semantic_document_count": 26,
+  "phase3g_entry_id": "e8e4cc89e20052b71a20b57c173a32c4e2e7e441feefb31d45f3be2a5d990c1f",
+  "phase3i_entry_id": "93648d9f5fd2c1463767c6c7ef9b899045cc371f2afe678a67793a93dced7c82",
+  "phase3i_trajectory_count": 2,
+  "phase3i_trajectory_head": "93648d9f5fd2c1463767c6c7ef9b899045cc371f2afe678a67793a93dced7c82",
+  "prospective_decisions_created": false,
+  "research_model_fitting_allowed": false,
+  "schema_version": "1.0",
+  "selected_artifact_digest": "sha256:ec077f99caadaa28fc3142a9482b4f6160f4a338759692341825719d241fad91",
+  "selected_artifact_id": 8429886030,
+  "selected_workflow_name": "phase3h-avalai-pilot",
+  "selected_workflow_run_id": "29645401163",
+  "semantic_assets": [
+    "BTC",
+    "ETH",
+    "MARKET"
+  ],
+  "semantic_source_count": 4,
+  "semantic_state_selection_id": "654daecdeae606516b95214b5d2f3a85ad541a7a6365ec6d1b228d0c83a1d13b",
+  "source_health_assessment_id": "4f059fc5e01d082f6bb1c79e42cdfc0446d33dad3fed0b57bd9af52947895dc0",
+  "source_health_status": "pass",
+  "total_document_count": 38,
+  "total_semantic_record_count": 12
+}
