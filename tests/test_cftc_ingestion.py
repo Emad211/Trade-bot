@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from hybrid_trader.replication import cftc_ingestion
 from hybrid_trader.replication.cftc_ingestion import (
     CFTCPilotError,
     HTTPArtifact,
@@ -87,3 +88,26 @@ def test_bundle_preserves_raw_bytes_and_records_hash(tmp_path: Path) -> None:
     assert manifest["byte_count"] == len(raw)
     assert manifest["artifact_audit_pass"] is False
     assert manifest["source_access_state"] == "RAW_ARTIFACT_ACQUIRED_NOT_YET_ACTIONS_STAGED"
+
+
+def test_ingest_quarantines_downloaded_bytes_when_validation_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    raw = _raw([_row("220913020604F"), _row("220913020601F")])
+    artifact = HTTPArtifact(raw, 200, "application/json; charset=utf-8", '"etag"', None)
+    monkeypatch.setattr(cftc_ingestion, "fetch_official_bytes", lambda *args, **kwargs: artifact)
+
+    with pytest.raises(CFTCPilotError, match="collation"):
+        cftc_ingestion.ingest_pilot(tmp_path)
+
+    stored = (tmp_path / "tff_futures_only_2022-09-13.raw.json").read_bytes()
+    failure = json.loads(
+        (tmp_path / "validation-failure-manifest.json").read_text(encoding="utf-8")
+    )
+    assert stored == raw
+    assert failure["sha256"] == hashlib.sha256(raw).hexdigest()
+    assert failure["validation_status"] == "FAILED_QUARANTINED"
+    assert failure["artifact_audit_pass"] is False
+    assert failure["source_access_state"] == (
+        "RAW_ARTIFACT_ACQUIRED_VALIDATION_FAILED_QUARANTINED"
+    )
