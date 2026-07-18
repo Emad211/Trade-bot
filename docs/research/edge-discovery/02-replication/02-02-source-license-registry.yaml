@@ -1,0 +1,262 @@
+schema_version: '1.0'
+document:
+  id: SOURCE-LICENSE-REGISTRY-2.2
+  title: Source and License Registry
+  date: '2026-07-18'
+  status: FROZEN_FOR_ACQUISITION
+  branch: agent/edge-research-reports
+  human_report: 02-02-data-timing-information-contract-reconstruction.md
+license_classes:
+- PUBLIC_DOMAIN_OR_GOVERNMENT
+- PUBLIC_DOWNLOAD_PROVIDER_TERMS
+- OPEN_SOURCE_CODE_LICENSE
+- ACADEMIC_AUTHOR_TERMS
+- LICENSE_REQUIRED
+- AUTHOR_PERMISSION_REQUIRED
+- UNKNOWN_TERMS_NO_USE
+- INTERNAL_DERIVED_RESTRICTED
+sources:
+- source_id: AQR_TSMOM_ORIGINAL
+  provider: AQR Capital Management
+  source_family: official_academic_factor_data
+  access_class: PUBLIC_DOWNLOAD_PROVIDER_TERMS
+  purpose:
+  - EDGE-FUT-TREND-001
+  content: Original-paper monthly time-series momentum factor returns
+  coverage:
+    frequency: monthly
+    reported_window: 1985-01/2009-12
+  exactness_role: NEAR_EXACT_FACTOR_AUDIT
+  raw_instrument_replication: false
+  required_snapshots:
+  - downloaded file
+  - sha256
+  - retrieved_at
+  - terms document
+  - page metadata
+  redistribution: REVIEW_PROVIDER_TERMS
+  decision: GO_DATA_ONLY
+- source_id: AQR_TSMOM_MAINTAINED
+  provider: AQR Capital Management
+  source_family: official_academic_factor_data
+  access_class: PUBLIC_DOWNLOAD_PROVIDER_TERMS
+  purpose:
+  - EDGE-FUT-TREND-001
+  content: Maintained monthly time-series momentum factors
+  coverage:
+    frequency: monthly
+    start: 1985-01
+    end: provider_vintage
+  exactness_role: POST_PUBLICATION_AUDIT
+  raw_instrument_replication: false
+  revision_policy: every download is a distinct vintage; diff against prior vintage
+  decision: GO_DATA_ONLY
+- source_id: MOREIRA_MUIR_AUTHOR_DATA
+  provider: Authors / NBER / official publication supplements
+  source_family: author_factor_data_and_documents
+  access_class: ACADEMIC_AUTHOR_TERMS
+  purpose:
+  - EDGE-RISK-POLICY-001
+  content: Volatility-managed factors, appendix, and formula definitions
+  exactness_role: NEAR_EXACT_PUBLIC
+  required_snapshots:
+  - working paper version
+  - final paper version
+  - appendix
+  - data file
+  - terms
+  decision: GO_DOCUMENT_AND_FACTOR_DATA
+- source_id: CFTC_COT
+  provider: U.S. Commodity Futures Trading Commission
+  source_family: government_regulatory_reports
+  access_class: PUBLIC_DOMAIN_OR_GOVERNMENT
+  purpose:
+  - EDGE-FUT-POSITION-001
+  - EDGE-FUT-TREND-001
+  - EDGE-FUT-CARRY-001
+  content: Legacy, supplemental CIT, disaggregated, and TFF position reports
+  coverage:
+    legacy_futures_only: 1986-present subject to official files
+    legacy_futures_options: 1995-present subject to official files
+    cit_supplement: 2006-present subject to official files
+    disaggregated: historical backfill and current files subject to methodology/version notes
+  timing_contract:
+    report_as_of: typically Tuesday
+    regular_release: typically Friday 15:30 America/New_York
+    actual_release_required: true
+    exceptions:
+    - holidays
+    - government shutdowns
+    - backlogs
+    - corrections
+  revision_policy: retain every downloaded version; never overwrite
+  decision: GO_DATA_ONLY
+- source_id: CME_DATAMINE
+  provider: CME Group
+  source_family: licensed_exchange_history
+  access_class: LICENSE_REQUIRED
+  purpose:
+  - EDGE-FUT-TREND-001
+  - EDGE-FUT-CARRY-001
+  - EDGE-FUT-POSITION-001
+  content: Historical settlements, expired contracts, volume, OI, and contract metadata
+  mandatory_fields:
+  - native contract code
+  - settlement
+  - first and last trade dates
+  - first notice date when applicable
+  - volume
+  - open interest
+  - contract specifications
+  - corrections
+  redistribution: EXCHANGE_LICENSE_REVIEW_REQUIRED
+  decision: GO_CONDITIONAL_ON_QUOTE_AND_FIELD_AUDIT
+- source_id: ICE_HISTORICAL
+  provider: Intercontinental Exchange
+  source_family: licensed_exchange_history
+  access_class: LICENSE_REQUIRED
+  purpose:
+  - EDGE-FUT-TREND-001
+  - EDGE-FUT-CARRY-001
+  - EDGE-FUT-POSITION-001
+  content: Historical futures contracts and specifications
+  redistribution: EXCHANGE_LICENSE_REVIEW_REQUIRED
+  decision: GO_CONDITIONAL_ON_QUOTE_AND_FIELD_AUDIT
+- source_id: LME_HISTORICAL
+  provider: London Metal Exchange or authorized vendor
+  source_family: licensed_exchange_history
+  access_class: LICENSE_REQUIRED
+  purpose:
+  - EDGE-FUT-TREND-001
+  - EDGE-FUT-CARRY-001
+  - EDGE-FUT-POSITION-001
+  content: Metal futures/forward maturity-specific prices and specifications
+  decision: GO_CONDITIONAL_ON_QUOTE_AND_FIELD_AUDIT
+- source_id: REFINITIV_DATASTREAM
+  provider: LSEG / Refinitiv
+  source_family: commercial_vendor
+  access_class: LICENSE_REQUIRED
+  purpose:
+  - EDGE-FUT-TREND-001
+  - EDGE-FUT-CARRY-001
+  - EDGE-FUT-POSITION-001
+  - EDGE-RISK-POLICY-001
+  content: Vendor histories used by several selected papers
+  exactness_role: EXACT_LICENSED
+  required_audit:
+  - generic-to-native contract mapping
+  - back-adjustment method
+  - correction history
+  - expired contract availability
+  - derived-data rights
+  decision: PROCUREMENT_REQUIRED
+- source_id: BLOOMBERG
+  provider: Bloomberg
+  source_family: commercial_vendor
+  access_class: LICENSE_REQUIRED
+  purpose:
+  - EDGE-FUT-TREND-001
+  - EDGE-FUT-CARRY-001
+  - EDGE-FUT-POSITION-001
+  content: Historical generic and individual contract data used in modern papers
+  decision: PROCUREMENT_OR_INSTITUTIONAL_ACCESS_REQUIRED
+- source_id: CRB
+  provider: Commodity Research Bureau / authorized vendor
+  source_family: commercial_vendor
+  access_class: LICENSE_REQUIRED
+  purpose:
+  - EDGE-FUT-CARRY-001
+  content: End-of-month maturity-specific commodity futures prices used in related carry research
+  decision: PROCUREMENT_REQUIRED_FOR_EXACT_TRACK
+- source_id: CHi_1TOKEN_OKEX
+  provider: 1Token / OKEx data supplied to Chi et al.
+  source_family: licensed_paper_data
+  access_class: AUTHOR_PERMISSION_REQUIRED
+  purpose:
+  - EDGE-CRYPTO-BASIS-001
+  content: Minute spot and current-quarter futures data for 12 cryptocurrencies
+  coverage:
+    start: '2017-11-13'
+    end: '2021-03-31'
+  exactness_role: EXACT_LICENSED
+  decision: INCONCLUSIVE_PENDING_AUTHOR_OR_LICENSE_ACCESS
+- source_id: BINANCE_PUBLIC_DATA
+  provider: Binance
+  source_family: official_public_bulk_archive
+  access_class: PUBLIC_DOWNLOAD_PROVIDER_TERMS
+  purpose:
+  - EDGE-CRYPTO-BASIS-001
+  - EDGE-CRYPTO-RV-001
+  content:
+  - spot/futures trades
+  - aggregate trades
+  - klines
+  - mark-price klines
+  - index-price klines
+  - premium-index data
+  - funding records
+  - checksums
+  exactness_role: CONSTRUCTIVE_PUBLIC
+  revision_policy: snapshot provider paths, checksums, and update logs; replacements create revisions
+  timestamp_policy: unit is source- and epoch-specific; preserve raw integer and normalized UTC
+  decision: GO_DATA_ONLY_NEW_EXPERIMENT
+- source_id: BINANCE_API_AND_RULES
+  provider: Binance
+  source_family: official_exchange_api_and_announcements
+  access_class: PUBLIC_DOWNLOAD_PROVIDER_TERMS
+  purpose:
+  - EDGE-CRYPTO-BASIS-001
+  - EDGE-CRYPTO-RV-001
+  content: Instrument metadata, funding, mark/index prices, rule and fee announcements
+  revision_policy: effective-dated snapshots
+  decision: GO_DATA_ONLY_NEW_EXPERIMENT
+- source_id: OKX_HISTORICAL_DATA
+  provider: OKX
+  source_family: official_public_historical_download
+  access_class: PUBLIC_DOWNLOAD_PROVIDER_TERMS
+  purpose:
+  - EDGE-CRYPTO-BASIS-001
+  - EDGE-CRYPTO-RV-001
+  coverage_notes:
+    trades: official archive coverage begins approximately 2021-09
+    funding: official archive coverage begins approximately 2022-03
+    borrow_rates: official archive coverage begins approximately 2021-12
+    order_books: official archive coverage begins approximately 2023-03
+    candles: official historical download coverage begins approximately 2023-07
+  exactness_role: CONSTRUCTIVE_PUBLIC
+  decision: GO_DATA_ONLY_NEW_EXPERIMENT
+- source_id: OKX_API_AND_RULES
+  provider: OKX
+  source_family: official_exchange_api_changelog_and_instruments
+  access_class: PUBLIC_DOWNLOAD_PROVIDER_TERMS
+  purpose:
+  - EDGE-CRYPTO-BASIS-001
+  - EDGE-CRYPTO-RV-001
+  content:
+  - instrument definitions
+  - list and expiry times
+  - contract value and multiplier
+  - settlement currency
+  - funding history
+  - mark price
+  - open interest
+  - formulaType
+  - rule effective times
+  revision_policy: effective-dated instrument and formula snapshots
+  decision: GO_DATA_ONLY_NEW_EXPERIMENT
+- source_id: CRYPTO_CARRY_SUPPLEMENT
+  provider: Authors / official journal supplement
+  source_family: academic_supplement
+  access_class: ACADEMIC_AUTHOR_TERMS
+  purpose:
+  - EDGE-CRYPTO-RV-001
+  - EDGE-CRYPTO-BASIS-001
+  content: Processed evidence and definitions supporting Crypto Carry
+  decision: GO_SUPPLEMENT_AUDIT
+global_rules:
+  unknown_terms: NO_USE
+  raw_files_in_git: false
+  store_checksums_in_git: true
+  store_terms_hash: true
+  license_change_creates_new_snapshot: true
+  restricted_derived_outputs_require_review: true
