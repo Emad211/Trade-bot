@@ -65,12 +65,17 @@ def parse_month_column(values: pd.Series) -> pd.Series:
     """Parse common monthly date encodings to month-end UTC timestamps."""
 
     text = values.astype(str).str.strip().str.replace(r"\.0$", "", regex=True)
-    parsed = pd.to_datetime(text, errors="coerce", utc=True)
-    unresolved = parsed.isna()
-    if unresolved.any():
-        parsed_yyyymm = pd.to_datetime(text[unresolved], format="%Y%m", errors="coerce", utc=True)
-        parsed.loc[unresolved] = parsed_yyyymm
+    parsed = pd.Series(pd.NaT, index=values.index, dtype="datetime64[ns, UTC]")
+    yyyymm = text.str.fullmatch(r"\d{6}")
+    if yyyymm.any():
+        parsed.loc[yyyymm] = pd.to_datetime(
+            text.loc[yyyymm], format="%Y%m", errors="coerce", utc=True
+        )
+    if (~yyyymm).any():
+        parsed.loc[~yyyymm] = pd.to_datetime(
+            text.loc[~yyyymm], format="mixed", errors="coerce", utc=True
+        )
     if parsed.isna().any():
         examples = text.loc[parsed.isna()].head(5).tolist()
         raise ValueError(f"Unparseable date values: {examples}")
-    return parsed.dt.to_period("M").dt.to_timestamp("M").dt.tz_localize("UTC")
+    return parsed.dt.tz_convert(None).dt.to_period("M").dt.to_timestamp("M").dt.tz_localize("UTC")
