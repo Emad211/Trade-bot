@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from collections.abc import Iterable
 from dataclasses import dataclass
+from typing import cast
 
 import numpy as np
 import pandas as pd
@@ -39,13 +40,13 @@ def annualized_metrics(returns: pd.Series, *, periods_per_year: int = 12) -> dic
     wealth = (1.0 + clean).cumprod()
     drawdown = wealth / wealth.cummax() - 1.0
     return {
-        "count": int(len(clean)),
+        "count": len(clean),
         "annualized_mean": annual_mean,
         "annualized_volatility": annual_volatility,
         "annualized_sharpe": float(sharpe),
         "maximum_drawdown": float(drawdown.min()),
-        "skewness": float(clean.skew()),
-        "excess_kurtosis": float(clean.kurt()),
+        "skewness": float(cast(float, clean.skew())),
+        "excess_kurtosis": float(cast(float, clean.kurt())),
         "positive_fraction": float((clean > 0).mean()),
     }
 
@@ -68,10 +69,15 @@ def compare_factor_vintages(
         raise ValueError("Factor vintages have no overlapping dates")
 
     if value_columns is None:
-        left = {column.removesuffix("_original") for column in merged if column.endswith("_original")}
+        column_names = [str(column) for column in merged.columns]
+        left = {
+            column.removesuffix("_original")
+            for column in column_names
+            if column.endswith("_original")
+        }
         right = {
             column.removesuffix("_maintained")
-            for column in merged
+            for column in column_names
             if column.endswith("_maintained")
         }
         selected = sorted(left & right)
