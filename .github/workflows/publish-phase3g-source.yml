@@ -1,6 +1,6 @@
 name: publish-phase3g-source
 
-# Trigger after workflow registration.
+# Generation 2: retry source-only publication after a concurrent branch update.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
