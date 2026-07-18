@@ -8,7 +8,7 @@ Build a defensible path from economic hypotheses to a live trading system withou
 
 ## Research Tree
 
-### 1. Edge Map
+### 1. Edge Map — Complete
 
 | Report | Scope | Status |
 |---|---|---|
@@ -16,13 +16,26 @@ Build a defensible path from economic hypotheses to a live trading system withou
 | [1.2 — Taxonomy of Edge Mechanisms](01-edge-map/01-02-taxonomy-of-edge-mechanisms.md) | Risk premia, behavioral mispricing, information, relative value, liquidity provision, execution, and risk-policy edge | Complete |
 | [1.3 — Market, Instrument, Horizon, Competition, and Capacity Map](01-edge-map/01-03-market-instrument-horizon-competition-capacity-map.md) | Where each edge can realistically exist and whether an independent operator can compete | Complete |
 | [1.4 — Falsification and Evidence Design](01-edge-map/01-04-falsification-and-evidence-design.md) | Negative controls, robustness, trial accounting, prospective tests, execution stress, and kill criteria | Complete |
-| 1.5 — Edge Map Synthesis | Ranked hypotheses and explicit decisions on what enters replication | Next |
+| [1.5 — Edge Map Synthesis and Replication Admissions](01-edge-map/01-05-edge-map-synthesis.md) | Ranked hypotheses, admissions, deferrals, rejections, dependencies, and Section 2 handoff | Complete |
+
+The machine-readable admissions and dependencies are stored in [the replication admission manifest](01-edge-map/01-05-replication-admission-manifest.yaml).
+
+Section 1 admits the following hypothesis identities for formal, dependent, or conditional replication:
+
+- `EDGE-FUT-CARRY-001`
+- `EDGE-FUT-TREND-001`
+- `EDGE-CRYPTO-BASIS-001`
+- `EDGE-FUT-POSITION-001`
+- `EDGE-RISK-POLICY-001`
+- `EDGE-CRYPTO-RV-001`
+
+Admission authorizes research replication only. It does not authorize paper trading, live trading, leverage, automatic promotion, or capital deployment.
 
 ### 2. Research Replication
 
 | Report | Scope | Status |
 |---|---|---|
-| 2.1 | Anchor-paper, opposing-paper, and codebase selection | Planned |
+| 2.1 | Anchor-paper, opposing-paper, modern-update, implementation-paper, and replication-code selection | Next |
 | 2.2 | Data, timing, and information-contract reconstruction | Planned |
 | 2.3 | Exact empirical and code replication | Planned |
 | 2.4 | Sensitivity, cost, failure, and disagreement analysis | Planned |
@@ -79,6 +92,8 @@ Five leaf reports form one section-level synthesis. The five section syntheses f
 - Historical evidence can qualify a candidate for prospective testing but cannot prove a live edge.
 - No strategy is promoted because it uses a complex model, a famous paper, or a high backtest Sharpe ratio.
 - Data availability time, executable prices, realistic costs, failure modes, and capacity are part of the hypothesis itself.
+- Primitive effects must be reported separately before signal integration.
+- An admitted hypothesis remains unproven until it survives genuinely new forward data and realistic execution.
 - The final outcome may legitimately be to reject every candidate.
 
 ## Branch
