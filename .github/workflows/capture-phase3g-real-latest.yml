@@ -1,6 +1,6 @@
 name: capture-phase3g-real-latest
 
-# Trigger after workflow registration.
+# Generation 2: capture the workflow-specific discovery run.
 on:
   push:
     branches: ["agent/phase3c-hardening-runner"]
@@ -25,7 +25,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p .status
-          run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=agent/phase-3g-prospective-overlap&per_page=100" --jq '[.workflow_runs[] | select(.name == "phase3g-prospective-overlap")][0]')
+          run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/phase3g-prospective-overlap.yml/runs?branch=agent/phase-3g-prospective-overlap&per_page=20" --jq '.workflow_runs[0]')
           run_id=$(jq -r .id <<<"$run")
           jobs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
           artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts?per_page=100")
