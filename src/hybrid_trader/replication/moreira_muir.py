@@ -1,4 +1,4 @@
-"""Fail-closed parsing and safe evidence for official Moreira–Muir factor data."""
+"""Fail-closed parsing and safe evidence for official Moreira-Muir factor data."""
 
 from __future__ import annotations
 
@@ -364,7 +364,7 @@ def write_safe_evidence(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Validate the frozen official Moreira–Muir factor-data snapshot."
+        description="Validate the frozen official Moreira-Muir factor-data snapshot."
     )
     parser.add_argument("--csv", required=True)
     parser.add_argument("--author-page", required=True)

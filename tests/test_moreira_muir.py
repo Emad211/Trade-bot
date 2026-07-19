@@ -82,7 +82,7 @@ def test_monthly_gap_is_rejected() -> None:
         if index == 3:
             row[0] = "2000-05"
 
-    with pytest.raises(ValueError, match="duplicate months|monthly date gap"):
+    with pytest.raises(ValueError, match=r"duplicate months|monthly date gap"):
         parse_official_factor_bytes(make_csv(mutate=mutate), require_exact_snapshot=False)
 
 
