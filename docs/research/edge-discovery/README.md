@@ -41,10 +41,11 @@ Admission authorizes research replication only. It does not authorize paper trad
 | [2.3 — Provider-Gate Controlling Addendum](02-replication/02-03-provider-gate-controlling-addendum.md) | Provider requirements and fail-closed price authorization | Historical snapshot; superseded where conflicting |
 | [2.3 — Provider-Probe Controlling Addendum](02-replication/02-03-provider-probe-controlling-addendum.md) | Permanent Databento zero-purchase probe and verified missing-secret blocker | Historical verified blocker; provider subsequently rejected for owner accessibility |
 | [2.3 — Owner-Accessible Exchange-Native Source Pivot](02-replication/02-03-owner-accessible-exchange-native-source-pivot.md) | Owner-accessibility gate, Databento operational rejection, Cboe/CME/ICE public-source decisions, and VX pilot handoff | Current controlling provider-source decision |
+| [2.3 — Cboe VX Public Contract Pilot](02-replication/02-03-cboe-vx-public-contract-pilot-evidence.md) | Official contract-level VX acquisition, exact schema/parser, safe evidence-only artifact, and license/timing gates | Engineering verified; raw retention and price linkage blocked |
 | 2.4 — Sensitivity, Cost, Failure, and Disagreement Analysis | Conditional sensitivity analysis on numerically reconstructed evidence | Blocked until Report 2.3 artifact and price-linkage gates pass |
 | 2.5 | Replication dossier and continue/stop decisions | Planned |
 
-Report 2.1 selects what must be replicated. Report 2.2 freezes what each datum means and when it becomes usable. Report 2.3 contains a real official CFTC raw artifact, an exact parser, a deterministic dated pilot, a fail-closed scheduled-release ledger, and a 54-row reporting-to-product registry. Databento was technically evaluated but is now operationally rejected because the required account, payment, or banking path is not practically accessible to the project owner. The program has pivoted to owner-accessible exchange-native sources and has authorized a bounded public Cboe VX acquisition-and-validation pilot. It does not claim verified historical actual release times, accepted cross-market price providers, provider contract-chain identities, returns, a paper-level numerical replication, or an economic edge.
+Report 2.1 selects what must be replicated. Report 2.2 freezes what each datum means and when it becomes usable. Report 2.3 contains a real official CFTC raw artifact, an exact parser, a deterministic dated pilot, a fail-closed scheduled-release ledger, a 54-row reporting-to-product registry, and a verified two-contract public Cboe VX engineering pilot. Databento was technically evaluated but is operationally rejected because the required account, payment, or banking path is not practically accessible to the project owner. The Cboe pilot verifies exact contract identities, explicit settlement semantics, and safe evidence handling, but raw retention, historical availability timing, price linkage, returns, paper replication, and economic edge remain blocked or unproven.
 
 Report 2.2 machine-readable contracts:
 
@@ -58,6 +59,8 @@ Report 2.3 evidence and implementation:
 - [Current controlling status](02-replication/02-03-current-controlling-status.md)
 - [Owner-accessible exchange-native source pivot](02-replication/02-03-owner-accessible-exchange-native-source-pivot.md)
 - [Machine-readable owner-accessible source pivot](02-replication/02-03-owner-accessible-exchange-native-source-pivot.yaml)
+- [Verified Cboe VX public contract pilot](02-replication/02-03-cboe-vx-public-contract-pilot-evidence.md)
+- [Machine-readable Cboe VX pilot evidence](02-replication/02-03-cboe-vx-public-contract-pilot-evidence.yaml)
 - [Provider-gate controlling addendum](02-replication/02-03-provider-gate-controlling-addendum.md)
 - [Provider-probe controlling addendum](02-replication/02-03-provider-probe-controlling-addendum.md)
 - [Initial controlled execution snapshot](02-replication/02-03-controlled-empirical-and-code-replication.md)
@@ -84,25 +87,27 @@ Report 2.3 evidence and implementation:
 - `.github/workflows/cftc-tff-2022-instrument-registry.yml`
 - `.github/workflows/cftc-tff-2022-provider-candidate-plan.yml`
 - `.github/workflows/databento-zero-purchase-metadata-probe.yml`
+- `.github/workflows/cboe-vx-public-contract-pilot.yml`
 - `src/hybrid_trader/replication/`
 - `tests/test_replication_*.py`
 - `tests/test_cftc_*.py`
 - `tests/test_provider_price_linkage.py`
 - `tests/test_databento_metadata_probe.py`
+- `tests/test_cboe_vx_public.py`
 
 Report 2.3 currently records:
 
 - the original committed implementation was independently reconstructed from authenticated GitHub commit content;
 - an over-permissive factor-audit verdict was found and corrected;
 - the hardened local replication suite passed Ruff, strict mypy, 15 tests, 85.44% statement coverage, and compilation;
-- dedicated hosted CFTC acquisition, pilot, release-ledger, instrument-registry, provider-candidate, and Databento gate-evaluation workflows passed in their explicitly defined scopes;
+- dedicated hosted CFTC acquisition, pilot, release-ledger, instrument-registry, provider-candidate, Databento gate-evaluation, and Cboe VX workflows passed in their explicitly defined scopes;
 - the official CFTC 2022 TFF Futures Only ZIP was acquired with raw SHA-256 `94c9c1f...88601`;
 - its only member, `FinFutYY.txt`, passed CRC and has SHA-256 `7c309cb7...8bb3b`;
-- the exact source schema has 87 fields and fingerprint `fe012305...45d42`;
-- the full-year profile contains 2,719 unique report-date/contract rows across 52 dates;
-- 56 consolidated rows have recorded one-unit reconciliation differences, with no material accounting failure;
-- the `2022-09-13` pilot contains 54 unique market codes and zero reconciliation difference;
-- the canonical pilot CSV has SHA-256 `1be0028b...d268b`;
+- the exact CFTC source schema has 87 fields and fingerprint `fe012305...45d42`;
+- the full-year CFTC profile contains 2,719 unique report-date/contract rows across 52 dates;
+- 56 consolidated CFTC rows have recorded one-unit reconciliation differences, with no material accounting failure;
+- the `2022-09-13` CFTC pilot contains 54 unique market codes and zero reconciliation difference;
+- the canonical CFTC pilot CSV has SHA-256 `1be0028b...d268b`;
 - the scheduled-release ledger contains 52 rows and has SHA-256 `4196c144...ccb40`;
 - all 52 historical actual-release fields remain unverified and null;
 - the versioned instrument registry contains 54 unique reporting-code rows, is 38,903 bytes, and has SHA-256 `70a8e89d...25c74`;
@@ -110,7 +115,14 @@ Report 2.3 currently records:
 - the Databento candidate and zero-purchase client were implemented and tested, but authenticated provider access was unavailable;
 - Databento is classified `OPERATIONALLY_REJECTED_OWNER_ACCESS_CONSTRAINT` and Issue #42 is closed as not planned;
 - fabricated identity, borrowed cards, third-party accounts, credential sharing, and payment or jurisdiction circumvention are prohibited;
-- Cboe public contract-level VX history is the next executable acquisition candidate under Issue #43;
+- the public Cboe VX pilot acquired and verified exact September and October 2022 contract files with raw SHA-256 identities `a74598b...bb626` and `270abe03...778d`;
+- the Cboe source has eleven exact fields with schema fingerprint `7ec53b47...f3f2`, including separate `Close` and `Settle` fields;
+- the deterministic Cboe contract-level pilot contains 35 rows and has SHA-256 `ebe1326a...13ad0`;
+- the Cboe pilot uses two explicit contracts, no continuous series, no back adjustment, and computes no returns;
+- permanent Cboe run `29696828324` passed Ruff, strict mypy, eight tests, official acquisition, parser validation, license-page hashing, restricted-content deletion, and safe evidence upload;
+- the safe Cboe evidence artifact contains no CSV, HTML, raw contract file, or derived price row;
+- Cboe raw retention is incomplete and internal research use remains `PENDING_FORMAL_LICENSE_INTERPRETATION`;
+- historical Cboe settlement availability timing is not verified and zero rows authorize canonical price linkage or returns;
 - CME public delayed pages may support current reference checks, but owner-accessible 2022 historical flat-file retrieval remains unverified;
 - ICE public reports may support isolated verification, while complete historical End-of-Day packages remain blocked where purchase or subscription is required;
 - all provider contract identifiers remain empty and zero rows authorize price linkage or returns;
@@ -120,7 +132,7 @@ Report 2.3 currently records:
 - no paper-level numerical replication is complete;
 - all six empirical edge verdicts remain `INCONCLUSIVE`.
 
-Public Cboe VX acquisition, parser design, terms capture, checksum/lineage work, and same-contract formula validation are authorized. CME public-access probing and isolated ICE public-report probing are authorized. Provider purchase, unavailable payment workarounds, price assignment, empirical return computation, fitting, parameter tuning, strategy tournaments, paper trading, live trading, leverage, and capital deployment remain unauthorized.
+Public Cboe VX source engineering, exact parser maintenance, terms hashing, checksum/lineage work, and same-contract formula validation are authorized. Cboe raw publication, long-term retention without an approved legal basis, canonical price linkage, empirical return computation, provider purchases, unavailable payment workarounds, fitting, parameter tuning, strategy tournaments, paper trading, live trading, leverage, and capital deployment remain unauthorized.
 
 ### 3. Dataset and Experiment System
 
@@ -179,6 +191,8 @@ Five leaf reports form one section-level synthesis. The five section syntheses f
 - A single timestamp field is prohibited; `available_at` governs usability.
 - Continuous futures may support signal diagnostics but cannot create executable PnL.
 - Public data under provider terms are not assumed redistributable.
+- A public URL is not a license to retain, redistribute, or publicly redisplay provider content.
+- Safe evidence may retain hashes and metadata while restricted raw and derived price rows remain absent.
 - Implementation tests are not empirical paper replications.
 - Source-page verification is not raw-artifact acquisition.
 - API reachability is not immutable ingestion.
