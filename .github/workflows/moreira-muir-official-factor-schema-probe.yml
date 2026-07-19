@@ -1,0 +1,266 @@
+name: Moreira Muir Official Factor Schema Probe
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/moreira-muir-official-factor-schema-probe.yml
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - .github/workflows/moreira-muir-official-factor-schema-probe.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: moreira-muir-official-factor-schema-probe-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  acquire-profile-and-stage-safe-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out triggering commit
+        uses: actions/checkout@v6
+
+      - name: Acquire official author page and CSV
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/moreira-muir-schema-probe/raw
+          curl \
+            --fail-with-body \
+            --location \
+            --retry 5 \
+            --retry-all-errors \
+            --connect-timeout 20 \
+            --max-time 120 \
+            --user-agent 'Trade-bot research replication/1.0' \
+            --dump-header build/moreira-muir-schema-probe/author-page-headers.txt \
+            --output build/moreira-muir-schema-probe/raw/data.html \
+            'https://tylersmuir.com/data.html'
+          curl \
+            --fail-with-body \
+            --location \
+            --retry 5 \
+            --retry-all-errors \
+            --connect-timeout 20 \
+            --max-time 120 \
+            --user-agent 'Trade-bot research replication/1.0' \
+            --dump-header build/moreira-muir-schema-probe/csv-headers.txt \
+            --output build/moreira-muir-schema-probe/raw/VolManagedFactors.csv \
+            'https://tylersmuir.com/data/VolManagedFactors.csv'
+
+      - name: Profile exact raw bytes without calculating performance
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv
+          import hashlib
+          import io
+          import json
+          import math
+          from datetime import datetime
+          from pathlib import Path
+
+          root = Path('build/moreira-muir-schema-probe')
+          csv_path = root / 'raw/VolManagedFactors.csv'
+          page_path = root / 'raw/data.html'
+          raw = csv_path.read_bytes()
+          page = page_path.read_bytes()
+          if not raw:
+              raise SystemExit('Empty author CSV')
+          if b'<html' in raw[:2000].lower() or b'<!doctype' in raw[:2000].lower():
+              raise SystemExit('Author CSV endpoint returned HTML')
+          text = raw.decode('utf-8-sig')
+          reader = csv.reader(io.StringIO(text, newline=''))
+          rows = list(reader)
+          if len(rows) < 3:
+              raise SystemExit('Author CSV has insufficient rows')
+          header = [cell.strip() for cell in rows[0]]
+          if not header or any(not cell for cell in header):
+              raise SystemExit(f'Invalid header: {header}')
+          width = len(header)
+          malformed = [idx + 2 for idx, row in enumerate(rows[1:]) if len(row) != width]
+          if malformed:
+              raise SystemExit(f'Nonuniform CSV row widths: {malformed[:20]}')
+          data_rows = rows[1:]
+          date_values = [row[0].strip() for row in data_rows]
+          if len(date_values) != len(set(date_values)):
+              raise SystemExit('Duplicate date identifiers')
+
+          parsed_dates = None
+          date_format = None
+          for candidate in ('%Y%m', '%Y-%m', '%Y-%m-%d', '%m/%d/%Y'):
+              try:
+                  trial = [datetime.strptime(value, candidate) for value in date_values]
+              except ValueError:
+                  continue
+              parsed_dates = trial
+              date_format = candidate
+              break
+          if parsed_dates is None or date_format is None:
+              raise SystemExit(f'Unrecognized date format; samples: {date_values[:5]}')
+          if parsed_dates != sorted(parsed_dates):
+              raise SystemExit('Dates are not sorted ascending')
+
+          columns = []
+          for index, name in enumerate(header[1:], start=1):
+              values = []
+              missing = 0
+              invalid = 0
+              for row in data_rows:
+                  cell = row[index].strip()
+                  if cell == '':
+                      missing += 1
+                      continue
+                  try:
+                      value = float(cell)
+                  except ValueError:
+                      invalid += 1
+                      continue
+                  if not math.isfinite(value):
+                      invalid += 1
+                      continue
+                  values.append(value)
+              if invalid:
+                  raise SystemExit(f'Non-numeric values in {name}: {invalid}')
+              columns.append({
+                  'name': name,
+                  'non_missing_count': len(values),
+                  'missing_count': missing,
+                  'minimum': min(values) if values else None,
+                  'maximum': max(values) if values else None,
+                  'mean': sum(values) / len(values) if values else None,
+              })
+
+          page_text = page.decode('utf-8', errors='replace')
+          required_page_phrases = [
+              'Volatility-Managed Factor Returns',
+              'Returns are in percent',
+              'inverse of the prior month',
+          ]
+          missing_phrases = [phrase for phrase in required_page_phrases if phrase not in page_text]
+          if missing_phrases:
+              raise SystemExit(f'Author-page description changed: {missing_phrases}')
+
+          evidence = {
+              'schema_version': '1.0',
+              'evidence_id': 'MOREIRA_MUIR_OFFICIAL_FACTOR_SCHEMA_PROBE_V1',
+              'source_authority': 'Tyler Muir author data page',
+              'author_page_url': 'https://tylersmuir.com/data.html',
+              'csv_url': 'https://tylersmuir.com/data/VolManagedFactors.csv',
+              'author_page_byte_count': len(page),
+              'author_page_sha256': hashlib.sha256(page).hexdigest(),
+              'csv_byte_count': len(raw),
+              'csv_sha256': hashlib.sha256(raw).hexdigest(),
+              'header': header,
+              'column_count': width,
+              'row_count': len(data_rows),
+              'date_column': header[0],
+              'date_format': date_format,
+              'first_date': parsed_dates[0].date().isoformat(),
+              'last_date': parsed_dates[-1].date().isoformat(),
+              'declared_frequency': 'MONTHLY',
+              'declared_return_unit': 'PERCENT',
+              'declared_scaling': 'inverse prior-month realized variance, then unconditional-volatility matching',
+              'numeric_column_profiles': columns,
+              'raw_uploaded': False,
+              'performance_statistics_calculated': False,
+              'empirical_verdict_issued': False,
+              'validation_status': 'OFFICIAL_BYTES_ACQUIRED_SCHEMA_DISCOVERED_NOT_FROZEN',
+              'price_or_trading_authorization': False,
+              'paper_replication_pass': False,
+              'economic_edge_verdict': 'INCONCLUSIVE',
+          }
+          evidence_bytes = (json.dumps(evidence, indent=2, sort_keys=True) + '\n').encode('utf-8')
+          (root / 'safe-schema-evidence.json').write_bytes(evidence_bytes)
+          summary = {
+              'csv_sha256': evidence['csv_sha256'],
+              'csv_byte_count': evidence['csv_byte_count'],
+              'row_count': evidence['row_count'],
+              'column_count': evidence['column_count'],
+              'first_date': evidence['first_date'],
+              'last_date': evidence['last_date'],
+              'declared_return_unit': evidence['declared_return_unit'],
+              'validation_status': evidence['validation_status'],
+              'safe_evidence_sha256': hashlib.sha256(evidence_bytes).hexdigest(),
+          }
+          (root / 'safe-schema-summary.json').write_text(
+              json.dumps(summary, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          PY
+
+      - name: Remove author content before artifact upload
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build/moreira-muir-schema-probe/raw
+          rm -f build/moreira-muir-schema-probe/*-headers.txt
+          if find build/moreira-muir-schema-probe -type f \( -name '*.csv' -o -name '*.html' \) | grep -q .; then
+            echo 'Restricted author content remains in safe artifact directory' >&2
+            exit 1
+          fi
+
+      - name: Upload safe schema evidence
+        id: upload_evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: moreira-muir-official-factor-safe-schema-${{ github.sha }}
+          path: build/moreira-muir-schema-probe/
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+      - name: Create safe receipt
+        env:
+          ARTIFACT_ID: ${{ steps.upload_evidence.outputs.artifact-id }}
+          ARTIFACT_URL: ${{ steps.upload_evidence.outputs.artifact-url }}
+          ARTIFACT_DIGEST: ${{ steps.upload_evidence.outputs.artifact-digest }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+          receipt = {
+              'schema_version': '1.0',
+              'repository': os.environ['GITHUB_REPOSITORY'],
+              'commit_sha': os.environ['GITHUB_SHA'],
+              'workflow': os.environ['GITHUB_WORKFLOW'],
+              'run_id': os.environ['GITHUB_RUN_ID'],
+              'run_attempt': os.environ['GITHUB_RUN_ATTEMPT'],
+              'created_at': datetime.now(UTC).isoformat(),
+              'artifact_id': os.environ['ARTIFACT_ID'],
+              'artifact_url': os.environ['ARTIFACT_URL'],
+              'artifact_digest': os.environ['ARTIFACT_DIGEST'],
+              'storage_state': 'ACTIONS_SAFE_EVIDENCE_ONLY_RETENTION_90_DAYS',
+              'raw_uploaded': False,
+              'empirical_verdict_issued': False,
+              'paper_replication_pass': False,
+              'economic_edge_verdict': 'INCONCLUSIVE',
+          }
+          Path('build/moreira-muir-schema-receipt.json').write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
+          print(json.dumps(receipt, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload safe receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: moreira-muir-official-factor-safe-schema-receipt-${{ github.sha }}
+          path: build/moreira-muir-schema-receipt.json
+          if-no-files-found: error
+          retention-days: 90
