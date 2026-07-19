@@ -1,0 +1,252 @@
+name: Kenneth French Monthly Factor Contract Audit
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/kenneth-french-monthly-factor-contract-audit.yml
+      - src/hybrid_trader/replication/kenneth_french_monthly.py
+      - scripts/audit_kenneth_french_monthly_sources.py
+      - tests/test_kenneth_french_monthly.py
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - .github/workflows/kenneth-french-monthly-factor-contract-audit.yml
+      - src/hybrid_trader/replication/kenneth_french_monthly.py
+      - scripts/audit_kenneth_french_monthly_sources.py
+      - tests/test_kenneth_french_monthly.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kenneth-french-monthly-factor-contract-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  acquire-audit-and-stage-safe-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out triggering commit
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install project and verification tools
+        run: >-
+          python -m pip install --upgrade pip &&
+          python -m pip install -e ".[dev,replication]"
+
+      - name: Run project lint rules
+        run: >-
+          python -m ruff check
+          src/hybrid_trader/replication/kenneth_french_monthly.py
+          scripts/audit_kenneth_french_monthly_sources.py
+          tests/test_kenneth_french_monthly.py
+
+      - name: Run strict typing
+        run: >-
+          python -m mypy --strict --ignore-missing-imports
+          src/hybrid_trader/replication/kenneth_french_monthly.py
+          scripts/audit_kenneth_french_monthly_sources.py
+
+      - name: Run parser and contract tests
+        run: python -m pytest -q tests/test_kenneth_french_monthly.py
+
+      - name: Acquire exact official Dartmouth monthly files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/kenneth-french-monthly-contract/raw
+          base='https://mba.tuck.dartmouth.edu/pages/faculty/ken.french'
+          curl --fail-with-body --location --retry 8 --retry-all-errors \
+            --connect-timeout 20 --max-time 180 \
+            --output build/kenneth-french-monthly-contract/raw/data_library.html \
+            "$base/data_library.html"
+          for name in \
+            F-F_Research_Data_Factors_CSV.zip \
+            F-F_Research_Data_5_Factors_2x3_CSV.zip \
+            F-F_Momentum_Factor_CSV.zip; do
+            curl --fail-with-body --location --retry 8 --retry-all-errors \
+              --connect-timeout 20 --max-time 180 \
+              --output "build/kenneth-french-monthly-contract/raw/$name" \
+              "$base/ftp/$name"
+          done
+
+      - name: Run exact current-snapshot audit twice
+        shell: bash
+        run: |
+          set -euo pipefail
+          for run in run1 run2; do
+            python scripts/audit_kenneth_french_monthly_sources.py \
+              --data-library build/kenneth-french-monthly-contract/raw/data_library.html \
+              --ff3 build/kenneth-french-monthly-contract/raw/F-F_Research_Data_Factors_CSV.zip \
+              --ff5 build/kenneth-french-monthly-contract/raw/F-F_Research_Data_5_Factors_2x3_CSV.zip \
+              --mom build/kenneth-french-monthly-contract/raw/F-F_Momentum_Factor_CSV.zip \
+              --output-dir "build/kenneth-french-monthly-contract/$run"
+          done
+          cmp \
+            build/kenneth-french-monthly-contract/run1/safe-monthly-factor-contract-evidence.json \
+            build/kenneth-french-monthly-contract/run2/safe-monthly-factor-contract-evidence.json
+          cmp \
+            build/kenneth-french-monthly-contract/run1/safe-monthly-factor-contract-summary.json \
+            build/kenneth-french-monthly-contract/run2/safe-monthly-factor-contract-summary.json
+          mkdir -p build/kenneth-french-monthly-contract/safe
+          cp build/kenneth-french-monthly-contract/run1/*.json \
+            build/kenneth-french-monthly-contract/safe/
+
+      - name: Independently verify identities mapping and closed gates
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path('build/kenneth-french-monthly-contract/safe')
+          evidence_path = root / 'safe-monthly-factor-contract-evidence.json'
+          summary_path = root / 'safe-monthly-factor-contract-summary.json'
+          evidence = json.loads(evidence_path.read_text(encoding='utf-8'))
+          summary = json.loads(summary_path.read_text(encoding='utf-8'))
+
+          expected = {
+              'ff3_monthly': {
+                  'zip_sha256': '80b88699a18ac408e2456d25b1004e340f3f7f8d41d5b476a0285bc53c6f0436',
+                  'member_sha256': 'a26fcdeb09199d29bf79d40bb34ce0ffe41798d08feff1190a2c532b4742e88e',
+                  'monthly_row_count': 1199,
+                  'first_month': '1926-07',
+                  'last_month': '2026-05',
+                  'annual_row_count': 99,
+              },
+              'ff5_monthly': {
+                  'zip_sha256': 'ddc0280b2bb8ca6c4c6ea5b68923a5549c37259bde468202108c11e812bd4241',
+                  'member_sha256': 'e101e7bb3ba30d0abe5919ec28fb78723b08bd668041cf0274c65ed7ca5bf249',
+                  'monthly_row_count': 755,
+                  'first_month': '1963-07',
+                  'last_month': '2026-05',
+                  'annual_row_count': 62,
+              },
+              'momentum_monthly': {
+                  'zip_sha256': '37baf72ae4eace9715e8746413d0122334c63aa4083fd1c3cf2060fa04e4bd28',
+                  'member_sha256': 'b82ea7000591bc34b2e7770094b4e378445561fcef7ffb205e92ab2ad8c838b5',
+                  'monthly_row_count': 1193,
+                  'first_month': '1927-01',
+                  'last_month': '2026-05',
+                  'annual_row_count': 99,
+              },
+          }
+          profiles = {item['source_key']: item for item in evidence['source_profiles']}
+          if set(profiles) != set(expected):
+              raise SystemExit(f'Unexpected monthly sources: {sorted(profiles)}')
+          for key, expected_identity in expected.items():
+              actual = {field: profiles[key][field] for field in expected_identity}
+              if actual != expected_identity:
+                  raise SystemExit(f'{key} identity mismatch: {actual}')
+              if profiles[key]['sentinel_counts'] != {'-99.99': 0, '-999': 0}:
+                  raise SystemExit(f'{key} sentinel contract changed')
+
+          mapping = {
+              'Mkt-RF': {'source_key': 'ff3_monthly', 'column': 'Mkt-RF'},
+              'SMB': {'source_key': 'ff3_monthly', 'column': 'SMB'},
+              'HML': {'source_key': 'ff3_monthly', 'column': 'HML'},
+              'RMW': {'source_key': 'ff5_monthly', 'column': 'RMW'},
+              'CMA': {'source_key': 'ff5_monthly', 'column': 'CMA'},
+              'Mom': {'source_key': 'momentum_monthly', 'column': 'Mom'},
+              'RF': {'source_key': 'ff3_monthly', 'column': 'RF'},
+          }
+          if evidence['selected_factor_source'] != mapping:
+              raise SystemExit('Monthly factor-source mapping changed')
+          if evidence['declared_return_unit'] != 'PERCENT':
+              raise SystemExit('Monthly return unit changed')
+          if evidence['data_state'] != 'CURRENT_REVISED_PUBLIC_RECONSTRUCTION_SOURCE':
+              raise SystemExit('Monthly data-state label changed')
+          forbidden_true = {
+              'daily_compounding_used_as_monthly_substitute': evidence['daily_compounding_used_as_monthly_substitute'],
+              'raw_uploaded': evidence['raw_uploaded'],
+              'row_level_data_uploaded': evidence['row_level_data_uploaded'],
+              'source_reconciliation_calculated': evidence['source_reconciliation_calculated'],
+              'performance_calculated': evidence['performance_calculated'],
+              'paper_replication_pass': evidence['paper_replication_pass'],
+          }
+          if any(forbidden_true.values()):
+              raise SystemExit(f'Closed monthly gate violated: {forbidden_true}')
+          if summary['safe_evidence_sha256'] != hashlib.sha256(evidence_path.read_bytes()).hexdigest():
+              raise SystemExit('Monthly safe evidence hash mismatch')
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          PY
+
+      - name: Remove official raw content and temporary copies
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build/kenneth-french-monthly-contract/raw
+          rm -rf build/kenneth-french-monthly-contract/run1
+          rm -rf build/kenneth-french-monthly-contract/run2
+          if find build/kenneth-french-monthly-contract -type f \
+            \( -name '*.zip' -o -name '*.csv' -o -name '*.html' \) | grep -q .; then
+            echo 'Official monthly content remains before safe upload' >&2
+            exit 1
+          fi
+
+      - name: Upload safe monthly contract evidence
+        id: upload_evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: kenneth-french-current-monthly-safe-contract-${{ github.sha }}
+          path: build/kenneth-french-monthly-contract/safe/
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+      - name: Create safe receipt
+        env:
+          ARTIFACT_ID: ${{ steps.upload_evidence.outputs.artifact-id }}
+          ARTIFACT_URL: ${{ steps.upload_evidence.outputs.artifact-url }}
+          ARTIFACT_DIGEST: ${{ steps.upload_evidence.outputs.artifact-digest }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+          receipt = {
+              'schema_version': '1.0',
+              'repository': os.environ['GITHUB_REPOSITORY'],
+              'commit_sha': os.environ['GITHUB_SHA'],
+              'workflow': os.environ['GITHUB_WORKFLOW'],
+              'run_id': os.environ['GITHUB_RUN_ID'],
+              'run_attempt': os.environ['GITHUB_RUN_ATTEMPT'],
+              'created_at': datetime.now(UTC).isoformat(),
+              'artifact_id': os.environ['ARTIFACT_ID'],
+              'artifact_url': os.environ['ARTIFACT_URL'],
+              'artifact_digest': os.environ['ARTIFACT_DIGEST'],
+              'storage_state': 'ACTIONS_SAFE_EVIDENCE_ONLY_RETENTION_90_DAYS',
+              'snapshot_id': 'KENNETH_FRENCH_CURRENT_MONTHLY_2026_05_V1',
+              'source_count': 3,
+              'raw_uploaded': False,
+              'source_reconciliation_calculated': False,
+              'performance_calculated': False,
+              'paper_replication_pass': False,
+              'economic_edge_verdict': 'INCONCLUSIVE',
+          }
+          Path('build/kenneth-french-monthly-contract-receipt.json').write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
+          PY
+
+      - name: Upload safe receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: kenneth-french-current-monthly-safe-contract-receipt-${{ github.sha }}
+          path: build/kenneth-french-monthly-contract-receipt.json
+          if-no-files-found: error
+          retention-days: 90
