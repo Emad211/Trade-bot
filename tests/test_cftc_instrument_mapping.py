@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import base64
 import csv
+import gzip
 import io
 import json
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -17,8 +20,14 @@ from hybrid_trader.replication.cftc_instrument_mapping import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-MAP_CONTRACT = ROOT / "docs/research/edge-discovery/02-replication/02-03-cftc-tff-2022-instrument-map-contract.csv"
+MAP_CONTRACT_B64 = ROOT / "docs/research/edge-discovery/02-replication/02-03-cftc-tff-2022-instrument-map-contract.csv.gz.b64"
 SOURCE_REGISTRY = ROOT / "docs/research/edge-discovery/02-replication/02-03-cftc-tff-instrument-mapping-sources.json"
+
+
+def _mapping_contract_path() -> Path:
+    destination = Path(tempfile.gettempdir()) / "cftc-instrument-map-contract.csv"
+    destination.write_bytes(gzip.decompress(base64.b64decode(MAP_CONTRACT_B64.read_text().strip())))
+    return destination
 
 
 def _synthetic_pilot_rows(mapping_by_code: dict[str, dict[str, str]]) -> list[dict[str, str]]:
@@ -36,7 +45,7 @@ def _synthetic_pilot_rows(mapping_by_code: dict[str, dict[str, str]]) -> list[di
 
 
 def _rows() -> list[dict[str, str]]:
-    mapping = load_mapping_contract(MAP_CONTRACT)
+    mapping = load_mapping_contract(_mapping_contract_path())
     sources = load_source_registry(SOURCE_REGISTRY)
     return build_registry_rows(_synthetic_pilot_rows(mapping), mapping, sources)
 
@@ -87,7 +96,7 @@ def test_registry_csv_is_deterministic() -> None:
 
 def test_changed_contract_or_source_registry_is_rejected(tmp_path: Path) -> None:
     changed_contract = tmp_path / "contract.csv"
-    changed_contract.write_bytes(MAP_CONTRACT.read_bytes() + b"\n")
+    changed_contract.write_bytes(_mapping_contract_path().read_bytes() + b"\n")
     with pytest.raises(ValueError, match="SHA-256 changed"):
         load_mapping_contract(changed_contract)
     decoded = json.loads(SOURCE_REGISTRY.read_text(encoding="utf-8"))
