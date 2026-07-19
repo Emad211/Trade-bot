@@ -1,5 +1,3 @@
-"""Run the fail-closed Databento zero-purchase metadata probe."""
-
 from hybrid_trader.replication.databento_metadata_probe import main
 
 if __name__ == "__main__":
