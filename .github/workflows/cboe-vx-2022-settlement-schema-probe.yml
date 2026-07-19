@@ -1,4 +1,4 @@
-name: Cboe VX 2022 Settlement Schema Probe
+name: Cboe VX 2022 Contract Schema Probe
 
 on:
   workflow_dispatch:
@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: cboe-vx-2022-settlement-schema-probe-${{ github.ref }}
+  group: cboe-vx-2022-contract-schema-probe-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -29,25 +29,28 @@ jobs:
       - name: Check out triggering commit
         uses: actions/checkout@v6
 
-      - name: Acquire official Cboe settlement CSV
+      - name: Acquire official Cboe VX contract CSV files
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p build/cboe-vx-schema-probe/raw
-          url='https://www-api.cboe.com/us/futures/market_statistics/settlement/csv?dt=2022-09-16'
-          curl \
-            --fail-with-body \
-            --location \
-            --retry 5 \
-            --retry-all-errors \
-            --connect-timeout 20 \
-            --max-time 120 \
-            --user-agent 'Trade-bot research replication/1.0' \
-            --dump-header build/cboe-vx-schema-probe/response-headers.txt \
-            --output build/cboe-vx-schema-probe/raw/cboe_settlement_2022-09-16.csv \
-            "$url"
+          mkdir -p build/cboe-vx-contract-probe/raw
+          base='https://cdn.cboe.com/data/us/futures/market_statistics/historical_data/VX'
+          for expiry in 2022-09-21 2022-10-19; do
+            url="$base/VX_${expiry}.csv"
+            curl \
+              --fail-with-body \
+              --location \
+              --retry 5 \
+              --retry-all-errors \
+              --connect-timeout 20 \
+              --max-time 120 \
+              --user-agent 'Trade-bot research replication/1.0' \
+              --dump-header "build/cboe-vx-contract-probe/headers_${expiry}.txt" \
+              --output "build/cboe-vx-contract-probe/raw/VX_${expiry}.csv" \
+              "$url"
+          done
 
-      - name: Profile raw bytes and retain diagnostics
+      - name: Verify contract-level schema and settlement semantics
         shell: bash
         run: |
           set -euo pipefail
@@ -56,67 +59,97 @@ jobs:
           import hashlib
           import io
           import json
+          from datetime import date
           from pathlib import Path
 
-          root = Path('build/cboe-vx-schema-probe')
-          path = root / 'raw/cboe_settlement_2022-09-16.csv'
-          raw = path.read_bytes()
-          errors = []
-          if not raw:
-              errors.append('EMPTY_RESPONSE')
-          html_like = b'<html' in raw[:2000].lower() or b'<!doctype' in raw[:2000].lower()
-          if html_like:
-              errors.append('HTML_INSTEAD_OF_CSV')
-          try:
-              text = raw.decode('utf-8-sig')
-          except UnicodeDecodeError:
-              text = raw.decode('latin-1')
-              errors.append('NON_UTF8_RESPONSE')
-          rows = list(csv.reader(io.StringIO(text, newline='')))
-          if len(rows) < 2:
-              errors.append('NO_DATA_ROWS')
-          header = rows[0] if rows else []
-          widths = sorted({len(row) for row in rows})
-          if len(widths) > 1:
-              errors.append('NON_UNIFORM_ROW_WIDTH')
-          vx_candidates = [
-              row for row in rows[1:]
-              if any('VX' in cell.strip().upper() for cell in row)
+          root = Path('build/cboe-vx-contract-probe')
+          expected_header = [
+              'Trade Date', 'Futures', 'Open', 'High', 'Low', 'Close', 'Settle',
+              'Change', 'Total Volume', 'EFP', 'Open Interest',
           ]
-          if not vx_candidates:
-              errors.append('NO_VX_CANDIDATE_ROWS')
-          diagnostics = {
-              'source_url': 'https://www-api.cboe.com/us/futures/market_statistics/settlement/csv?dt=2022-09-16',
-              'requested_date': '2022-09-16',
-              'filename': path.name,
-              'byte_count': len(raw),
-              'sha256': hashlib.sha256(raw).hexdigest(),
-              'line_count': len(rows),
-              'header': header,
-              'row_widths': widths,
-              'first_twenty_rows': rows[:20],
-              'vx_candidate_row_count': len(vx_candidates),
-              'vx_candidate_rows': vx_candidates[:30],
-              'validation_errors': errors,
-              'validation_status': 'PASS' if not errors else 'QUARANTINED',
+          contracts = []
+          for expiry in ('2022-09-21', '2022-10-19'):
+              path = root / f'raw/VX_{expiry}.csv'
+              raw = path.read_bytes()
+              if not raw:
+                  raise SystemExit(f'Empty Cboe response: {path.name}')
+              if b'<html' in raw[:2000].lower() or b'<!doctype' in raw[:2000].lower():
+                  raise SystemExit(f'Cboe returned HTML: {path.name}')
+              text = raw.decode('utf-8-sig')
+              rows = list(csv.DictReader(io.StringIO(text, newline='')))
+              header = list(csv.DictReader(io.StringIO(text, newline='')).fieldnames or [])
+              if header != expected_header:
+                  raise SystemExit(f'Unexpected Cboe header for {path.name}: {header}')
+              if not rows:
+                  raise SystemExit(f'No data rows: {path.name}')
+              trade_dates = [date.fromisoformat(row['Trade Date']) for row in rows]
+              if trade_dates != sorted(trade_dates):
+                  raise SystemExit(f'Non-monotonic trade dates: {path.name}')
+              if len(trade_dates) != len(set(trade_dates)):
+                  raise SystemExit(f'Duplicate trade dates: {path.name}')
+              futures_values = sorted({row['Futures'].strip() for row in rows})
+              if len(futures_values) != 1:
+                  raise SystemExit(f'Unexpected futures identities: {path.name}: {futures_values}')
+              if trade_dates[-1].isoformat() != expiry:
+                  raise SystemExit(
+                      f'Last trade date does not equal file expiry for {path.name}: '
+                      f'{trade_dates[-1]}'
+                  )
+              settlement_close_differences = sum(
+                  row['Settle'].strip() != row['Close'].strip() for row in rows
+                  if row['Settle'].strip() and row['Close'].strip()
+              )
+              pilot_rows = [
+                  row for row in rows
+                  if '2022-09-01' <= row['Trade Date'] <= '2022-10-01'
+              ]
+              if not pilot_rows:
+                  raise SystemExit(f'No pilot-window rows: {path.name}')
+              contracts.append({
+                  'expiry': expiry,
+                  'filename': path.name,
+                  'source_url': (
+                      'https://cdn.cboe.com/data/us/futures/market_statistics/'
+                      f'historical_data/VX/VX_{expiry}.csv'
+                  ),
+                  'byte_count': len(raw),
+                  'sha256': hashlib.sha256(raw).hexdigest(),
+                  'header': header,
+                  'row_count': len(rows),
+                  'first_trade_date': trade_dates[0].isoformat(),
+                  'last_trade_date': trade_dates[-1].isoformat(),
+                  'futures_identity': futures_values[0],
+                  'pilot_window_row_count': len(pilot_rows),
+                  'pilot_window_first_date': pilot_rows[0]['Trade Date'],
+                  'pilot_window_last_date': pilot_rows[-1]['Trade Date'],
+                  'settlement_close_difference_count': settlement_close_differences,
+                  'pilot_window_rows': pilot_rows,
+              })
+          profile = {
+              'schema_version': '1.0',
+              'source_authority': 'Cboe Futures Exchange',
+              'product_root': 'VX',
+              'contract_files': contracts,
+              'contract_count': len(contracts),
+              'settlement_column_explicit': True,
+              'close_column_explicit': True,
+              'continuous_series_used': False,
+              'back_adjustment_used': False,
               'price_linkage_authorized': False,
               'returns_authorized': False,
           }
-          (root / 'schema-diagnostics.json').write_text(
-              json.dumps(diagnostics, indent=2, sort_keys=True) + '\n',
+          (root / 'contract-schema-profile.json').write_text(
+              json.dumps(profile, indent=2, sort_keys=True) + '\n',
               encoding='utf-8',
           )
-          print(json.dumps(diagnostics, indent=2, sort_keys=True))
-          if errors:
-              raise SystemExit('Cboe schema probe quarantined: ' + ','.join(errors))
+          print(json.dumps(profile, indent=2, sort_keys=True))
           PY
 
-      - name: Upload raw schema-probe bundle
-        if: always()
+      - name: Upload raw contract-schema bundle
         uses: actions/upload-artifact@v7
         with:
-          name: cboe-vx-2022-settlement-schema-probe-${{ github.sha }}
-          path: build/cboe-vx-schema-probe/
+          name: cboe-vx-2022-contract-schema-probe-${{ github.sha }}
+          path: build/cboe-vx-contract-probe/
           if-no-files-found: error
           retention-days: 90
           compression-level: 0
