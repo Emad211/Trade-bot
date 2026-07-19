@@ -143,7 +143,7 @@ def operation(name: str, request: dict[str, Any], call: Callable[[], Any], secre
             "error_type": None,
             "error_message": None,
         }
-    except Exception as exc:  # noqa: BLE001 - provider errors must be persisted
+    except Exception as exc:
         return {
             "operation": name,
             "request": request,
@@ -525,7 +525,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         try:
             client, version = load_client(key)
             evidence = run_probe(client, request, key, version, at)
-        except Exception as exc:  # noqa: BLE001 - write sanitized initialization failure
+        except Exception as exc:
             evidence = blocked(request, at, "PROBE_CLIENT_INITIALIZATION_FAILURE")
             evidence["sanitized_error"] = {
                 "type": type(exc).__name__,
