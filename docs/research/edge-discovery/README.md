@@ -38,11 +38,12 @@ Admission authorizes research replication only. It does not authorize paper trad
 | [2.1 — Anchor Papers, Opposing Evidence, Modern Updates, Data, and Replication-Code Selection](02-replication/02-01-anchor-opposition-code-selection.md) | Binding paper roles, exactness classes, official data routes, code-admission rules, table-level targets, and kill criteria | Complete |
 | [2.2 — Data, Timing, and Information-Contract Reconstruction](02-replication/02-02-data-timing-information-contract-reconstruction.md) | Availability clocks, immutable raw artifacts, source licenses, point-in-time instruments, futures rolls, regulator releases, crypto contract versions, lineage, costs, and acquisition decisions | Complete |
 | [2.3 — Current Controlling Status](02-replication/02-03-current-controlling-status.md) | Official CFTC acquisition, parser, dated pilot, release ledger, versioned product registry, and remaining empirical gates | Partially complete |
-| [2.3 — Provider-Gate Controlling Addendum](02-replication/02-03-provider-gate-controlling-addendum.md) | Provider requirements, primary candidate selection, authenticated zero-purchase probe gate, and fail-closed price authorization | Requirements verified; candidate selected; authenticated evidence pending |
+| [2.3 — Provider-Gate Controlling Addendum](02-replication/02-03-provider-gate-controlling-addendum.md) | Provider requirements, primary candidate selection, authenticated zero-purchase probe design, and fail-closed price authorization | Candidate selected; provider not accepted |
+| [2.3 — Provider-Probe Controlling Addendum](02-replication/02-03-provider-probe-controlling-addendum.md) | Permanent zero-purchase client and workflow, verified blocker artifact, and secure secret requirement | Implementation verified; authenticated execution blocked by missing `DATABENTO_API_KEY` |
 | 2.4 — Sensitivity, Cost, Failure, and Disagreement Analysis | Conditional sensitivity analysis on numerically reconstructed evidence | Blocked until Report 2.3 artifact and price-linkage gates pass |
 | 2.5 | Replication dossier and continue/stop decisions | Planned |
 
-Report 2.1 selects what must be replicated. Report 2.2 freezes what each datum means and when it becomes usable. Report 2.3 now contains a real official CFTC raw artifact, an exact parser, a deterministic dated pilot, a fail-closed scheduled-release ledger, a 54-row reporting-to-product registry, and a verified provider-candidate plan. It does not claim verified historical actual release times, an accepted provider, authenticated provider contract-chain identities, prices, returns, a paper-level numerical replication, or an economic edge.
+Report 2.1 selects what must be replicated. Report 2.2 freezes what each datum means and when it becomes usable. Report 2.3 now contains a real official CFTC raw artifact, an exact parser, a deterministic dated pilot, a fail-closed scheduled-release ledger, a 54-row reporting-to-product registry, a verified provider-candidate plan, and a permanent hosted metadata-probe gate. The trusted probe run correctly stopped before authentication because the repository secret was missing. The program does not claim verified historical actual release times, an accepted provider, authenticated provider contract-chain identities, prices, returns, a paper-level numerical replication, or an economic edge.
 
 Report 2.2 machine-readable contracts:
 
@@ -55,6 +56,7 @@ Report 2.3 evidence and implementation:
 
 - [Current controlling status](02-replication/02-03-current-controlling-status.md)
 - [Provider-gate controlling addendum](02-replication/02-03-provider-gate-controlling-addendum.md)
+- [Provider-probe controlling addendum](02-replication/02-03-provider-probe-controlling-addendum.md)
 - [Initial controlled execution snapshot](02-replication/02-03-controlled-empirical-and-code-replication.md)
 - [Replication execution manifest](02-replication/02-03-replication-execution-manifest.yaml)
 - [Independent reality verification and correction log](02-replication/02-03-independent-reality-verification-log.md)
@@ -69,6 +71,8 @@ Report 2.3 evidence and implementation:
 - [Machine-readable provider-candidate evidence](02-replication/02-03-provider-price-linkage-candidate-evidence.yaml)
 - [Provider price-linkage candidate contract](02-replication/02-03-provider-price-linkage-candidate-contract.yaml)
 - [Official provider and exchange-native source registry](02-replication/02-03-provider-price-linkage-official-sources.json)
+- [Databento zero-purchase probe evidence](02-replication/02-03-databento-zero-purchase-probe-evidence.md)
+- [Machine-readable Databento probe evidence](02-replication/02-03-databento-zero-purchase-probe-evidence.yaml)
 - [Versioned official CFTC mapping-source registry](02-replication/02-03-cftc-tff-instrument-mapping-sources.json)
 - `02-replication/02-03-cftc-tff-2022-instrument-map-contract.csv.gz.b64`
 - `02-replication/02-03-cftc-tff-2022-instrument-registry.csv.gz.b64`
@@ -78,17 +82,19 @@ Report 2.3 evidence and implementation:
 - `.github/workflows/cftc-tff-2022-release-ledger.yml`
 - `.github/workflows/cftc-tff-2022-instrument-registry.yml`
 - `.github/workflows/cftc-tff-2022-provider-candidate-plan.yml`
+- `.github/workflows/databento-zero-purchase-metadata-probe.yml`
 - `src/hybrid_trader/replication/`
 - `tests/test_replication_*.py`
 - `tests/test_cftc_*.py`
 - `tests/test_provider_price_linkage.py`
+- `tests/test_databento_metadata_probe.py`
 
 Report 2.3 currently records:
 
 - the original committed implementation was independently reconstructed from authenticated GitHub commit content;
 - an over-permissive factor-audit verdict was found and corrected;
 - the hardened local replication suite passed Ruff, strict mypy, 15 tests, 85.44% statement coverage, and compilation;
-- dedicated hosted CFTC acquisition, pilot, release-ledger, instrument-registry, and provider-candidate workflows passed;
+- dedicated hosted CFTC acquisition, pilot, release-ledger, instrument-registry, provider-candidate, and Databento gate-evaluation workflows passed in their explicitly defined scopes;
 - the official CFTC 2022 TFF Futures Only ZIP was acquired with raw SHA-256 `94c9c1f...88601`;
 - its only member, `FinFutYY.txt`, passed CRC and has SHA-256 `7c309cb7...8bb3b`;
 - the exact source schema has 87 fields and fingerprint `fe012305...45d42`;
@@ -103,16 +109,19 @@ Report 2.3 currently records:
 - the provider-candidate plan contains 54 rows, is 28,918 bytes, and has SHA-256 `cd2430c7...74062`;
 - Databento is the primary technical integration candidate but is not an accepted provider;
 - theoretical ordinary-root candidate coverage is 43 rows through `GLBX.MDP3`, three through `IFUS.IMPACT`, and one through `XCBF.PITCH`;
-- a representative authenticated probe request exists for `ZN`, `ES`, `NIY`, `DX`, and `VX`, but it has not been executed;
-- the provider probe authorizes zero spending, no purchase, no provider contract IDs, no price linkage, and no returns;
-- provider-plan bundle and receipt artifacts are staged in GitHub Actions until 2026-10-17 and the deterministic candidate CSV is retained in Git;
+- a representative probe request exists for `ZN`, `ES`, `NIY`, `DX`, and `VX`;
+- permanent probe run `29690453120` passed Ruff, strict mypy, seven tests, gate evaluation, invariant checks, and artifact upload;
+- that run produced the exact status `BLOCKED_MISSING_DATABENTO_API_KEY` and executed zero provider operations;
+- the probe request has SHA-256 `1ee06f91...57210`, evidence has SHA-256 `f7eacf6c...3524f`, and summary has SHA-256 `57153160...41332`;
+- the probe bundle artifact `8443402212` and receipt `8443402318` are staged until 2026-10-17 and were independently rehashed;
+- the provider gate continues to authorize zero spending, no purchase, no provider contract IDs, no price linkage, and no returns;
 - all Actions staging remains retention-limited and is not long-term immutable ingestion;
 - the CFTC PRE API identity is verified, but row-level cross-check remains pending because repeated GitHub-runner calls returned HTTP 503;
 - AQR workbooks, Moreira–Muir factor artifacts, licensed traditional-futures histories, Chi et al. source data, and Binance/OKX pilot artifacts remain unavailable or un-ingested;
 - no paper-level numerical replication is complete;
 - all six empirical edge verdicts remain `INCONCLUSIVE`.
 
-Provider purchase, price assignment, returns computation, empirical fitting, parameter tuning, a strategy tournament, paper trading, live trading, leverage, and capital deployment remain unauthorized.
+Secure secret configuration and a metadata-only rerun are authorized. Provider purchase, price assignment, returns computation, empirical fitting, parameter tuning, a strategy tournament, paper trading, live trading, leverage, and capital deployment remain unauthorized.
 
 ### 3. Dataset and Experiment System
 
@@ -183,6 +192,9 @@ Five leaf reports form one section-level synthesis. The five section syntheses f
 - A parent symbol is only a lookup key until point-in-time child resolution is verified.
 - A cost endpoint is not purchase authorization.
 - OHLCV is not a substitute for official settlement.
+- A green gate-evaluation workflow may represent a verified blocker rather than an authenticated provider pass.
+- Provider credentials must never be committed, reported, or pasted into chat; they belong only in approved secret storage.
+- Missing credentials do not prove provider rejection or provider acceptance.
 - Consolidated reporting aggregates must never receive a direct price series.
 - Current product metadata may not be projected backward into historical observations.
 - A derived-data pass is not an artifact-audit pass.
