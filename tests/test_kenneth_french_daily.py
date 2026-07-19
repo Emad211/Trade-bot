@@ -127,7 +127,7 @@ def test_multiple_members_are_rejected() -> None:
 def test_changed_exact_snapshot_is_rejected() -> None:
     contract, zip_bytes = synthetic_contract("ff3")
     with pytest.raises(
-        ValueError, match="ZIP byte count changed|ZIP SHA-256 changed"
+        ValueError, match=r"ZIP byte count changed|ZIP SHA-256 changed"
     ):
         parse_daily_zip(zip_bytes + b"x", contract)
 
