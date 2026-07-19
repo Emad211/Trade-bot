@@ -1,0 +1,187 @@
+schema_version: "1.0"
+evidence_id: DATABENTO_CFTC_TFF_2022_09_13_ZERO_PURCHASE_PROBE_EVIDENCE_V1
+evidence_date: "2026-07-19"
+status: PROBE_IMPLEMENTATION_VERIFIED_AUTHENTICATED_EXECUTION_BLOCKED_MISSING_REPOSITORY_SECRET
+
+provider_decision:
+  primary_technical_candidate: DATABENTO
+  accepted_provider: null
+  provider_accepted: false
+  provider_state: SELECTED_NOT_ACCEPTED
+
+implementation:
+  module: src/hybrid_trader/replication/databento_metadata_probe.py
+  entrypoint: scripts/run_databento_zero_purchase_probe.py
+  tests: tests/test_databento_metadata_probe.py
+  workflow: .github/workflows/databento-zero-purchase-metadata-probe.yml
+  probe_id: DATABENTO_CFTC_TFF_2022_09_13_ZERO_PURCHASE_METADATA_PROBE_V1
+  pinned_client:
+    package: databento
+    version: 0.81.0
+  candidate_plan:
+    version: CFTC_TFF_2022_09_13_DATABENTO_CANDIDATE_PLAN_V1
+    rows: 54
+    sha256: cd2430c7fdd0b3a68a1093925d755c242081372fbe41668cc53436893c274062
+
+zero_purchase_contract:
+  metadata_only: true
+  maximum_authorized_cost_usd: 0.0
+  purchase_authorized: false
+  time_series_download_authorized: false
+  batch_download_authorized: false
+  allowed_operations:
+    - metadata.list_datasets
+    - metadata.list_schemas
+    - metadata.list_fields
+    - metadata.list_unit_prices
+    - metadata.get_dataset_range
+    - metadata.get_dataset_condition
+    - metadata.get_cost
+    - symbology.resolve
+  forbidden_operations:
+    - timeseries.get_range
+    - batch.submit_job
+    - bulk_market_data_download
+    - provider_credit_or_cash_expenditure
+
+representative_request:
+  request_file: probe-request.json
+  byte_count: 1676
+  sha256: 1ee06f9135ac2a7b7e750b52a6eef92e1607ae9e02837769d508400a9c257210
+  datasets:
+    - GLBX.MDP3
+    - IFUS.IMPACT
+    - XCBF.PITCH
+  schemas:
+    - definition
+    - statistics
+  definition_window:
+    start: "2022-09-01"
+    end: "2022-10-01"
+  statistics_window:
+    start: "2022-09-16"
+    end: "2022-09-17"
+  probes:
+    - cftc_contract_market_code: "043602"
+      root: ZN
+      dataset: GLBX.MDP3
+      parent_symbol: ZN.FUT
+    - cftc_contract_market_code: "13874A"
+      root: ES
+      dataset: GLBX.MDP3
+      parent_symbol: ES.FUT
+    - cftc_contract_market_code: "240743"
+      root: NIY
+      dataset: GLBX.MDP3
+      parent_symbol: NIY.FUT
+    - cftc_contract_market_code: "098662"
+      root: DX
+      dataset: IFUS.IMPACT
+      parent_symbol: DX.FUT
+    - cftc_contract_market_code: "1170E1"
+      root: VX
+      dataset: XCBF.PITCH
+      parent_symbol: VX.FUT
+
+hosted_verification:
+  workflow_name: Databento Zero-Purchase Metadata Probe
+  run_id: 29690453120
+  conclusion: success
+  trusted_trigger_commit: b7c23b1d0826066cc20e5e18b68687ac236f9b17
+  pull_request_merge_test_commit: 7c59ad7b6eecd0f70fc9e7c3b17f5721e28695af
+  checks:
+    dependency_installation: pass
+    ruff: pass
+    mypy_strict: pass
+    pytest:
+      result: pass
+      tests: 7
+    gate_evaluation: pass
+    independent_hash_verification: pass
+    non_purchase_invariants: pass
+    bundle_upload: pass
+    receipt_upload: pass
+
+execution_result:
+  execution_status: BLOCKED_MISSING_DATABENTO_API_KEY
+  required_secret_name: DATABENTO_API_KEY
+  secret_available_during_verified_run: false
+  authenticated: false
+  authenticated_metadata_probe_executed: false
+  provider_operations_executed: 0
+  representative_provider_responses_acquired: 0
+  entitled_dataset_count: 0
+  metadata_gate_passed_count: 0
+  client_initialized_with_account: false
+
+result_files:
+  probe_evidence:
+    filename: probe-evidence.json
+    byte_count: 2816
+    sha256: f7eacf6c4acad8a0e62ad38e0ef61a4b571ddff465527de0f2d6f446d9d3524f
+  probe_summary:
+    filename: probe-summary.json
+    byte_count: 410
+    sha256: 571531604f08bb5596cc984dbff85b3a3b64c83fc228dd7ff2a1be253ad41332
+  probe_manifest:
+    filename: probe-manifest.json
+    covered_files:
+      - probe-request.json
+      - probe-evidence.json
+      - probe-summary.json
+
+artifacts:
+  bundle:
+    artifact_id: 8443402212
+    digest_sha256: 9986a215890528eb33c049ccb8e33f2dddc0e65843745f7ec5711f6d8f68030a
+    expires_on: "2026-10-17"
+  receipt:
+    artifact_id: 8443402318
+    digest_sha256: 905ec0ee010077e90f4211bda944440569ecf3814e3a507cc906ba78a91b1db7
+    expires_on: "2026-10-17"
+  independent_zip_rehash: pass
+  storage_state: ACTIONS_ARTIFACT_STAGED_RETENTION_90_DAYS
+  approved_long_term_immutable_storage: false
+
+evidence_state:
+  provider_api_secret: MISSING_AT_VERIFIED_RUN
+  provider_entitlement: NOT_VERIFIED
+  dataset_2022_range: NOT_VERIFIED
+  dataset_2022_condition: NOT_VERIFIED
+  parent_to_child_symbology: NOT_VERIFIED
+  definition_records: NOT_ACQUIRED
+  final_actual_settlement_statistics: NOT_ACQUIRED
+  cost_quote: NOT_ACQUIRED
+  license_snapshot: NOT_ACQUIRED
+  immutable_provider_response_storage: NOT_COMPLETE
+
+controlling_authorization:
+  secure_secret_configuration: true
+  rerun_metadata_only_probe: true
+  hash_authenticated_requests_and_responses: true
+  reject_provider_if_gate_fails: true
+  provider_accepted: false
+  purchase_authorized: false
+  time_series_download_authorized: false
+  batch_download_authorized: false
+  provider_contract_identifiers: 0
+  price_linkage_authorized_rows: 0
+  returns_computation: false
+  empirical_fitting: false
+  strategy_tournament: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  report_2_4_full_authorization: false
+
+verdicts:
+  probe_implementation: CONFIRMED
+  permanent_hosted_workflow: CONFIRMED
+  zero_purchase_invariants: CONFIRMED
+  authenticated_provider_evidence: NOT_ACQUIRED
+  provider_rejected: false
+  provider_accepted: false
+  paper_replication_pass: false
+  economic_edge_verdict: INCONCLUSIVE
+  hypothesis: EDGE-FUT-POSITION-001
