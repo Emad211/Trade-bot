@@ -1,0 +1,108 @@
+name: Cboe VX 2022 Settlement Schema Probe
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/cboe-vx-2022-settlement-schema-probe.yml
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - .github/workflows/cboe-vx-2022-settlement-schema-probe.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cboe-vx-2022-settlement-schema-probe-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  acquire-and-inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out triggering commit
+        uses: actions/checkout@v6
+
+      - name: Acquire official Cboe settlement CSV
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/cboe-vx-schema-probe/raw
+          url='https://www-api.cboe.com/us/futures/market_statistics/settlement/csv?dt=2022-09-16'
+          curl \
+            --fail-with-body \
+            --location \
+            --retry 5 \
+            --retry-all-errors \
+            --connect-timeout 20 \
+            --max-time 120 \
+            --user-agent 'Trade-bot research replication/1.0' \
+            --dump-header build/cboe-vx-schema-probe/response-headers.txt \
+            --output build/cboe-vx-schema-probe/raw/cboe_settlement_2022-09-16.csv \
+            "$url"
+
+      - name: Verify and profile raw bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path('build/cboe-vx-schema-probe')
+          path = root / 'raw/cboe_settlement_2022-09-16.csv'
+          raw = path.read_bytes()
+          if not raw:
+              raise SystemExit('Empty Cboe response')
+          if b'<html' in raw[:1000].lower() or b'<!doctype' in raw[:1000].lower():
+              raise SystemExit('Cboe endpoint returned HTML instead of CSV')
+          text = raw.decode('utf-8-sig')
+          rows = list(csv.reader(text.splitlines()))
+          if len(rows) < 2:
+              raise SystemExit('Cboe CSV has no data rows')
+          header = rows[0]
+          width = len(header)
+          malformed = [idx + 2 for idx, row in enumerate(rows[1:]) if len(row) != width]
+          if malformed:
+              raise SystemExit(f'CSV row-width mismatch at lines {malformed[:10]}')
+          vx_rows = [row for row in rows[1:] if any(cell.strip().startswith('VX/') for cell in row)]
+          if not vx_rows:
+              raise SystemExit('No VX monthly futures rows found')
+          profile = {
+              'source_url': 'https://www-api.cboe.com/us/futures/market_statistics/settlement/csv?dt=2022-09-16',
+              'requested_date': '2022-09-16',
+              'filename': path.name,
+              'byte_count': len(raw),
+              'sha256': hashlib.sha256(raw).hexdigest(),
+              'line_count': len(rows),
+              'column_count': width,
+              'header': header,
+              'vx_monthly_row_count': len(vx_rows),
+              'vx_monthly_rows': vx_rows,
+              'html_rejected': True,
+              'price_linkage_authorized': False,
+              'returns_authorized': False,
+          }
+          (root / 'schema-profile.json').write_text(
+              json.dumps(profile, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
+          print(json.dumps(profile, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload raw schema-probe bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: cboe-vx-2022-settlement-schema-probe-${{ github.sha }}
+          path: build/cboe-vx-schema-probe/
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
