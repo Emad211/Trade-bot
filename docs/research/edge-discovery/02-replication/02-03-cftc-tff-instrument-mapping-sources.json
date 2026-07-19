@@ -1,0 +1,52 @@
+{
+  "SRC_CFE_VIX": {
+    "authority": "Cboe Futures Exchange",
+    "role": "Official VIX futures product identity and VX root.",
+    "url": "https://www.cboe.com/tradable_products/vix/vix_futures/"
+  },
+  "SRC_CFTC_PILOT_2022_09_13": {
+    "authority": "CFTC",
+    "role": "Point-in-time reporting identity, DCM code, market name, and contract units.",
+    "url": "https://www.cftc.gov/files/dea/history/fut_fin_txt_2022.zip"
+  },
+  "SRC_CFTC_STRIKE_PRICE": {
+    "authority": "CFTC",
+    "role": "Official reporting commodity/product-code and contract-market-code reference.",
+    "url": "https://www.cftc.gov/strike-price?CommCode=&ContractName=&ExchangeName="
+  },
+  "SRC_CME_AIR_TRF": {
+    "authority": "CME Group",
+    "role": "ASR ClearPort/EFRP and BTIC-only execution semantics.",
+    "url": "https://www.cmegroup.com/education/articles-and-reports/take-a-breath-of-air-adjusted-interest-rate-total-return-futures"
+  },
+  "SRC_CME_BSBY_2022": {
+    "authority": "CME Group",
+    "role": "Historical 2022 BSBY asset and iLink symbols: BSB and BW.",
+    "url": "https://www.cmegroup.com/notices/electronic-trading/2022/10/20221017.html"
+  },
+  "SRC_CME_BSBY_DELISTING": {
+    "authority": "CME Group",
+    "role": "Later delisting evidence for BSBY futures.",
+    "url": "https://www.cmegroup.com/notices/electronic-trading/2024/07/20240729.html"
+  },
+  "SRC_CME_MICRO_YIELD": {
+    "authority": "CFTC/CME Group",
+    "role": "Micro 10-Year Yield product identity and code 10Y; technical provider symbol remains gated.",
+    "url": "https://www.cftc.gov/strike-price?col=OptionClass&dir=ASC"
+  },
+  "SRC_CME_NIKKEI": {
+    "authority": "CME Group",
+    "role": "Nikkei JPY-denominated outright root NIY and contract multiplier.",
+    "url": "https://www.cmegroup.com/articles/2024/equity-trading-opportunities-in-nikkei-225-futures-at-cme-group.html"
+  },
+  "SRC_CME_PRODUCT_REFERENCE": {
+    "authority": "CME Group",
+    "role": "Official CME/CBOT product identity and root-symbol reference.",
+    "url": "https://www.cmegroup.com/markets/products.html"
+  },
+  "SRC_ICE_US_PRODUCTS": {
+    "authority": "ICE Futures U.S.",
+    "role": "Official ICE U.S. product-family identity; provider contract mapping remains gated.",
+    "url": "https://www.ice.com/products/Futures-Options"
+  }
+}
