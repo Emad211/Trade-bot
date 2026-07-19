@@ -1,0 +1,265 @@
+schema_version: "1.0"
+contract_id: MOREIRA_MUIR_RECURSIVE_REAL_TIME_REPLICATION_CONTRACT_V1
+status_date: "2026-07-19"
+status: FROZEN_BEFORE_PERFORMANCE_CALCULATION
+
+hypothesis:
+  id: EDGE-RISK-POLICY-001
+  paper: Moreira and Muir, Volatility-Managed Portfolios
+  paper_replication_class: NEAR_EXACT_PUBLIC
+
+source_contracts:
+  published_target:
+    snapshot_id: MOREIRA_MUIR_VOL_MANAGED_FACTORS_2026_01_V1
+    role: PUBLISHED_TARGET_NOT_LIVE_POLICY
+    return_unit: PERCENT
+  current_daily:
+    snapshot_id: KENNETH_FRENCH_CURRENT_DAILY_2026_05_V1
+    data_state: CURRENT_REVISED_PUBLIC_RECONSTRUCTION_SOURCE
+    role: PRIOR_MONTH_VARIANCE_INPUT
+    return_unit: PERCENT
+  current_monthly:
+    snapshot_id: null
+    status: ACQUISITION_PENDING
+    required_sources:
+      - F-F_Research_Data_Factors_CSV.zip
+      - F-F_Research_Data_5_Factors_2x3_CSV.zip
+      - F-F_Momentum_Factor_CSV.zip
+    role: MONTH_T_PLUS_1_FACTOR_RETURN
+    return_unit: PERCENT
+  exact_paper_daily_vintage:
+    status: NOT_VERIFIED
+  exact_paper_monthly_vintage:
+    status: NOT_VERIFIED
+
+factor_mapping:
+  Mkt-RF:
+    daily: {source: ff3, column: Mkt-RF}
+    monthly: {source: ff3_monthly, column: Mkt-RF}
+  SMB:
+    daily: {source: ff3, column: SMB}
+    monthly: {source: ff3_monthly, column: SMB}
+  HML:
+    daily: {source: ff3, column: HML}
+    monthly: {source: ff3_monthly, column: HML}
+  RMW:
+    daily: {source: ff5, column: RMW}
+    monthly: {source: ff5_monthly, column: RMW}
+  CMA:
+    daily: {source: ff5, column: CMA}
+    monthly: {source: ff5_monthly, column: CMA}
+  Mom:
+    daily: {source: momentum, column: Mom}
+    monthly: {source: momentum_monthly, column: Mom}
+
+paper_formula:
+  timing:
+    variance_month: t
+    managed_return_month: t_plus_1
+    variance_information_known: end_of_month_t_economically
+    public_file_publication_time_verified: false
+  realized_volatility_text: square_root_of_variance_of_daily_returns_in_month_t
+  managed_return: c_divided_by_realized_variance_t_times_factor_return_t_plus_1
+  published_target_normalizer:
+    method: FULL_SAMPLE_SD_MATCH
+    retrospective_only: true
+    paper_note: full_sample_c_does_not_change_sharpe_ratio
+    live_policy_authorized: false
+
+realized_variance_identification:
+  purpose: identify paper implementation mechanics, not select performance
+  primary_text_interpretation:
+    id: SAMPLE_VARIANCE_DDOF_1
+    definition: demeaned sample variance of daily percent returns within calendar month
+  fixed_alternatives:
+    - id: POPULATION_VARIANCE_DDOF_0
+      definition: demeaned population variance of daily percent returns within calendar month
+    - id: UNCENTERED_MEAN_SQUARE_NEGATIVE_CONTROL
+      definition: mean squared daily percent return without demeaning
+  selection_rule:
+    all_candidates_reported: true
+    performance_metrics_prohibited: true
+    compare_only_to_published_target_mechanics: true
+    uniformly_dominant_exactness_required: true
+    unresolved_if_no_clear_mechanical_match: true
+  zero_or_nonfinite_variance: INVALID_OBSERVATION
+  variance_floor: null
+
+monthly_return_contract:
+  source: separate official monthly Kenneth French files
+  daily_compounding_as_official_monthly_substitute: prohibited
+  monthly_source_acquisition_required: true
+  current_revised_label_required: true
+  current_and_historical_vintages_may_not_be_mixed: true
+
+retrospective_published_target_reconstruction:
+  normalizer: FULL_SAMPLE_SD_MATCH
+  leverage_cap: null
+  classification: RETROSPECTIVE_TARGET_RECONSTRUCTION
+  exact_live_implementability_claim: prohibited
+
+recursive_primary_policy:
+  id: EXPANDING_SD_MATCH_NO_LEVERAGE_PRIMARY
+  normalizer:
+    method: EXPANDING_SD_MATCH
+    information_set_end: month_t
+    applied_to: month_t_plus_1
+    raw_managed_history: factor_return_s_divided_by_variance_s_minus_1
+    c_t: sd_unmanaged_history_divided_by_sd_raw_managed_history
+    ddof: 1
+  burn_in_months: 60
+  maximum_absolute_weight: 1.0
+  leverage_allowed: false
+  variance_floor: null
+  missing_or_invalid_input: SKIP_OBSERVATION
+  classification: RECURSIVE_RESEARCH_POLICY_NOT_EXECUTION_READY
+
+fixed_leverage_sensitivity:
+  purpose: robustness, not model selection
+  caps:
+    - 1.0
+    - 2.0
+    - 3.0
+    - 5.0
+    - null
+  null_meaning: uncapped
+  all_results_required: true
+  performance_based_primary_switch: prohibited
+  trial_count: 5
+
+fixed_burn_in_sensitivity:
+  months: [36, 60, 120]
+  primary_months: 60
+  all_results_required: true
+  trial_count: 3
+
+transaction_cost_contract:
+  turnover: absolute_change_in_monthly_factor_exposure
+  cost_formula: cost_bps_times_absolute_weight_change_divided_by_10000
+  scenarios_bps: [0, 1, 10, 14]
+  paper_basis:
+    - 1bp Fleming et al. benchmark
+    - 10bp Frazzini et al. benchmark
+    - 14bp high-volatility stress
+  original_factor_implementation_cost_included: false
+  limitation_must_be_reported: true
+  all_results_required: true
+  trial_count: 4
+
+sample_contract:
+  published_target_intersection:
+    Mkt-RF: {start: "1927-01", end: "2026-01"}
+    SMB: {start: "1927-01", end: "2026-01"}
+    HML: {start: "1927-01", end: "2026-01"}
+    Mom: {start: "1927-01", end: "2026-01"}
+    RMW: {start: "1963-08", end: "2026-01"}
+    CMA: {start: "1963-08", end: "2026-01"}
+  paper_window:
+    end: "2015-12"
+    label: PAPER_ERA_CURRENT_REVISED_RECONSTRUCTION
+  modern_update_window:
+    start: "2016-01"
+    end: "2026-01"
+    label: POST_PAPER_CURRENT_REVISED_UPDATE
+  recursive_policy_start:
+    rule: first_month_after_factor_specific_burn_in_and_valid_prior_month_variance
+
+availability_and_execution:
+  economic_factor_observation_time: end_of_relevant_trading_day_or_month
+  Kenneth_French_public_file_publication_time:
+    verified_historically: false
+  execution_ready_price_series: false
+  research_factor_return_series_only: true
+  live_tradability_claim: prohibited
+  same_month_lookahead: prohibited
+
+benchmarks:
+  required:
+    - unmanaged_factor
+    - author_published_managed_target
+    - retrospective_full_sample_reconstruction
+    - recursive_no_leverage_primary
+  later_stage_required:
+    - managed_plus_unmanaged_combination
+    - fixed_cap_sensitivity
+    - fixed_cost_sensitivity
+  optimal_combination_method:
+    status: NOT_YET_FROZEN
+    performance_calculation_authorized: false
+
+performance_metrics:
+  current_authorization: false
+  later_required:
+    - annualized_arithmetic_mean
+    - annualized_standard_deviation
+    - annualized_sharpe_ratio
+    - regression_alpha_on_unmanaged_factor
+    - regression_beta
+    - appraisal_ratio
+    - average_absolute_weight_change
+    - maximum_weight
+    - cap_binding_frequency
+    - transaction_cost_adjusted_alpha
+    - crisis_subperiod_results
+    - certainty_equivalent_or_utility_metric
+  annualization:
+    mean: monthly_mean_times_12
+    standard_deviation: monthly_sd_times_sqrt_12
+    sharpe: monthly_mean_divided_by_monthly_sd_times_sqrt_12
+  inference:
+    status: NOT_YET_FROZEN
+
+opposing_evidence:
+  required:
+    - Cederburg_O_Doherty_Wang_Yan_real_time_out_of_sample
+    - Barroso_Detzel_transaction_costs
+    - DeMiguel_Martin_Utrera_Uppal_multifactor_perspective
+  omission_prohibited: true
+
+trial_ledger:
+  variance_definition_trials: 3
+  leverage_cap_trials: 5
+  burn_in_trials: 3
+  cost_trials: 4
+  multiplicative_grid_not_automatically_authorized: true
+  primary_policy_predeclared: EXPANDING_SD_MATCH_NO_LEVERAGE_PRIMARY
+  all_tested_variants_must_be_reported: true
+
+kill_criteria:
+  - official monthly source contract fails
+  - daily and monthly factor definitions cannot be reconciled
+  - no variance definition mechanically aligns with the published target
+  - recursive strategy requires full-sample information
+  - recursive primary underperforms unmanaged factor after predeclared costs without compensating risk reduction
+  - alpha or utility gain is not robust to the fixed cap and burn-in families
+  - managed-only result disappears when managed and unmanaged exposure are jointly considered
+  - result depends on current revised history and fails available vintage checks
+  - opposing evidence cannot be reproduced or addressed
+
+current_authorization:
+  monthly_source_acquisition: true
+  source_reconciliation: true
+  variance_definition_identification: true
+  synthetic_formula_tests: true
+  recursive_policy_implementation_without_performance_output: true
+  performance_calculation: false
+  sharpe_calculation: false
+  alpha_calculation: false
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_tournament: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  report_2_4_full_authorization: false
+
+final_status:
+  contract_frozen_before_performance: true
+  monthly_source_contract: PENDING
+  variance_definition: PREDECLARED_NOT_IDENTIFIED
+  recursive_policy: PREDECLARED_NOT_EXECUTED
+  paper_replication: NOT_COMPLETE
+  economic_edge: NOT_ESTABLISHED
+  edge_risk_policy_001: INCONCLUSIVE
+  report_2_4: BLOCKED
