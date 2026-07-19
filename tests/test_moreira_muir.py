@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
+
 from hybrid_trader.replication.moreira_muir import (
     EXPECTED_HEADER,
     VOLATILITY_MATCH_RELATIVE_TOLERANCE,
