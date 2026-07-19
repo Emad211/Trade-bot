@@ -1,0 +1,47 @@
+name: Diagnose Kenneth French Monthly Mypy
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/diagnose-kf-monthly-mypy.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - run: >-
+          python -m pip install
+          "mypy==2.3.0"
+          "pandas==2.2.3"
+          "numpy==2.3.5"
+          "pandas-stubs"
+      - name: Capture strict mypy output
+        shell: bash
+        run: |
+          set +e
+          python -m mypy --strict --ignore-missing-imports \
+            src/hybrid_trader/replication/kenneth_french_monthly.py \
+            scripts/audit_kenneth_french_monthly_sources.py \
+            > mypy.txt 2>&1
+          status=$?
+          cat mypy.txt
+          echo "$status" > mypy-exit-code.txt
+          exit 0
+      - uses: actions/upload-artifact@v7
+        with:
+          name: kenneth-french-monthly-mypy-diagnostics-${{ github.sha }}
+          path: |
+            mypy.txt
+            mypy-exit-code.txt
+          if-no-files-found: error
+          retention-days: 14
