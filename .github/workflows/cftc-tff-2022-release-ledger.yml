@@ -1,0 +1,263 @@
+name: CFTC TFF 2022 Release Ledger
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/cftc-tff-2022-release-ledger.yml
+      - src/hybrid_trader/replication/cftc_release_ledger.py
+      - src/hybrid_trader/replication/cftc_historical_ingestion.py
+      - src/hybrid_trader/replication/cftc_historical_parser.py
+      - scripts/ingest_cftc_tff_historical_2022.py
+      - scripts/derive_cftc_tff_2022_release_ledger.py
+      - tests/test_cftc_historical_ingestion.py
+      - tests/test_cftc_historical_parser.py
+      - tests/test_cftc_release_ledger.py
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - .github/workflows/cftc-tff-2022-release-ledger.yml
+      - src/hybrid_trader/replication/cftc_release_ledger.py
+      - scripts/derive_cftc_tff_2022_release_ledger.py
+      - tests/test_cftc_release_ledger.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cftc-tff-2022-release-ledger-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  acquire-derive-verify-and-stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Check out the triggering commit
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install the project and verification tools
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev,replication]"
+
+      - name: Run project lint rules
+        run: >-
+          python -m ruff check
+          src/hybrid_trader/replication/cftc_release_ledger.py
+          scripts/derive_cftc_tff_2022_release_ledger.py
+          tests/test_cftc_release_ledger.py
+
+      - name: Run strict typing
+        run: >-
+          python -m mypy --strict --ignore-missing-imports
+          src/hybrid_trader/replication/cftc_release_ledger.py
+
+      - name: Run release-ledger and source-parser tests
+        run: >-
+          python -m pytest -q
+          tests/test_cftc_historical_ingestion.py
+          tests/test_cftc_historical_parser.py
+          tests/test_cftc_release_ledger.py
+
+      - name: Acquire the official 2022 TFF archive with transient retries
+        shell: bash
+        run: |
+          mkdir -p build/diagnostics
+          code=1
+          set +e
+          for attempt in 1 2 3 4 5; do
+            log="build/diagnostics/acquire-${attempt}.txt"
+            python scripts/ingest_cftc_tff_historical_2022.py \
+              --output-dir build/cftc-tff-historical-2022 \
+              > "$log" 2>&1
+            code=$?
+            cat "$log"
+            if [[ $code -eq 0 ]]; then
+              break
+            fi
+            if grep -Eq "HTTP Error (429|500|502|503|504)|URLError|timed out|Temporary failure" "$log"; then
+              if [[ $attempt -lt 5 ]]; then
+                sleep $((attempt * 3))
+                continue
+              fi
+            fi
+            break
+          done
+          exit "$code"
+
+      - name: Derive the fail-closed 2022 release ledger
+        run: >-
+          python scripts/derive_cftc_tff_2022_release_ledger.py
+          --archive build/cftc-tff-historical-2022/fut_fin_txt_2022.zip
+          --output-dir build/cftc-tff-release-ledger-2022
+          --parser-delay-seconds 300
+
+      - name: Independently verify source, schedule, DST, delay, and hash identities
+        run: |
+          python - <<'PY'
+          import csv
+          import hashlib
+          import json
+          from pathlib import Path
+
+          raw_root = Path("build/cftc-tff-historical-2022")
+          ledger_root = Path("build/cftc-tff-release-ledger-2022")
+          source_manifest = json.loads(
+              (raw_root / "acquisition-manifest.json").read_text(encoding="utf-8")
+          )
+          manifest = json.loads(
+              (ledger_root / "release-ledger-manifest.json").read_text(encoding="utf-8")
+          )
+          profile = json.loads(
+              (ledger_root / "release-ledger-profile.json").read_text(encoding="utf-8")
+          )
+          ledger_path = ledger_root / profile["ledger_filename"]
+          ledger_bytes = ledger_path.read_bytes()
+          rows = list(csv.DictReader(ledger_bytes.decode("utf-8").splitlines()))
+
+          expected_archive_hash = "94c9c1fdee9dfbe377a09923ddfe26b88d3460605dd076081f221ad367d88601"
+          expected_member_hash = "7c309cb76da8bf432e1a347e5bfde169bcac31cec4e9e33742cf3a078328bb3b"
+          expected_schema_hash = "fe0123051e8e5f5bb8f0cf4a870b451951bd4fa131777096eb5d028115545d42"
+          expected_ledger_hash = "4196c1444a6f9fe878c131f79d5bb4827100b5727baefd1b23333d29babccb40"
+
+          if source_manifest["raw_sha256"] != expected_archive_hash:
+              raise SystemExit("Official archive identity changed")
+          if manifest["source_archive_sha256"] != expected_archive_hash:
+              raise SystemExit("Ledger archive lineage mismatch")
+          if manifest["source_member_sha256"] != expected_member_hash:
+              raise SystemExit("Ledger member lineage mismatch")
+          if manifest["source_schema_sha256"] != expected_schema_hash:
+              raise SystemExit("Ledger schema lineage mismatch")
+          if hashlib.sha256(ledger_bytes).hexdigest() != expected_ledger_hash:
+              raise SystemExit("Release-ledger SHA-256 changed")
+          if profile["ledger_sha256"] != expected_ledger_hash:
+              raise SystemExit("Release-ledger profile hash mismatch")
+          if profile["ledger_byte_count"] != 16914:
+              raise SystemExit("Release-ledger byte count changed")
+          if profile["report_count"] != 52 or len(rows) != 52:
+              raise SystemExit("Release-ledger report count changed")
+          if profile["delayed_report_dates"] != ["2022-11-08", "2022-11-22"]:
+              raise SystemExit("Holiday-delayed report dates changed")
+          if profile["actual_release_verified_count"] != 0:
+              raise SystemExit("Unverified actual release times were promoted")
+          if profile["eastern_standard_time_rows"] != 18:
+              raise SystemExit("Unexpected Eastern standard-time row count")
+          if profile["eastern_daylight_time_rows"] != 34:
+              raise SystemExit("Unexpected Eastern daylight-time row count")
+          if any(row["actual_release_time_utc"] for row in rows):
+              raise SystemExit("A row contains an unverified actual release time")
+          if any(row["actual_release_verified"] != "False" for row in rows):
+              raise SystemExit("A row falsely verifies its actual release time")
+
+          keyed = {row["report_as_of_date"]: row for row in rows}
+          veterans = keyed["2022-11-08"]
+          thanksgiving = keyed["2022-11-22"]
+          pilot = keyed["2022-09-13"]
+          first = keyed["2022-01-04"]
+          if veterans["scheduled_release_date"] != "2022-11-14":
+              raise SystemExit("Veterans Day delay changed")
+          if thanksgiving["scheduled_release_date"] != "2022-11-28":
+              raise SystemExit("Thanksgiving delay changed")
+          if pilot["scheduled_release_time_utc"] != "2022-09-16T19:30:00Z":
+              raise SystemExit("Pilot scheduled release time changed")
+          if pilot["provisional_available_at_utc"] != "2022-09-16T19:35:00Z":
+              raise SystemExit("Pilot provisional availability changed")
+          if pilot["conservative_available_at_utc"] != "2022-09-19T19:30:00Z":
+              raise SystemExit("Pilot conservative availability changed")
+          if first["scheduled_release_time_utc"] != "2022-01-07T20:30:00Z":
+              raise SystemExit("Winter UTC conversion changed")
+          if manifest["actual_release_times_verified"] is not False:
+              raise SystemExit("Manifest falsely verifies actual release times")
+          if manifest["artifact_audit_pass"] is not False:
+              raise SystemExit("Release ledger self-promoted to artifact audit pass")
+          if manifest["paper_replication_pass"] is not False:
+              raise SystemExit("Release ledger self-promoted to paper replication pass")
+          if manifest["economic_edge_verdict"] != "INCONCLUSIVE":
+              raise SystemExit("Release ledger changed the economic verdict")
+          print(json.dumps(manifest, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload official source and reconstructed release ledger
+        id: upload_bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: cftc-tff-2022-release-ledger-${{ github.sha }}
+          path: |
+            build/cftc-tff-historical-2022/
+            build/cftc-tff-release-ledger-2022/
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+      - name: Create release-ledger staging receipt
+        env:
+          BUNDLE_ARTIFACT_ID: ${{ steps.upload_bundle.outputs.artifact-id }}
+          BUNDLE_ARTIFACT_URL: ${{ steps.upload_bundle.outputs.artifact-url }}
+          BUNDLE_ARTIFACT_DIGEST: ${{ steps.upload_bundle.outputs.artifact-digest }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+          receipt = {
+              "schema_version": "1.0",
+              "repository": os.environ["GITHUB_REPOSITORY"],
+              "commit_sha": os.environ["GITHUB_SHA"],
+              "workflow": os.environ["GITHUB_WORKFLOW"],
+              "run_id": os.environ["GITHUB_RUN_ID"],
+              "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
+              "created_at": datetime.now(UTC).isoformat(),
+              "bundle_artifact_id": os.environ["BUNDLE_ARTIFACT_ID"],
+              "bundle_artifact_url": os.environ["BUNDLE_ARTIFACT_URL"],
+              "bundle_artifact_digest": os.environ["BUNDLE_ARTIFACT_DIGEST"],
+              "storage_state": "ACTIONS_ARTIFACT_STAGED_RETENTION_90_DAYS",
+              "source_archive_sha256": "94c9c1fdee9dfbe377a09923ddfe26b88d3460605dd076081f221ad367d88601",
+              "release_ledger_sha256": "4196c1444a6f9fe878c131f79d5bb4827100b5727baefd1b23333d29babccb40",
+              "actual_release_times_verified": False,
+              "long_term_immutable_ingestion": False,
+              "artifact_audit_pass": False,
+              "paper_replication_pass": False,
+              "economic_edge_verdict": "INCONCLUSIVE",
+          }
+          destination = Path("build/cftc-tff-2022-release-ledger-receipt.json")
+          destination.write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(receipt, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload release-ledger receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: cftc-tff-2022-release-ledger-receipt-${{ github.sha }}
+          path: build/cftc-tff-2022-release-ledger-receipt.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Record non-promotional workflow summary
+        run: |
+          {
+            echo "## CFTC TFF 2022 release ledger"
+            echo
+            echo "- Source report dates: 52 official annual-archive dates"
+            echo "- Scheduled release rule: third federal business day at 15:30 Eastern"
+            echo "- Holiday-delayed report dates: 2022-11-08 and 2022-11-22"
+            echo "- Actual historical release times verified: no"
+            echo "- Release-ledger SHA-256: 4196c1444a6f9fe878c131f79d5bb4827100b5727baefd1b23333d29babccb40"
+            echo "- Actions artifact: staged for 90 days"
+            echo "- Artifact audit pass: no"
+            echo "- Paper replication: no"
+            echo "- Economic edge: not established"
+          } >> "$GITHUB_STEP_SUMMARY"
