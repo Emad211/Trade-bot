@@ -1,0 +1,250 @@
+name: CFTC TFF 2022 Provider Candidate Plan
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/cftc-tff-2022-provider-candidate-plan.yml
+      - src/hybrid_trader/replication/provider_price_linkage.py
+      - scripts/build_cftc_tff_2022_provider_candidate_plan.py
+      - tests/test_provider_price_linkage.py
+      - docs/research/edge-discovery/02-replication/02-03-provider-price-linkage-candidate-contract.yaml
+      - docs/research/edge-discovery/02-replication/02-03-provider-price-linkage-official-sources.json
+      - docs/research/edge-discovery/02-replication/02-03-cftc-tff-2022-instrument-registry.csv.gz.b64
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - .github/workflows/cftc-tff-2022-provider-candidate-plan.yml
+      - src/hybrid_trader/replication/provider_price_linkage.py
+      - scripts/build_cftc_tff_2022_provider_candidate_plan.py
+      - tests/test_provider_price_linkage.py
+      - docs/research/edge-discovery/02-replication/02-03-provider-price-linkage-candidate-contract.yaml
+      - docs/research/edge-discovery/02-replication/02-03-provider-price-linkage-official-sources.json
+      - docs/research/edge-discovery/02-replication/02-03-cftc-tff-2022-instrument-registry.csv.gz.b64
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cftc-tff-2022-provider-plan-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-verify-and-stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out the triggering commit
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install project and verification tools
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev,replication]"
+
+      - name: Run project lint rules
+        run: >-
+          python -m ruff check
+          src/hybrid_trader/replication/provider_price_linkage.py
+          scripts/build_cftc_tff_2022_provider_candidate_plan.py
+          tests/test_provider_price_linkage.py
+
+      - name: Run strict typing
+        run: >-
+          python -m mypy --strict --ignore-missing-imports
+          src/hybrid_trader/replication/provider_price_linkage.py
+
+      - name: Run provider-plan unit tests
+        run: python -m pytest -q tests/test_provider_price_linkage.py
+
+      - name: Build fail-closed provider candidate plan
+        run: >-
+          python scripts/build_cftc_tff_2022_provider_candidate_plan.py
+          --registry-b64 docs/research/edge-discovery/02-replication/02-03-cftc-tff-2022-instrument-registry.csv.gz.b64
+          --output-dir build/provider-candidate-plan
+
+      - name: Independently verify contract, sources, coverage, and hashes
+        run: |
+          python - <<'PY'
+          import csv
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path("build/provider-candidate-plan")
+          csv_path = root / "databento-provider-candidate-plan.csv"
+          manifest_path = root / "provider-candidate-manifest.json"
+          probe_path = root / "authenticated-probe-request.json"
+          contract_path = Path(
+              "docs/research/edge-discovery/02-replication/"
+              "02-03-provider-price-linkage-candidate-contract.yaml"
+          )
+          sources_path = Path(
+              "docs/research/edge-discovery/02-replication/"
+              "02-03-provider-price-linkage-official-sources.json"
+          )
+          expected_csv_sha = "cd2430c7fdd0b3a68a1093925d755c242081372fbe41668cc53436893c274062"
+          expected_contract_sha = "8614c71dc7a6db2aebaf08db0b8d5b4566d92c69d31bbe424fc2e73780fa9832"
+          expected_sources_sha = "68b73fdb5f3c83b90606fb51c8a7378dc9a1e23a1df4260c94ed0cd439903770"
+          for path in (csv_path, manifest_path, probe_path, contract_path, sources_path):
+              if not path.is_file() or path.stat().st_size == 0:
+                  raise SystemExit(f"Missing or empty provider-plan evidence: {path}")
+          csv_bytes = csv_path.read_bytes()
+          if len(csv_bytes) != 28918:
+              raise SystemExit("Provider candidate CSV byte count changed")
+          if hashlib.sha256(csv_bytes).hexdigest() != expected_csv_sha:
+              raise SystemExit("Provider candidate CSV SHA-256 changed")
+          if hashlib.sha256(contract_path.read_bytes()).hexdigest() != expected_contract_sha:
+              raise SystemExit("Provider contract SHA-256 changed")
+          if hashlib.sha256(sources_path.read_bytes()).hexdigest() != expected_sources_sha:
+              raise SystemExit("Provider source registry SHA-256 changed")
+          rows = list(csv.DictReader(csv_path.open(encoding="utf-8")))
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          probe = json.loads(probe_path.read_text(encoding="utf-8"))
+          if len(rows) != 54:
+              raise SystemExit("Expected exactly 54 provider-plan rows")
+          if len({row["cftc_contract_market_code"] for row in rows}) != 54:
+              raise SystemExit("Provider plan contains duplicate CFTC codes")
+          profile = manifest["plan_profile"]
+          expected_profile = {
+              "ordinary_candidate_rows": 47,
+              "glbx_candidate_rows": 43,
+              "ifus_candidate_rows": 3,
+              "xcbf_candidate_rows": 1,
+              "aggregate_rows": 3,
+              "later_delisted_rows": 2,
+              "nonstandard_rows": 1,
+              "technical_symbol_pending_rows": 1,
+              "price_linkage_authorized_rows": 0,
+              "provider_contract_id_rows": 0,
+          }
+          for key, value in expected_profile.items():
+              if profile[key] != value:
+                  raise SystemExit(f"Unexpected provider profile {key}: {profile[key]}")
+          ordinary = [
+              row
+              for row in rows
+              if row["mapping_class"] == "HISTORICAL_SCREEN_TRADABLE_ROOT_VERIFIED"
+          ]
+          dataset_counts = {}
+          for row in ordinary:
+              dataset_counts[row["dataset_id_candidate"]] = (
+                  dataset_counts.get(row["dataset_id_candidate"], 0) + 1
+              )
+          if dataset_counts != {"GLBX.MDP3": 43, "IFUS.IMPACT": 3, "XCBF.PITCH": 1}:
+              raise SystemExit(f"Unexpected dataset candidate counts: {dataset_counts}")
+          if any(row["price_linkage_authorized"] != "false" for row in rows):
+              raise SystemExit("Provider plan authorized a price row")
+          if any(row["returns_authorized"] != "false" for row in rows):
+              raise SystemExit("Provider plan authorized a return")
+          if any(row["provider_contract_id"] for row in rows):
+              raise SystemExit("Provider plan populated a provider contract ID")
+          aggregate_codes = {
+              row["cftc_contract_market_code"]
+              for row in rows
+              if row["mapping_class"] == "NON_TRADABLE_CONSOLIDATED_AGGREGATE"
+          }
+          if aggregate_codes != {"12460+", "13874+", "20974+"}:
+              raise SystemExit("Consolidated aggregate set changed")
+          roots = [item["root"] for item in probe["probes"]]
+          if roots != ["ZN", "ES", "NIY", "DX", "VX"]:
+              raise SystemExit(f"Authenticated probe roots changed: {roots}")
+          if probe["max_cost_usd"] != 0.0 or probe["purchase_authorized"] is not False:
+              raise SystemExit("Authenticated probe authorized spending")
+          if probe["price_linkage_authorized"] is not False:
+              raise SystemExit("Authenticated probe authorized price linkage")
+          if probe["settlement_contract"]["allow_ohlcv_as_settlement_substitute"] is not False:
+              raise SystemExit("OHLCV was allowed as a settlement substitute")
+          if manifest["provider_decision"]["accepted_provider"] is not None:
+              raise SystemExit("A provider was accepted without authenticated evidence")
+          if manifest["global_returns_authorized"] is not False:
+              raise SystemExit("Global return computation was authorized")
+          print(json.dumps(manifest, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload provider candidate plan bundle
+        id: upload_bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: cftc-tff-2022-provider-candidate-plan-${{ github.sha }}
+          path: |
+            build/provider-candidate-plan/
+            docs/research/edge-discovery/02-replication/02-03-provider-price-linkage-candidate-contract.yaml
+            docs/research/edge-discovery/02-replication/02-03-provider-price-linkage-official-sources.json
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+      - name: Create provider-plan staging receipt
+        env:
+          BUNDLE_ARTIFACT_ID: ${{ steps.upload_bundle.outputs.artifact-id }}
+          BUNDLE_ARTIFACT_URL: ${{ steps.upload_bundle.outputs.artifact-url }}
+          BUNDLE_ARTIFACT_DIGEST: ${{ steps.upload_bundle.outputs.artifact-digest }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+          receipt = {
+              "schema_version": "1.0",
+              "repository": os.environ["GITHUB_REPOSITORY"],
+              "commit_sha": os.environ["GITHUB_SHA"],
+              "workflow": os.environ["GITHUB_WORKFLOW"],
+              "run_id": os.environ["GITHUB_RUN_ID"],
+              "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
+              "created_at": datetime.now(UTC).isoformat(),
+              "bundle_artifact_id": os.environ["BUNDLE_ARTIFACT_ID"],
+              "bundle_artifact_url": os.environ["BUNDLE_ARTIFACT_URL"],
+              "bundle_artifact_digest": os.environ["BUNDLE_ARTIFACT_DIGEST"],
+              "storage_state": "ACTIONS_ARTIFACT_STAGED_RETENTION_90_DAYS",
+              "candidate_provider": "DATABENTO",
+              "accepted_provider": None,
+              "authenticated_probe_executed": False,
+              "purchase_authorized": False,
+              "price_linkage_authorized_rows": 0,
+              "returns_authorized": False,
+              "paper_replication_pass": False,
+              "economic_edge_verdict": "INCONCLUSIVE",
+          }
+          destination = Path("build/provider-candidate-plan-receipt.json")
+          destination.write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(receipt, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload provider-plan receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: cftc-tff-2022-provider-candidate-plan-receipt-${{ github.sha }}
+          path: build/provider-candidate-plan-receipt.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Record non-promotional workflow summary
+        run: |
+          {
+            echo "## CFTC provider candidate plan"
+            echo
+            echo "- Candidate provider: Databento"
+            echo "- Accepted provider: no"
+            echo "- Ordinary candidate roots: 47"
+            echo "- GLBX / IFUS / XCBF candidates: 43 / 3 / 1"
+            echo "- Authenticated provider probe: not executed"
+            echo "- Purchase authorized: no"
+            echo "- Price-linkage-authorized rows: 0"
+            echo "- Provider contract IDs: 0"
+            echo "- Returns authorized: no"
+            echo "- Economic edge: not established"
+          } >> "$GITHUB_STEP_SUMMARY"
