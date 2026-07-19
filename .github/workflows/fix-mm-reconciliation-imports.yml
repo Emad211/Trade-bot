@@ -6,6 +6,11 @@ on:
       - main
     paths:
       - .github/workflows/fix-mm-reconciliation-imports.yml
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - .github/workflows/fix-mm-reconciliation-imports.yml
 
 permissions:
   contents: write
@@ -31,43 +36,45 @@ jobs:
           path = Path('src/hybrid_trader/replication/moreira_muir_reconciliation.py')
           text = path.read_text(encoding='utf-8')
           old = '''import numpy as np
-import pandas as pd
+          import pandas as pd
 
-from .kenneth_french_monthly import (
-    SNAPSHOT_ID as MONTHLY_SNAPSHOT_ID,
-)
-from .kenneth_french_monthly import (
-    SOURCE_CONTRACTS as MONTHLY_SOURCE_CONTRACTS,
-)
-from .kenneth_french_monthly import (
-    build_selected_monthly_panel,
-    parse_monthly_zip,
-    validate_data_library_page,
-)
-from .moreira_muir import (
-    EXPECTED_SHA256 as AUTHOR_SOURCE_SHA256,
-)
-from .moreira_muir import (
-    SNAPSHOT_ID as AUTHOR_SNAPSHOT_ID,
-)
-from .moreira_muir import parse_official_factor_bytes, validate_author_page
-'''
+          from .kenneth_french_monthly import (
+              SNAPSHOT_ID as MONTHLY_SNAPSHOT_ID,
+          )
+          from .kenneth_french_monthly import (
+              SOURCE_CONTRACTS as MONTHLY_SOURCE_CONTRACTS,
+          )
+          from .kenneth_french_monthly import (
+              build_selected_monthly_panel,
+              parse_monthly_zip,
+              validate_data_library_page,
+          )
+          from .moreira_muir import (
+              EXPECTED_SHA256 as AUTHOR_SOURCE_SHA256,
+          )
+          from .moreira_muir import (
+              SNAPSHOT_ID as AUTHOR_SNAPSHOT_ID,
+          )
+          from .moreira_muir import parse_official_factor_bytes, validate_author_page
+          '''
+          old = '\n'.join(line[10:] if line.startswith('          ') else line for line in old.splitlines()) + '\n'
           new = '''import pandas as pd
 
-from .kenneth_french_monthly import (
-    SNAPSHOT_ID as MONTHLY_SNAPSHOT_ID,
-    SOURCE_CONTRACTS as MONTHLY_SOURCE_CONTRACTS,
-    build_selected_monthly_panel,
-    parse_monthly_zip,
-    validate_data_library_page,
-)
-from .moreira_muir import (
-    EXPECTED_SHA256 as AUTHOR_SOURCE_SHA256,
-    SNAPSHOT_ID as AUTHOR_SNAPSHOT_ID,
-    parse_official_factor_bytes,
-    validate_author_page,
-)
-'''
+          from .kenneth_french_monthly import (
+              SNAPSHOT_ID as MONTHLY_SNAPSHOT_ID,
+              SOURCE_CONTRACTS as MONTHLY_SOURCE_CONTRACTS,
+              build_selected_monthly_panel,
+              parse_monthly_zip,
+              validate_data_library_page,
+          )
+          from .moreira_muir import (
+              EXPECTED_SHA256 as AUTHOR_SOURCE_SHA256,
+              SNAPSHOT_ID as AUTHOR_SNAPSHOT_ID,
+              parse_official_factor_bytes,
+              validate_author_page,
+          )
+          '''
+          new = '\n'.join(line[10:] if line.startswith('          ') else line for line in new.splitlines()) + '\n'
           if text.count(old) != 1:
               raise SystemExit('Unexpected reconciliation import block')
           path.write_text(text.replace(old, new), encoding='utf-8')
