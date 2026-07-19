@@ -47,58 +47,72 @@ jobs:
             --output build/cboe-vx-schema-probe/raw/cboe_settlement_2022-09-16.csv \
             "$url"
 
-      - name: Verify and profile raw bytes
+      - name: Profile raw bytes and retain diagnostics
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
           import csv
           import hashlib
+          import io
           import json
           from pathlib import Path
 
           root = Path('build/cboe-vx-schema-probe')
           path = root / 'raw/cboe_settlement_2022-09-16.csv'
           raw = path.read_bytes()
+          errors = []
           if not raw:
-              raise SystemExit('Empty Cboe response')
-          if b'<html' in raw[:1000].lower() or b'<!doctype' in raw[:1000].lower():
-              raise SystemExit('Cboe endpoint returned HTML instead of CSV')
-          text = raw.decode('utf-8-sig')
-          rows = list(csv.reader(text.splitlines()))
+              errors.append('EMPTY_RESPONSE')
+          html_like = b'<html' in raw[:2000].lower() or b'<!doctype' in raw[:2000].lower()
+          if html_like:
+              errors.append('HTML_INSTEAD_OF_CSV')
+          try:
+              text = raw.decode('utf-8-sig')
+          except UnicodeDecodeError:
+              text = raw.decode('latin-1')
+              errors.append('NON_UTF8_RESPONSE')
+          rows = list(csv.reader(io.StringIO(text, newline='')))
           if len(rows) < 2:
-              raise SystemExit('Cboe CSV has no data rows')
-          header = rows[0]
-          width = len(header)
-          malformed = [idx + 2 for idx, row in enumerate(rows[1:]) if len(row) != width]
-          if malformed:
-              raise SystemExit(f'CSV row-width mismatch at lines {malformed[:10]}')
-          vx_rows = [row for row in rows[1:] if any(cell.strip().startswith('VX/') for cell in row)]
-          if not vx_rows:
-              raise SystemExit('No VX monthly futures rows found')
-          profile = {
+              errors.append('NO_DATA_ROWS')
+          header = rows[0] if rows else []
+          widths = sorted({len(row) for row in rows})
+          if len(widths) > 1:
+              errors.append('NON_UNIFORM_ROW_WIDTH')
+          vx_candidates = [
+              row for row in rows[1:]
+              if any('VX' in cell.strip().upper() for cell in row)
+          ]
+          if not vx_candidates:
+              errors.append('NO_VX_CANDIDATE_ROWS')
+          diagnostics = {
               'source_url': 'https://www-api.cboe.com/us/futures/market_statistics/settlement/csv?dt=2022-09-16',
               'requested_date': '2022-09-16',
               'filename': path.name,
               'byte_count': len(raw),
               'sha256': hashlib.sha256(raw).hexdigest(),
               'line_count': len(rows),
-              'column_count': width,
               'header': header,
-              'vx_monthly_row_count': len(vx_rows),
-              'vx_monthly_rows': vx_rows,
-              'html_rejected': True,
+              'row_widths': widths,
+              'first_twenty_rows': rows[:20],
+              'vx_candidate_row_count': len(vx_candidates),
+              'vx_candidate_rows': vx_candidates[:30],
+              'validation_errors': errors,
+              'validation_status': 'PASS' if not errors else 'QUARANTINED',
               'price_linkage_authorized': False,
               'returns_authorized': False,
           }
-          (root / 'schema-profile.json').write_text(
-              json.dumps(profile, indent=2, sort_keys=True) + '\n',
+          (root / 'schema-diagnostics.json').write_text(
+              json.dumps(diagnostics, indent=2, sort_keys=True) + '\n',
               encoding='utf-8',
           )
-          print(json.dumps(profile, indent=2, sort_keys=True))
+          print(json.dumps(diagnostics, indent=2, sort_keys=True))
+          if errors:
+              raise SystemExit('Cboe schema probe quarantined: ' + ','.join(errors))
           PY
 
       - name: Upload raw schema-probe bundle
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: cboe-vx-2022-settlement-schema-probe-${{ github.sha }}
