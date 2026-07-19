@@ -1,0 +1,107 @@
+schema_version: "1.0"
+record_id: CBOE_VX_LICENSE_AND_HISTORICAL_AVAILABILITY_DECISION_V1
+status_date: "2026-07-19"
+status: BLOCKED_LICENSE_OR_TIMING
+
+scope:
+  hypothesis_id: EDGE-FUT-POSITION-001
+  product: VX
+  source_authority: Cboe Futures Exchange
+  pilot_report_date: "2022-09-13"
+  pilot_release_date: "2022-09-16"
+
+source_evidence:
+  website_terms:
+    url: https://www.cboe.com/terms
+    snapshot_byte_count: 403966
+    snapshot_sha256: cb177fa2e8937d6390fab2098428135c7f037c98ad5495d0e3833b0a87063572
+    classification:
+      one_copy_personal_noncommercial_use: ALLOWED_BY_CURRENT_TERMS
+      electronic_retrieval_storage: RESTRICTED_WITHOUT_PRIOR_WRITTEN_CONSENT
+      derivative_work: RESTRICTED_WITHOUT_PRIOR_WRITTEN_CONSENT
+      use_to_verify_or_correct_other_data: RESTRICTED_WITHOUT_PRIOR_WRITTEN_CONSENT
+      redistribution: RESTRICTED_WITHOUT_PRIOR_WRITTEN_CONSENT
+  use_of_content:
+    url: https://www.cboe.com/en/use-of-content/
+    snapshot_byte_count: 345651
+    snapshot_sha256: d9bda804159f65f732409aa0743915a1e0e0e4e36976b86f10ab95963cf55f5d
+    advance_approval_required: true
+    signed_license_required_for_approval: true
+    request_itself_grants_permission: false
+  market_data_licensing:
+    document_library_url: https://www.cboe.com/market_data_services/document_library/
+    onboarding_url: https://www.cboe.com/market_data_services/onboarding
+    owner_accessibility: NOT_VERIFIED
+    zero_cost_access: NOT_VERIFIED
+
+settlement_timing:
+  event_time:
+    local: "15:00:00"
+    timezone: America/Chicago
+    authority_url: https://www.cboe.com/tradable_products/vix/faqs
+    hours_url: https://www.cboe.com/about/hours/us-futures
+    evidence_class: OFFICIAL_EVENT_TIME
+  frozen_date_conversion:
+    cftc_release_local: "2022-09-16T15:30:00-04:00"
+    cftc_release_utc: "2022-09-16T19:30:00Z"
+    vx_settlement_event_local: "2022-09-16T15:00:00-05:00"
+    vx_settlement_event_utc: "2022-09-16T20:00:00Z"
+    settlement_after_cftc_release_minutes: 30
+    same_day_settlement_at_cftc_release: PROHIBITED_LOOKAHEAD
+  historical_publication:
+    published_at_verified: false
+    available_at_verified: false
+    historical_archive_retrieval_proves_contemporaneous_availability: false
+
+replication_compatibility:
+  report_2_1_positioning_reconstruction: EXACT_PUBLIC
+  report_2_1_complete_return_replication: EXACT_LICENSED
+  anchor_price_source: Thomson Reuters Datastream
+  cftc_vix_row_is_maturity_specific: false
+  direct_assignment_to_vx_u2: prohibited
+  direct_assignment_to_vx_v2: prohibited
+  single_contract_proxy_class: CONSTRUCTIVE_MODELING_CHOICE
+  maturity_representation_status: UNRESOLVED
+
+current_authorization:
+  cboe_engineering_tests: true
+  synthetic_fixture_tests: true
+  hash_and_schema_verification: true
+  permission_request_preparation: true
+  prospective_contract_design: true
+  private_raw_retention: false
+  historical_derived_dataset: false
+  cftc_price_linkage: false
+  historical_return_computation: false
+  prospective_price_storage: false
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_tournament: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  report_2_4_full_authorization: false
+
+reentry_requirements:
+  - written Cboe permission or executed license covering intended internal use
+  - permission for private electronic retention of exact source files
+  - permission to combine Cboe data with CFTC data and create internal derived returns
+  - permission to retain hashes, lineage metadata, and reproducibility evidence
+  - approved private immutable-storage contract
+  - prospective or authoritative historical availability rule
+  - frozen maturity-representation contract
+  - separately reviewed price-linkage authorization
+
+final_verdicts:
+  official_source_and_contract_mechanics: CONFIRMED
+  settlement_event_time: CONFIRMED_15_00_AMERICA_CHICAGO
+  historical_publication_time: NOT_VERIFIED
+  same_day_settlement_at_cftc_release: LOOKAHEAD
+  private_electronic_retention: NOT_AUTHORIZED_UNDER_CURRENT_EVIDENCE
+  cftc_linked_derived_dataset: NOT_AUTHORIZED_UNDER_CURRENT_EVIDENCE
+  cboe_historical_return_work: BLOCKED_LICENSE_OR_TIMING
+  paper_replication: NOT_COMPLETE
+  economic_edge: NOT_ESTABLISHED
+  edge_fut_position_001: INCONCLUSIVE
+  report_2_4: BLOCKED
