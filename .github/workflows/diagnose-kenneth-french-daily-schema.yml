@@ -1,0 +1,132 @@
+name: Diagnose Kenneth French Daily Schema
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/diagnose-kenneth-french-daily-schema.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Acquire official sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/kf-diagnostics/raw
+          base='https://mba.tuck.dartmouth.edu/pages/faculty/ken.french'
+          curl --fail-with-body --location --retry 8 --retry-all-errors \
+            --output build/kf-diagnostics/raw/data_library.html \
+            "$base/data_library.html"
+          for name in \
+            F-F_Research_Data_Factors_daily_CSV.zip \
+            F-F_Research_Data_5_Factors_2x3_daily_CSV.zip \
+            F-F_Momentum_Factor_daily_CSV.zip; do
+            curl --fail-with-body --location --retry 8 --retry-all-errors \
+              --output "build/kf-diagnostics/raw/$name" \
+              "$base/ftp/$name"
+          done
+
+      - name: Produce non-row-level diagnostics
+        run: |
+          python - <<'PY'
+          import csv
+          import hashlib
+          import io
+          import json
+          import re
+          import zipfile
+          from pathlib import Path
+
+          root = Path('build/kf-diagnostics')
+          raw = root / 'raw'
+          result = {'sources': []}
+          for path in sorted(raw.glob('*.zip')):
+              b = path.read_bytes()
+              item = {
+                  'zip_filename': path.name,
+                  'zip_byte_count': len(b),
+                  'zip_sha256': hashlib.sha256(b).hexdigest(),
+                  'is_zip': zipfile.is_zipfile(io.BytesIO(b)),
+              }
+              with zipfile.ZipFile(io.BytesIO(b)) as z:
+                  item['members'] = []
+                  for info in z.infolist():
+                      member = {
+                          'filename': info.filename,
+                          'is_dir': info.is_dir(),
+                          'file_size': info.file_size,
+                          'compressed_size': info.compress_size,
+                          'crc32': f'{info.CRC:08x}',
+                      }
+                      if not info.is_dir():
+                          payload = z.read(info)
+                          member['sha256'] = hashlib.sha256(payload).hexdigest()
+                          try:
+                              text = payload.decode('utf-8-sig')
+                              member['encoding'] = 'utf-8-sig'
+                          except UnicodeDecodeError:
+                              text = payload.decode('latin-1')
+                              member['encoding'] = 'latin-1'
+                          lines = text.splitlines()
+                          first_data = next(
+                              (i for i, line in enumerate(lines)
+                               if re.match(r'^\s*\d{8}\s*,', line)),
+                              None,
+                          )
+                          member['line_count'] = len(lines)
+                          member['first_data_line_index'] = first_data
+                          safe_limit = first_data if first_data is not None else min(len(lines), 30)
+                          candidates = []
+                          for i, line in enumerate(lines[:safe_limit]):
+                              parsed = [cell.strip() for cell in next(csv.reader([line]))]
+                              if ',' in line or any(
+                                  token in line for token in ('Mkt-RF', 'SMB', 'HML', 'RMW', 'CMA', 'Mom', 'Date')
+                              ):
+                                  candidates.append({'index': i, 'cells': parsed})
+                          member['pre_data_csv_candidates'] = candidates
+                          member['pre_data_sha256'] = hashlib.sha256(
+                              ('\n'.join(lines[:safe_limit]) + '\n').encode('utf-8')
+                          ).hexdigest()
+                      item['members'].append(member)
+                  item['testzip_result'] = z.testzip()
+              result['sources'].append(item)
+
+          page = (raw / 'data_library.html').read_bytes()
+          text = page.decode('utf-8', errors='replace')
+          phrases = [
+              'Legacy Format (FIZ)',
+              'Flat File Format 2.0 (CIZ)',
+              'reconstruct the full history of returns each month',
+              'Historical returns can change',
+          ]
+          result['data_library'] = {
+              'byte_count': len(page),
+              'sha256': hashlib.sha256(page).hexdigest(),
+              'phrase_presence': {phrase: phrase in text for phrase in phrases},
+          }
+          (root / 'safe-diagnostics.json').write_text(
+              json.dumps(result, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
+          print(json.dumps(result, indent=2, sort_keys=True))
+          PY
+
+      - name: Remove official raw content
+        run: rm -rf build/kf-diagnostics/raw
+
+      - name: Upload safe diagnostics
+        uses: actions/upload-artifact@v7
+        with:
+          name: kenneth-french-daily-safe-diagnostics-${{ github.sha }}
+          path: build/kf-diagnostics/safe-diagnostics.json
+          if-no-files-found: error
+          retention-days: 14
