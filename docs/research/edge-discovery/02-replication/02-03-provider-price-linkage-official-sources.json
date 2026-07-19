@@ -1,0 +1,47 @@
+{
+  "DATABENTO_DATASETS": {
+    "authority": "Databento",
+    "role": "Historical dataset discovery, availability conditions, range, schemas, and cost APIs.",
+    "url": "https://databento.com/docs/api-reference-historical/basics/datasets"
+  },
+  "DATABENTO_FUTURES": {
+    "authority": "Databento",
+    "role": "Parent symbology, contract expirations, definitions, and unadjusted futures conventions.",
+    "url": "https://databento.com/docs/examples/futures/futures-introduction/special-conventions-for-futures-on-databento"
+  },
+  "DATABENTO_SYMBOLOGY": {
+    "authority": "Databento",
+    "role": "Historical symbol preservation and supported parent symbology for GLBX, IFUS, and XCBF.",
+    "url": "https://databento.com/docs/standards-and-conventions/symbology"
+  },
+  "DATABENTO_STATISTICS": {
+    "authority": "Databento",
+    "role": "Official settlement and open-interest statistics distinct from OHLCV.",
+    "url": "https://databento.com/docs/schemas-and-data-formats/statistics"
+  },
+  "DATABENTO_PRICING": {
+    "authority": "Databento",
+    "role": "Usage-based historical pricing, free credits, and dataset-dependent redistribution terms.",
+    "url": "https://databento.com/pricing"
+  },
+  "CME_DATAMINE": {
+    "authority": "CME Group",
+    "role": "Exchange-native audit source for historical settlements and reference data.",
+    "url": "https://www.cmegroup.com/datamine.html"
+  },
+  "CME_REFERENCE_DATA": {
+    "authority": "CME Group",
+    "role": "Authoritative lifecycle dates and contract specifications.",
+    "url": "https://www.cmegroup.com/market-data/browse-data/catalog/reference-data.html"
+  },
+  "CBOE_HISTORICAL": {
+    "authority": "Cboe Futures Exchange",
+    "role": "Exchange-native historical VX settlement, volume, and open-interest audit source.",
+    "url": "https://www.cboe.com/us/futures/market_statistics/historical_data/"
+  },
+  "ICE_REPORT_CENTER": {
+    "authority": "Intercontinental Exchange",
+    "role": "Exchange-native end-of-day, settlement, volume, open-interest, and instrument reports.",
+    "url": "https://www.ice.com/marketdata/reports/285"
+  }
+}
