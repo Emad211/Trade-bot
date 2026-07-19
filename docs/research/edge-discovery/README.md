@@ -37,11 +37,11 @@ Admission authorizes research replication only. It does not authorize paper trad
 |---|---|---|
 | [2.1 — Anchor Papers, Opposing Evidence, Modern Updates, Data, and Replication-Code Selection](02-replication/02-01-anchor-opposition-code-selection.md) | Binding paper roles, exactness classes, official data routes, code-admission rules, table-level targets, and kill criteria | Complete |
 | [2.2 — Data, Timing, and Information-Contract Reconstruction](02-replication/02-02-data-timing-information-contract-reconstruction.md) | Availability clocks, immutable raw artifacts, source licenses, point-in-time instruments, futures rolls, regulator releases, crypto contract versions, lineage, costs, and acquisition decisions | Complete |
-| [2.3 — Current Controlling Status](02-replication/02-03-current-controlling-status.md) | Independently reverified implementation, first official CFTC raw acquisition, exact parser contract, dated pilot, remaining empirical gates | Partially complete — first official artifact and pilot verified; remaining gates open |
+| [2.3 — Current Controlling Status](02-replication/02-03-current-controlling-status.md) | Independently reverified implementation, official CFTC raw acquisition, exact parser, dated pilot, fail-closed release ledger, and remaining empirical gates | Partially complete — official artifact, pilot, and scheduled-release ledger verified; remaining gates open |
 | 2.4 — Sensitivity, Cost, Failure, and Disagreement Analysis | Conditional sensitivity analysis on numerically reconstructed evidence | Blocked until Report 2.3 artifact gates pass |
 | 2.5 | Replication dossier and continue/stop decisions | Planned |
 
-Report 2.1 selects what must be replicated. Report 2.2 freezes what each datum means and when it becomes usable. Report 2.3 now contains one real official CFTC raw artifact and a deterministic dated pilot, but it does not claim a paper-level numerical replication or an economic edge.
+Report 2.1 selects what must be replicated. Report 2.2 freezes what each datum means and when it becomes usable. Report 2.3 now contains one real official CFTC raw artifact, a deterministic dated pilot, and a 52-row fail-closed scheduled-release ledger. It does not claim verified historical actual release times, a paper-level numerical replication, or an economic edge.
 
 Report 2.2 machine-readable contracts:
 
@@ -59,9 +59,12 @@ Report 2.3 evidence and implementation:
 - [Static analysis, test, and coverage verification](02-replication/02-03-static-analysis-and-test-verification.md)
 - [Verified CFTC TFF acquisition and pilot evidence](02-replication/02-03-cftc-tff-2022-acquisition-and-pilot-evidence.md)
 - [Machine-readable CFTC TFF evidence](02-replication/02-03-cftc-tff-2022-evidence.yaml)
+- [Verified CFTC TFF release-ledger evidence](02-replication/02-03-cftc-tff-2022-release-ledger-evidence.md)
+- [Machine-readable CFTC release-ledger evidence](02-replication/02-03-cftc-tff-2022-release-ledger-evidence.yaml)
 - `.github/workflows/replication-integrity.yml`
 - `.github/workflows/cftc-tff-historical-2022-ingestion.yml`
 - `.github/workflows/cftc-tff-2022-pilot-derivation.yml`
+- `.github/workflows/cftc-tff-2022-release-ledger.yml`
 - `src/hybrid_trader/replication/`
 - `tests/test_replication_*.py`
 
@@ -72,6 +75,7 @@ Report 2.3 currently records:
 - the hardened local replication suite passed Ruff, strict mypy, 15 tests, 85.44% statement coverage, and compilation;
 - the dedicated CFTC annual-ZIP workflow passed in GitHub Actions;
 - the dedicated CFTC end-to-end acquisition/parser/pilot workflow passed in GitHub Actions;
+- the dedicated CFTC release-ledger workflow passed in GitHub Actions;
 - the official CFTC 2022 TFF Futures Only ZIP was acquired with raw SHA-256 `94c9c1f...88601`;
 - its only member, `FinFutYY.txt`, passed CRC and has SHA-256 `7c309cb7...8bb3b`;
 - the exact source schema has 87 fields and fingerprint `fe012305...45d42`;
@@ -79,7 +83,11 @@ Report 2.3 currently records:
 - 56 consolidated rows have recorded unit reconciliation differences, with no material accounting failure;
 - the `2022-09-13` pilot contains 54 unique market codes and zero reconciliation difference;
 - the canonical pilot CSV has SHA-256 `1be0028b...d268b`;
-- raw and derived bundles are staged in GitHub Actions artifacts until 2026-10-16;
+- the scheduled-release ledger contains 52 rows, is 16,914 bytes, and has SHA-256 `4196c144...ccb40`;
+- the release ledger identifies exactly two federal-holiday delays: report dates `2022-11-08` and `2022-11-22`;
+- all 52 `actual_release_time` fields remain empty and `actual_release_verified=false`;
+- the pilot timing contract records scheduled `2022-09-16T19:30:00Z`, provisional `2022-09-16T19:35:00Z`, and conservative `2022-09-19T19:30:00Z` availability;
+- release-ledger source and derived bundles are staged in GitHub Actions artifacts until 2026-10-17;
 - Actions staging is retention-limited and is not long-term immutable ingestion;
 - the CFTC PRE API identity is verified, but row-level cross-check is pending because repeated GitHub-runner calls returned HTTP 503;
 - AQR workbooks, Moreira–Muir factor artifacts, licensed traditional-futures histories, Chi et al. source data, and Binance/OKX pilot artifacts remain unavailable or un-ingested;
@@ -150,6 +158,8 @@ Five leaf reports form one section-level synthesis. The five section syntheses f
 - API reachability is not immutable ingestion.
 - Raw acquisition is not immutable ingestion until checksum, retrieval, license, and storage evidence exist.
 - Actions staging is not long-term immutable storage.
+- A scheduled release time is not a verified actual historical release time.
+- Provisional availability is not conservative availability.
 - A derived-data pass is not an artifact-audit pass.
 - An artifact-audit pass is not a paper-replication pass.
 - A paper-replication pass is not an economic-edge pass.
