@@ -257,7 +257,7 @@ def _parse_numeric_block(
     rows: Sequence[Sequence[str]], columns: Sequence[str], *, label: str
 ) -> tuple[dict[str, list[float]], dict[str, int]]:
     sentinel_counts = {sentinel: 0 for sentinel in sorted(MISSING_SENTINELS)}
-    data = {column: [] for column in columns}
+    data: dict[str, list[float]] = {column: [] for column in columns}
     for row in rows:
         for index, column in enumerate(columns, start=1):
             cell = row[index]
