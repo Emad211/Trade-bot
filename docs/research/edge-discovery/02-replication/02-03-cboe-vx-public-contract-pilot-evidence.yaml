@@ -1,0 +1,163 @@
+schema_version: "1.0"
+evidence_id: CBOE_VX_PUBLIC_CONTRACT_LEVEL_PILOT_V1
+evidence_date: "2026-07-19"
+status: CONTRACT_LEVEL_ACQUISITION_AND_PARSER_VERIFIED_RAW_RETENTION_AND_PRICE_LINKAGE_BLOCKED
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+issue: 43
+hypothesis: EDGE-FUT-POSITION-001
+
+negative_daily_settlement_endpoint:
+  requested_date: "2022-09-16"
+  byte_count: 38
+  sha256: fb3907637b20ec51927e44bd0c06628cc47fb9cde8f317c743131a779dbaf39d
+  header: "Product,Symbol,Expiration Date,Price"
+  data_rows: 0
+  verdict: REJECTED_FOR_HISTORICAL_2022_PILOT
+  quarantine_run_id: 29696287344
+  quarantine_artifact_id: 8445088746
+  quarantine_artifact_digest: 9336393ff70e79b78dfafdbb97ec3c59ea41991923117ed3726d223547c2a42b
+  retention_expiry: "2026-10-17"
+
+source_authority: Cboe Futures Exchange
+product_root: VX
+source_schema:
+  fields:
+    - Trade Date
+    - Futures
+    - Open
+    - High
+    - Low
+    - Close
+    - Settle
+    - Change
+    - Total Volume
+    - EFP
+    - Open Interest
+  sha256: 7ec53b473b1418928b26414f98e433de7886cf501fedc56a31e70a7a913af3f2
+
+contracts:
+  - filename: VX_2022-09-21.csv
+    expiry: "2022-09-21"
+    identity: "U (Sep 2022)"
+    byte_count: 15819
+    sha256: a74598b17c5e92b068ee46ee38aefdfe8423d62153bee7d879ff4eddc2fbb626
+    row_count: 186
+    first_trade_date: "2021-12-27"
+    last_trade_date: "2022-09-21"
+    settlement_close_difference_count: 182
+  - filename: VX_2022-10-19.csv
+    expiry: "2022-10-19"
+    identity: "V (Oct 2022)"
+    byte_count: 15850
+    sha256: 270abe0333366e5395d88d6e56da51fa403962f03229d119a8208ece339c778d
+    row_count: 187
+    first_trade_date: "2022-01-24"
+    last_trade_date: "2022-10-19"
+    settlement_close_difference_count: 182
+
+pilot:
+  version: CBOE_VX_PUBLIC_CONTRACT_LEVEL_PILOT_V1
+  start: "2022-09-01"
+  end: "2022-09-30"
+  contract_count: 2
+  row_count: 35
+  rows_by_expiry:
+    "2022-09-21": 14
+    "2022-10-19": 21
+  settlement_close_difference_count_full_sources: 364
+  csv_byte_count: 12340
+  csv_sha256: ebe1326a06bc7c11a96e4ca2d489ddba74c73965653991017a958e6ce6f13ad0
+  deterministic_manifest_byte_count: 2153
+  deterministic_manifest_sha256: 6b04d359de6030f11dcdc49cd8c1a401448879f472dbcf0b3d172e5d905f6b34
+  continuous_series_used: false
+  back_adjustment_used: false
+  returns_computed: false
+
+implementation:
+  module: src/hybrid_trader/replication/cboe_vx_public.py
+  entrypoint: scripts/build_cboe_vx_public_contract_pilot.py
+  tests: tests/test_cboe_vx_public.py
+  workflow: .github/workflows/cboe-vx-public-contract-pilot.yml
+  local_pytest: 8_passed
+  local_compileall: PASS
+
+hosted_verification:
+  workflow_name: Cboe VX Public Contract Pilot
+  run_id: 29696828324
+  conclusion: SUCCESS
+  branch_commit: 6fc082c5e8465a695cd95db3e763e2545a554b43
+  pull_request_merge_commit: 20d6a59b707da4aaf9d6226562b41fffaa651a35
+  ruff: PASS
+  mypy_strict: PASS
+  pytest: 8_passed
+  official_acquisition: PASS
+  parser: PASS
+  independent_verification: PASS
+  restricted_content_removed_before_upload: PASS
+
+license_snapshot:
+  website_terms:
+    byte_count: 403966
+    sha256: cb177fa2e8937d6390fab2098428135c7f037c98ad5495d0e3833b0a87063572
+  use_of_content:
+    byte_count: 345651
+    sha256: d9bda804159f65f732409aa0743915a1e0e0e4e36976b86f10ab95963cf55f5d
+  raw_redistribution_authorized: false
+  public_redisplay_authorized: false
+  internal_research_status: PENDING_FORMAL_LICENSE_INTERPRETATION
+
+safe_artifacts:
+  evidence_bundle:
+    artifact_id: 8445247846
+    digest: f87327eb392cc84baeb0dd33669becc0837d0a4972586dcf7ee83dd7b17c360b
+    retention_expiry: "2026-10-17"
+    files:
+      - cboe-vx-public-pilot-evidence.json
+    internal_file_byte_count: 4245
+    internal_file_sha256: 0c32035b9e4c8a30e079d9f5e7760e58fa427312c83a8dbd97889d76fe8b341a
+  receipt:
+    artifact_id: 8445247974
+    digest: 8a62084dcae1a1d788ac2ce16a1b191f501172731775648a2229f3b7cf8f0c91
+    retention_expiry: "2026-10-17"
+    internal_file_byte_count: 847
+    internal_file_sha256: 9e04384c52e4ec7ae8828fcc7842a6c9638411f1b9f3fbd739279a11b1829646
+  storage_state: ACTIONS_SAFE_EVIDENCE_ONLY_RETENTION_90_DAYS
+  raw_contract_files_uploaded: false
+  derived_price_rows_uploaded: false
+  terms_html_uploaded: false
+  independently_rehashed: true
+
+current_gates:
+  official_source_identity: CONFIRMED
+  exact_raw_acquisition_during_run: CONFIRMED
+  exact_parser: CONFIRMED
+  explicit_settlement_field: CONFIRMED
+  continuous_series_excluded: CONFIRMED
+  back_adjustment_excluded: CONFIRMED
+  raw_retention: INCOMPLETE
+  license_interpretation: OPEN
+  historical_price_availability_timing: OPEN
+  canonical_price_linkage: NOT_AUTHORIZED
+  returns: NOT_AUTHORIZED
+  paper_replication: NOT_COMPLETE
+  economic_edge: NOT_ESTABLISHED
+  report_2_4: BLOCKED
+
+authorization:
+  source_engineering: true
+  parser_maintenance: true
+  schema_and_formula_tests: true
+  license_research: true
+  historical_availability_research: true
+  raw_publication: false
+  raw_long_term_retention: false
+  canonical_price_linkage: false
+  return_computation: false
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_tournament: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
