@@ -41,17 +41,24 @@ jobs:
           test -s tests/test_databento_metadata_probe.py
           test -s .github/workflows/databento-zero-purchase-metadata-probe.yml
 
-      - name: Commit generated source files
+      - name: Upload permanent workflow for connector handoff
+        uses: actions/upload-artifact@v7
+        with:
+          name: databento-zero-purchase-permanent-workflow-${{ github.sha }}
+          path: .github/workflows/databento-zero-purchase-metadata-probe.yml
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Commit generated Python and test files
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add \
             src/hybrid_trader/replication/databento_metadata_probe.py \
             scripts/run_databento_zero_purchase_probe.py \
-            tests/test_databento_metadata_probe.py \
-            .github/workflows/databento-zero-purchase-metadata-probe.yml
+            tests/test_databento_metadata_probe.py
           if git diff --cached --quiet; then
-            echo "No generated changes to commit"
+            echo "No generated source changes to commit"
             exit 0
           fi
           git commit -m "Add authenticated zero-purchase Databento metadata probe"
