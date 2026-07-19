@@ -38,12 +38,13 @@ Admission authorizes research replication only. It does not authorize paper trad
 | [2.1 — Anchor Papers, Opposing Evidence, Modern Updates, Data, and Replication-Code Selection](02-replication/02-01-anchor-opposition-code-selection.md) | Binding paper roles, exactness classes, official data routes, code-admission rules, table-level targets, and kill criteria | Complete |
 | [2.2 — Data, Timing, and Information-Contract Reconstruction](02-replication/02-02-data-timing-information-contract-reconstruction.md) | Availability clocks, immutable raw artifacts, source licenses, point-in-time instruments, futures rolls, regulator releases, crypto contract versions, lineage, costs, and acquisition decisions | Complete |
 | [2.3 — Current Controlling Status](02-replication/02-03-current-controlling-status.md) | Official CFTC acquisition, parser, dated pilot, release ledger, versioned product registry, and remaining empirical gates | Partially complete |
-| [2.3 — Provider-Gate Controlling Addendum](02-replication/02-03-provider-gate-controlling-addendum.md) | Provider requirements, primary candidate selection, authenticated zero-purchase probe design, and fail-closed price authorization | Candidate selected; provider not accepted |
-| [2.3 — Provider-Probe Controlling Addendum](02-replication/02-03-provider-probe-controlling-addendum.md) | Permanent zero-purchase client and workflow, verified blocker artifact, and secure secret requirement | Implementation verified; authenticated execution blocked by missing `DATABENTO_API_KEY` |
+| [2.3 — Provider-Gate Controlling Addendum](02-replication/02-03-provider-gate-controlling-addendum.md) | Provider requirements and fail-closed price authorization | Historical snapshot; superseded where conflicting |
+| [2.3 — Provider-Probe Controlling Addendum](02-replication/02-03-provider-probe-controlling-addendum.md) | Permanent Databento zero-purchase probe and verified missing-secret blocker | Historical verified blocker; provider subsequently rejected for owner accessibility |
+| [2.3 — Owner-Accessible Exchange-Native Source Pivot](02-replication/02-03-owner-accessible-exchange-native-source-pivot.md) | Owner-accessibility gate, Databento operational rejection, Cboe/CME/ICE public-source decisions, and VX pilot handoff | Current controlling provider-source decision |
 | 2.4 — Sensitivity, Cost, Failure, and Disagreement Analysis | Conditional sensitivity analysis on numerically reconstructed evidence | Blocked until Report 2.3 artifact and price-linkage gates pass |
 | 2.5 | Replication dossier and continue/stop decisions | Planned |
 
-Report 2.1 selects what must be replicated. Report 2.2 freezes what each datum means and when it becomes usable. Report 2.3 now contains a real official CFTC raw artifact, an exact parser, a deterministic dated pilot, a fail-closed scheduled-release ledger, a 54-row reporting-to-product registry, a verified provider-candidate plan, and a permanent hosted metadata-probe gate. The trusted probe run correctly stopped before authentication because the repository secret was missing. The program does not claim verified historical actual release times, an accepted provider, authenticated provider contract-chain identities, prices, returns, a paper-level numerical replication, or an economic edge.
+Report 2.1 selects what must be replicated. Report 2.2 freezes what each datum means and when it becomes usable. Report 2.3 contains a real official CFTC raw artifact, an exact parser, a deterministic dated pilot, a fail-closed scheduled-release ledger, and a 54-row reporting-to-product registry. Databento was technically evaluated but is now operationally rejected because the required account, payment, or banking path is not practically accessible to the project owner. The program has pivoted to owner-accessible exchange-native sources and has authorized a bounded public Cboe VX acquisition-and-validation pilot. It does not claim verified historical actual release times, accepted cross-market price providers, provider contract-chain identities, returns, a paper-level numerical replication, or an economic edge.
 
 Report 2.2 machine-readable contracts:
 
@@ -55,6 +56,8 @@ Report 2.2 machine-readable contracts:
 Report 2.3 evidence and implementation:
 
 - [Current controlling status](02-replication/02-03-current-controlling-status.md)
+- [Owner-accessible exchange-native source pivot](02-replication/02-03-owner-accessible-exchange-native-source-pivot.md)
+- [Machine-readable owner-accessible source pivot](02-replication/02-03-owner-accessible-exchange-native-source-pivot.yaml)
 - [Provider-gate controlling addendum](02-replication/02-03-provider-gate-controlling-addendum.md)
 - [Provider-probe controlling addendum](02-replication/02-03-provider-probe-controlling-addendum.md)
 - [Initial controlled execution snapshot](02-replication/02-03-controlled-empirical-and-code-replication.md)
@@ -69,8 +72,6 @@ Report 2.3 evidence and implementation:
 - [Machine-readable CFTC instrument-registry evidence](02-replication/02-03-cftc-tff-2022-instrument-registry-evidence.yaml)
 - [Provider-candidate and point-in-time price-linkage evidence](02-replication/02-03-provider-price-linkage-candidate-evidence.md)
 - [Machine-readable provider-candidate evidence](02-replication/02-03-provider-price-linkage-candidate-evidence.yaml)
-- [Provider price-linkage candidate contract](02-replication/02-03-provider-price-linkage-candidate-contract.yaml)
-- [Official provider and exchange-native source registry](02-replication/02-03-provider-price-linkage-official-sources.json)
 - [Databento zero-purchase probe evidence](02-replication/02-03-databento-zero-purchase-probe-evidence.md)
 - [Machine-readable Databento probe evidence](02-replication/02-03-databento-zero-purchase-probe-evidence.yaml)
 - [Versioned official CFTC mapping-source registry](02-replication/02-03-cftc-tff-instrument-mapping-sources.json)
@@ -106,22 +107,20 @@ Report 2.3 currently records:
 - all 52 historical actual-release fields remain unverified and null;
 - the versioned instrument registry contains 54 unique reporting-code rows, is 38,903 bytes, and has SHA-256 `70a8e89d...25c74`;
 - 47 rows have historical screen-tradable product roots, three are non-tradable consolidated aggregates, two are historical later-delisted products, one is a nonstandard execution product, and one still requires a technical provider symbol;
-- the provider-candidate plan contains 54 rows, is 28,918 bytes, and has SHA-256 `cd2430c7...74062`;
-- Databento is the primary technical integration candidate but is not an accepted provider;
-- theoretical ordinary-root candidate coverage is 43 rows through `GLBX.MDP3`, three through `IFUS.IMPACT`, and one through `XCBF.PITCH`;
-- a representative probe request exists for `ZN`, `ES`, `NIY`, `DX`, and `VX`;
-- permanent probe run `29690453120` passed Ruff, strict mypy, seven tests, gate evaluation, invariant checks, and artifact upload;
-- that run produced the exact status `BLOCKED_MISSING_DATABENTO_API_KEY` and executed zero provider operations;
-- the probe request has SHA-256 `1ee06f91...57210`, evidence has SHA-256 `f7eacf6c...3524f`, and summary has SHA-256 `57153160...41332`;
-- the probe bundle artifact `8443402212` and receipt `8443402318` are staged until 2026-10-17 and were independently rehashed;
-- the provider gate continues to authorize zero spending, no purchase, no provider contract IDs, no price linkage, and no returns;
+- the Databento candidate and zero-purchase client were implemented and tested, but authenticated provider access was unavailable;
+- Databento is classified `OPERATIONALLY_REJECTED_OWNER_ACCESS_CONSTRAINT` and Issue #42 is closed as not planned;
+- fabricated identity, borrowed cards, third-party accounts, credential sharing, and payment or jurisdiction circumvention are prohibited;
+- Cboe public contract-level VX history is the next executable acquisition candidate under Issue #43;
+- CME public delayed pages may support current reference checks, but owner-accessible 2022 historical flat-file retrieval remains unverified;
+- ICE public reports may support isolated verification, while complete historical End-of-Day packages remain blocked where purchase or subscription is required;
+- all provider contract identifiers remain empty and zero rows authorize price linkage or returns;
 - all Actions staging remains retention-limited and is not long-term immutable ingestion;
 - the CFTC PRE API identity is verified, but row-level cross-check remains pending because repeated GitHub-runner calls returned HTTP 503;
 - AQR workbooks, Moreira–Muir factor artifacts, licensed traditional-futures histories, Chi et al. source data, and Binance/OKX pilot artifacts remain unavailable or un-ingested;
 - no paper-level numerical replication is complete;
 - all six empirical edge verdicts remain `INCONCLUSIVE`.
 
-Secure secret configuration and a metadata-only rerun are authorized. Provider purchase, price assignment, returns computation, empirical fitting, parameter tuning, a strategy tournament, paper trading, live trading, leverage, and capital deployment remain unauthorized.
+Public Cboe VX acquisition, parser design, terms capture, checksum/lineage work, and same-contract formula validation are authorized. CME public-access probing and isolated ICE public-report probing are authorized. Provider purchase, unavailable payment workarounds, price assignment, empirical return computation, fitting, parameter tuning, strategy tournaments, paper trading, live trading, leverage, and capital deployment remain unauthorized.
 
 ### 3. Dataset and Experiment System
 
@@ -173,7 +172,7 @@ Five leaf reports form one section-level synthesis. The five section syntheses f
 - Negative results are retained permanently.
 - Historical evidence can qualify a candidate for prospective testing but cannot prove a live edge.
 - No strategy is promoted because it uses a complex model, a famous paper, or a high backtest Sharpe ratio.
-- Data availability time, executable prices, realistic costs, failure modes, and capacity are part of the hypothesis itself.
+- Data availability time, executable prices, realistic costs, failure modes, capacity, and owner accessibility are part of the hypothesis itself.
 - Primitive effects must be reported separately before signal integration.
 - Exact, near-exact, constructive, and theoretical reproductions are separate experiment identities.
 - No hypothesis may skip its strongest selected opposing evidence.
@@ -188,6 +187,8 @@ Five leaf reports form one section-level synthesis. The five section syntheses f
 - A scheduled release time is not a verified actual historical release time.
 - A CFTC reporting code is not automatically a tradable instrument.
 - A product root is not a provider contract-chain identity.
+- A technically suitable provider that is inaccessible to the owner is not an actionable provider.
+- False identity, borrowed payment instruments, third-party accounts, credential sharing, and payment or jurisdiction circumvention are prohibited.
 - A provider candidate is not an accepted provider.
 - A parent symbol is only a lookup key until point-in-time child resolution is verified.
 - A cost endpoint is not purchase authorization.
