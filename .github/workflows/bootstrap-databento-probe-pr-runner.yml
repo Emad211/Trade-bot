@@ -33,6 +33,10 @@ jobs:
           echo "c4e5cb7ccb26e44292b77813c9f6dfa6b95289c6f626cc62c2113747cfdaebad  /tmp/databento-probe-bundle.tar.gz" \
             | sha256sum -c -
           tar -xzf /tmp/databento-probe-bundle.tar.gz -C .
+          sed -i 's/  # noqa: BLE001 - provider errors must be persisted//' \
+            src/hybrid_trader/replication/databento_metadata_probe.py
+          sed -i 's/  # noqa: BLE001 - write sanitized initialization failure//' \
+            src/hybrid_trader/replication/databento_metadata_probe.py
 
       - name: Verify generated files
         run: |
@@ -61,5 +65,5 @@ jobs:
             echo "No generated source changes to commit"
             exit 0
           fi
-          git commit -m "Add authenticated zero-purchase Databento metadata probe"
+          git commit -m "Fix Databento probe lint suppressions"
           git push origin HEAD:agent/edge-research-reports
