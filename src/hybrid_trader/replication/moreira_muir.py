@@ -52,6 +52,7 @@ FACTOR_PAIRS: Mapping[str, tuple[str, str]] = {
 LATE_START_PAIRS = ("RMW", "CMA")
 EXPECTED_LATE_START_MISSING_COUNT = 439
 VOLATILITY_MATCH_RELATIVE_TOLERANCE = 0.025
+SAFE_METRIC_DECIMAL_PLACES = 12
 REQUIRED_AUTHOR_PAGE_PHRASES = (
     "Volatility-Managed Factor Returns",
     "Returns are in percent",
@@ -266,11 +267,17 @@ def factor_pair_audits(frame: pd.DataFrame) -> tuple[FactorPairAudit, ...]:
                 overlap_count=len(selected),
                 first_overlap_month=first_month,
                 last_overlap_month=last_month,
-                managed_standard_deviation_percent=managed_std,
-                unmanaged_standard_deviation_percent=unmanaged_std,
-                standard_deviation_ratio=ratio,
-                relative_standard_deviation_error=relative_error,
-                correlation=correlation,
+                managed_standard_deviation_percent=round(
+                    managed_std, SAFE_METRIC_DECIMAL_PLACES
+                ),
+                unmanaged_standard_deviation_percent=round(
+                    unmanaged_std, SAFE_METRIC_DECIMAL_PLACES
+                ),
+                standard_deviation_ratio=round(ratio, SAFE_METRIC_DECIMAL_PLACES),
+                relative_standard_deviation_error=round(
+                    relative_error, SAFE_METRIC_DECIMAL_PLACES
+                ),
+                correlation=round(correlation, SAFE_METRIC_DECIMAL_PLACES),
                 volatility_match_within_tolerance=(
                     relative_error <= VOLATILITY_MATCH_RELATIVE_TOLERANCE
                 ),

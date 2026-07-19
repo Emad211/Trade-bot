@@ -10,6 +10,7 @@ import pytest
 
 from hybrid_trader.replication.moreira_muir import (
     EXPECTED_HEADER,
+    SAFE_METRIC_DECIMAL_PLACES,
     VOLATILITY_MATCH_RELATIVE_TOLERANCE,
     factor_pair_audits,
     parse_official_factor_bytes,
@@ -122,6 +123,24 @@ def test_volatility_match_failure_is_reported_not_hidden() -> None:
     audit = factor_pair_audits(frame)[0]
     assert audit.relative_standard_deviation_error > VOLATILITY_MATCH_RELATIVE_TOLERANCE
     assert audit.volatility_match_within_tolerance is False
+
+
+def test_safe_metrics_are_canonicalized() -> None:
+    frame = parse_official_factor_bytes(make_csv(), require_exact_snapshot=False)
+    for audit in factor_pair_audits(frame):
+        assert audit.managed_standard_deviation_percent == round(
+            audit.managed_standard_deviation_percent, SAFE_METRIC_DECIMAL_PLACES
+        )
+        assert audit.unmanaged_standard_deviation_percent == round(
+            audit.unmanaged_standard_deviation_percent, SAFE_METRIC_DECIMAL_PLACES
+        )
+        assert audit.standard_deviation_ratio == round(
+            audit.standard_deviation_ratio, SAFE_METRIC_DECIMAL_PLACES
+        )
+        assert audit.relative_standard_deviation_error == round(
+            audit.relative_standard_deviation_error, SAFE_METRIC_DECIMAL_PLACES
+        )
+        assert audit.correlation == round(audit.correlation, SAFE_METRIC_DECIMAL_PLACES)
 
 
 def test_author_page_requires_unit_and_scaling_description() -> None:
