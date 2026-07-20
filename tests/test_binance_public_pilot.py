@@ -178,3 +178,28 @@ def test_exact_archive_header_is_admitted() -> None:
     profile, _ = bp.validate(sp, raw, checksum(sp.filename, raw))
     assert profile.header is True
     assert profile.schema_sha256 == bp.schema_hash(bp.KLINE)
+
+
+def test_one_millisecond_funding_jitter_is_recorded() -> None:
+    spec_value = spec("FUNDING", 3)
+    stream = io.StringIO(newline="")
+    writer = csv.writer(stream, lineterminator="\n")
+    writer.writerow([bp.START, 8, "0.0001"])
+    writer.writerow([bp.START + 28_800_001, 8, "0.0001"])
+    writer.writerow([bp.START + 57_600_000, 8, "0.0001"])
+    raw = z("x.csv", stream.getvalue().encode())
+    profile, _ = bp.validate(spec_value, raw, checksum(spec_value.filename, raw))
+    assert profile.cadence_breaks == 0
+    assert profile.exact_cadence_deviation_count == 2
+    assert profile.max_abs_cadence_jitter_ms == 1
+
+
+def test_two_millisecond_funding_jitter_is_rejected() -> None:
+    spec_value = spec("FUNDING", 2)
+    stream = io.StringIO(newline="")
+    writer = csv.writer(stream, lineterminator="\n")
+    writer.writerow([bp.START, 8, "0.0001"])
+    writer.writerow([bp.START + 28_800_002, 8, "0.0001"])
+    raw = z("x.csv", stream.getvalue().encode())
+    with pytest.raises(bp.PilotError, match="material funding cadence jitter"):
+        bp.validate(spec_value, raw, checksum(spec_value.filename, raw))
