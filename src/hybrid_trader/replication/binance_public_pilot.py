@@ -33,10 +33,10 @@ KLINE = (
     "close",
     "volume",
     "close_time",
-    "quote_asset_volume",
-    "number_of_trades",
-    "taker_buy_base_asset_volume",
-    "taker_buy_quote_asset_volume",
+    "quote_volume",
+    "count",
+    "taker_buy_volume",
+    "taker_buy_quote_volume",
     "ignore",
 )
 FUNDING = ("calc_time", "funding_interval_hours", "last_funding_rate")
@@ -433,7 +433,10 @@ def run(output: Path) -> dict[str, Any]:
     parsed = []
     now = datetime.now(UTC)
     for spec in SPECS:
-        p, t = validate(spec, fetch(spec.url), fetch(spec.checksum_url))
+        try:
+            p, t = validate(spec, fetch(spec.url), fetch(spec.checksum_url))
+        except PilotError as exc:
+            raise PilotError(f"{spec.source_id}: {exc}") from exc
         parsed.append((spec, p, t))
     result = evidence(parsed, now)
     output.mkdir(parents=True, exist_ok=True)
