@@ -1,0 +1,195 @@
+name: OKX Public Funding Metadata Pilot
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/okx-public-funding-metadata-pilot.yml
+      - src/hybrid_trader/replication/okx_public_funding_probe.py
+      - scripts/probe_okx_public_funding.py
+      - tests/test_okx_public_funding_probe.py
+      - docs/research/edge-discovery/02-replication/02-03-crypto-official-source-license-and-access-selection.*
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - .github/workflows/okx-public-funding-metadata-pilot.yml
+      - src/hybrid_trader/replication/okx_public_funding_probe.py
+      - scripts/probe_okx_public_funding.py
+      - tests/test_okx_public_funding_probe.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: okx-public-funding-metadata-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-probe-and-publish-safe-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Check out the triggering commit
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install project and verification tools
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev,replication]"
+
+      - name: Run project lint rules
+        run: >-
+          python -m ruff check
+          src/hybrid_trader/replication/okx_public_funding_probe.py
+          scripts/probe_okx_public_funding.py
+          tests/test_okx_public_funding_probe.py
+
+      - name: Run strict typing
+        run: >-
+          python -m mypy --strict --ignore-missing-imports
+          src/hybrid_trader/replication/okx_public_funding_probe.py
+
+      - name: Run bounded probe tests
+        run: python -m pytest -q tests/test_okx_public_funding_probe.py
+
+      - name: Run official unauthenticated low-volume probe
+        run: >-
+          python scripts/probe_okx_public_funding.py
+          --output-dir build/okx-public-funding-safe-evidence
+
+      - name: Independently verify safe evidence and absence of raw market rows
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path("build/okx-public-funding-safe-evidence")
+          files = sorted(path for path in root.rglob("*") if path.is_file())
+          expected = [root / "okx-funding-probe-evidence.json"]
+          if files != expected:
+              raise SystemExit(f"Unexpected evidence files: {files}")
+          evidence_path = expected[0]
+          evidence_bytes = evidence_path.read_bytes()
+          evidence = json.loads(evidence_bytes)
+          required = {
+              "source_id",
+              "official_host",
+              "endpoint_path",
+              "instrument_id",
+              "requested_limit",
+              "request_fingerprint_sha256",
+              "retrieved_at",
+              "http_status",
+              "content_type",
+              "response_byte_count",
+              "response_sha256",
+              "api_code",
+              "row_count",
+              "schema_fields",
+              "schema_sha256",
+              "min_funding_time_ms",
+              "max_funding_time_ms",
+              "unique_funding_times",
+              "timestamp_order",
+              "observed_interval_seconds_counts",
+              "raw_rows_persisted",
+              "raw_rows_published",
+              "returns_computed",
+              "economic_edge_verdict",
+          }
+          if set(evidence) != required | {"schema_version"}:
+              raise SystemExit("Safe evidence schema changed")
+          if evidence["official_host"] != "www.okx.com":
+              raise SystemExit("Unexpected host")
+          if evidence["endpoint_path"] != "/api/v5/public/funding-rate-history":
+              raise SystemExit("Unexpected endpoint")
+          if evidence["instrument_id"] != "BTC-USDT-SWAP":
+              raise SystemExit("Unexpected instrument")
+          if evidence["requested_limit"] != 100:
+              raise SystemExit("Request bound changed")
+          if evidence["http_status"] != 200 or evidence["api_code"] != "0":
+              raise SystemExit("Official endpoint did not succeed")
+          if not (1 <= evidence["row_count"] <= 100):
+              raise SystemExit("Unexpected row count")
+          if evidence["unique_funding_times"] != evidence["row_count"]:
+              raise SystemExit("Funding timestamps are not unique")
+          if evidence["timestamp_order"] not in {"ASCENDING", "DESCENDING"}:
+              raise SystemExit("Timestamp order is invalid")
+          if evidence["min_funding_time_ms"] >= evidence["max_funding_time_ms"]:
+              raise SystemExit("Funding time range is invalid")
+          if evidence["raw_rows_persisted"] is not False:
+              raise SystemExit("Raw rows were persisted")
+          if evidence["raw_rows_published"] is not False:
+              raise SystemExit("Raw rows were marked for publication")
+          if evidence["returns_computed"] is not False:
+              raise SystemExit("Probe computed returns")
+          if evidence["economic_edge_verdict"] != "INCONCLUSIVE":
+              raise SystemExit("Probe changed the economic verdict")
+          forbidden_keys = {
+              "data",
+              "rows",
+              "funding_rates",
+              "realized_rates",
+              "raw_body",
+              "raw_response",
+          }
+          if forbidden_keys & set(evidence):
+              raise SystemExit("Evidence contains raw or reconstructable market rows")
+          text = evidence_path.read_text(encoding="utf-8")
+          if '"fundingRate":' in text or '"realizedRate":' in text:
+              raise SystemExit("Evidence leaked funding-rate values")
+          receipt = {
+              "schema_version": "1.0",
+              "workflow": "OKX Public Funding Metadata Pilot",
+              "commit_sha": "${{ github.sha }}",
+              "run_id": "${{ github.run_id }}",
+              "safe_evidence_filename": evidence_path.name,
+              "safe_evidence_byte_count": len(evidence_bytes),
+              "safe_evidence_sha256": hashlib.sha256(evidence_bytes).hexdigest(),
+              "raw_market_rows_uploaded": False,
+              "raw_market_rows_persisted": False,
+              "returns_computed": False,
+              "paper_replication_pass": False,
+              "economic_edge_verdict": "INCONCLUSIVE",
+          }
+          (root / "safe-evidence-receipt.json").write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps({"evidence": evidence, "receipt": receipt}, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload safe metadata evidence only
+        id: upload_safe_evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: okx-public-funding-safe-evidence-${{ github.sha }}
+          path: build/okx-public-funding-safe-evidence/
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Record non-promotional workflow summary
+        run: |
+          {
+            echo "## OKX public funding metadata pilot"
+            echo
+            echo "- Official public endpoint: validated"
+            echo "- Authentication used: no"
+            echo "- Instrument: BTC-USDT-SWAP"
+            echo "- Maximum response rows: 100"
+            echo "- Raw market rows persisted: no"
+            echo "- Raw market rows uploaded: no"
+            echo "- Safe metadata evidence uploaded: yes"
+            echo "- Historical 2022 funding dataset: not acquired"
+            echo "- Returns computed: no"
+            echo "- Economic edge: not established"
+          } >> "$GITHUB_STEP_SUMMARY"
