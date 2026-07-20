@@ -1,0 +1,323 @@
+name: Binance BTCUSDT Public Ephemeral Pilot
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/binance-btcusdt-public-ephemeral-pilot.yml
+      - src/hybrid_trader/replication/binance_public_pilot.py
+      - scripts/validate_binance_btcusdt_public_pilot.py
+      - tests/test_binance_public_pilot.py
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - .github/workflows/binance-btcusdt-public-ephemeral-pilot.yml
+      - src/hybrid_trader/replication/binance_public_pilot.py
+      - scripts/validate_binance_btcusdt_public_pilot.py
+      - tests/test_binance_public_pilot.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: binance-btcusdt-public-ephemeral-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-without-retaining-market-rows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Check out the triggering commit
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install project and verification tools
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+
+      - name: Run scoped Ruff checks
+        run: >-
+          python -m ruff check
+          src/hybrid_trader/replication/binance_public_pilot.py
+          scripts/validate_binance_btcusdt_public_pilot.py
+          tests/test_binance_public_pilot.py
+
+      - name: Run strict typing
+        run: >-
+          python -m mypy --strict --ignore-missing-imports
+          src/hybrid_trader/replication/binance_public_pilot.py
+
+      - name: Run bounded pilot unit tests
+        run: python -m pytest -q tests/test_binance_public_pilot.py
+
+      - name: Run ephemeral official-data validation with transient retries
+        id: pilot
+        shell: bash
+        run: |
+          mkdir -p build/diagnostics build/binance-safe-evidence
+          : > build/diagnostics/pilot.txt
+          code=1
+          set +e
+          for attempt in 1 2 3 4 5; do
+            {
+              echo "=== attempt ${attempt} ==="
+              python scripts/validate_binance_btcusdt_public_pilot.py \
+                --output-dir build/binance-safe-evidence
+            } >> build/diagnostics/pilot.txt 2>&1
+            code=$?
+            if [[ $code -eq 0 ]]; then
+              break
+            fi
+            if grep -Eq "HTTP Error (429|500|502|503|504)|download failed|URLError|timed out|Temporary failure" build/diagnostics/pilot.txt; then
+              if [[ $attempt -lt 5 ]]; then
+                sleep $((attempt * 3))
+                continue
+              fi
+            fi
+            break
+          done
+          cat build/diagnostics/pilot.txt
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload failure diagnostics only
+        if: ${{ steps.pilot.outputs.exit_code != '0' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: binance-btcusdt-public-pilot-diagnostics-${{ github.sha }}
+          path: build/diagnostics/pilot.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Enforce ephemeral validation result
+        if: ${{ steps.pilot.outputs.exit_code != '0' }}
+        run: exit 1
+
+      - name: Independently verify safe evidence structure and gates
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          path = Path(
+              "build/binance-safe-evidence/"
+              "binance-btcusdt-public-ephemeral-pilot-evidence.json"
+          )
+          if not path.is_file() or not 0 < path.stat().st_size < 100_000:
+              raise SystemExit("Missing, empty, or oversized safe evidence file")
+          evidence = json.loads(path.read_text(encoding="utf-8"))
+          expected_ids = [
+              "SPOT_KLINES",
+              "UM_KLINES",
+              "UM_MARK",
+              "UM_INDEX",
+              "UM_PREMIUM",
+              "UM_FUNDING",
+          ]
+          allowed_source_keys = {
+              "source_id",
+              "data_type",
+              "zip_sha256",
+              "zip_bytes",
+              "provider_sha256",
+              "member",
+              "member_sha256",
+              "member_bytes",
+              "schema_fields",
+              "schema_sha256",
+              "header",
+              "rows",
+              "first_ms",
+              "last_ms",
+              "cadence_ms",
+              "cadence_breaks",
+              "market",
+              "symbol",
+              "interval",
+              "source_url",
+              "checksum_url",
+          }
+          if evidence["pilot_version"] != "BINANCE_BTCUSDT_PUBLIC_EPHEMERAL_PILOT_V1":
+              raise SystemExit("Unexpected pilot version")
+          if evidence["pilot_month"] != "2024-01" or evidence["source_count"] != 6:
+              raise SystemExit("Unexpected pilot month or source count")
+          sources = evidence["sources"]
+          if [source["source_id"] for source in sources] != expected_ids:
+              raise SystemExit("Source identity or order changed")
+          for source in sources:
+              if set(source) != allowed_source_keys:
+                  raise SystemExit(
+                      f"Unsafe or unexpected source evidence keys: {sorted(set(source) - allowed_source_keys)}"
+                  )
+              if source["provider_sha256"] != source["zip_sha256"]:
+                  raise SystemExit(f"Provider checksum mismatch for {source['source_id']}")
+              if source["cadence_breaks"] != 0:
+                  raise SystemExit(f"Cadence failure for {source['source_id']}")
+              if source["symbol"] != "BTCUSDT":
+                  raise SystemExit("Unexpected symbol")
+              if source["source_id"] == "UM_FUNDING":
+                  if source["rows"] != 93 or source["schema_fields"] != 3:
+                      raise SystemExit("Unexpected funding profile")
+                  if source["first_ms"] != 1704067200000:
+                      raise SystemExit("Unexpected first funding timestamp")
+                  if source["last_ms"] != 1706716800000:
+                      raise SystemExit("Unexpected last funding timestamp")
+              else:
+                  if source["rows"] != 744 or source["schema_fields"] != 12:
+                      raise SystemExit(f"Unexpected kline profile for {source['source_id']}")
+                  if source["first_ms"] != 1704067200000:
+                      raise SystemExit("Unexpected first kline timestamp")
+                  if source["last_ms"] != 1706742000000:
+                      raise SystemExit("Unexpected last kline timestamp")
+          cross = evidence["cross_source_checks"]
+          if cross != {
+              "funding_row_count": 93,
+              "hourly_row_count": 744,
+              "hourly_timestamp_grids_exactly_aligned": True,
+              "spot_microsecond_transition_not_applicable": True,
+              "timestamp_unit": "MILLISECONDS",
+          }:
+              raise SystemExit("Cross-source checks changed")
+          retention = evidence["retention_state"]
+          if retention["raw_bytes_written_to_disk"] is not False:
+              raise SystemExit("Raw bytes were written to disk")
+          if retention["raw_bytes_uploaded"] is not False:
+              raise SystemExit("Raw bytes were marked uploaded")
+          if retention["derived_price_rows_uploaded"] is not False:
+              raise SystemExit("Derived price rows were marked uploaded")
+          if retention["raw_retention_authorized"] is not False:
+              raise SystemExit("Raw retention self-promoted")
+          authorization = evidence["authorization"]
+          forbidden = (
+              "basis_computation",
+              "funding_pnl_computation",
+              "return_computation",
+              "empirical_fitting",
+              "parameter_tuning",
+              "paper_trading",
+              "live_trading",
+              "capital_deployment",
+              "report_2_4_full_authorization",
+          )
+          if any(authorization[key] is not False for key in forbidden):
+              raise SystemExit("A forbidden authorization became true")
+          if evidence["paper_replication_pass"] is not False:
+              raise SystemExit("Pilot self-promoted to paper replication pass")
+          if evidence["economic_edge_verdict"] != "INCONCLUSIVE":
+              raise SystemExit("Pilot changed the economic verdict")
+          print(
+              json.dumps(
+                  {
+                      "safe_evidence_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                      "safe_evidence_bytes": path.stat().st_size,
+                      "source_count": evidence["source_count"],
+                  },
+                  indent=2,
+                  sort_keys=True,
+              )
+          )
+          PY
+
+      - name: Prove that no raw or derived market-data files remain
+        run: |
+          rm -rf build/diagnostics
+          mapfile -t files < <(find build -type f -printf '%P\n' | sort)
+          expected="binance-safe-evidence/binance-btcusdt-public-ephemeral-pilot-evidence.json"
+          if [[ ${#files[@]} -ne 1 || "${files[0]}" != "$expected" ]]; then
+            printf 'Unexpected retained files:\n%s\n' "${files[*]}"
+            exit 1
+          fi
+
+      - name: Upload safe hash-and-profile evidence only
+        id: upload_evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: binance-btcusdt-public-safe-evidence-${{ github.sha }}
+          path: build/binance-safe-evidence/binance-btcusdt-public-ephemeral-pilot-evidence.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Create safe-evidence staging receipt
+        env:
+          EVIDENCE_ARTIFACT_ID: ${{ steps.upload_evidence.outputs.artifact-id }}
+          EVIDENCE_ARTIFACT_URL: ${{ steps.upload_evidence.outputs.artifact-url }}
+          EVIDENCE_ARTIFACT_DIGEST: ${{ steps.upload_evidence.outputs.artifact-digest }}
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+          evidence_path = Path(
+              "build/binance-safe-evidence/"
+              "binance-btcusdt-public-ephemeral-pilot-evidence.json"
+          )
+          receipt = {
+              "schema_version": "1.0",
+              "repository": os.environ["GITHUB_REPOSITORY"],
+              "commit_sha": os.environ["GITHUB_SHA"],
+              "workflow": os.environ["GITHUB_WORKFLOW"],
+              "run_id": os.environ["GITHUB_RUN_ID"],
+              "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
+              "created_at": datetime.now(UTC).isoformat(),
+              "evidence_artifact_id": os.environ["EVIDENCE_ARTIFACT_ID"],
+              "evidence_artifact_url": os.environ["EVIDENCE_ARTIFACT_URL"],
+              "evidence_artifact_digest": os.environ["EVIDENCE_ARTIFACT_DIGEST"],
+              "safe_evidence_sha256": hashlib.sha256(evidence_path.read_bytes()).hexdigest(),
+              "storage_state": "ACTIONS_SAFE_METADATA_STAGED_RETENTION_90_DAYS",
+              "raw_market_data_stored": False,
+              "derived_price_rows_stored": False,
+              "raw_retention_authorized": False,
+              "basis_or_return_computed": False,
+              "paper_replication_pass": False,
+              "economic_edge_verdict": "INCONCLUSIVE",
+          }
+          required = (
+              "evidence_artifact_id",
+              "evidence_artifact_url",
+              "evidence_artifact_digest",
+          )
+          if not all(receipt[key] for key in required):
+              raise SystemExit("Upload action returned incomplete artifact evidence")
+          destination = Path("build/binance-btcusdt-public-safe-receipt.json")
+          destination.write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(receipt, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload safe-evidence receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: binance-btcusdt-public-safe-receipt-${{ github.sha }}
+          path: build/binance-btcusdt-public-safe-receipt.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Record non-promotional workflow summary
+        run: |
+          {
+            echo "## Binance BTCUSDT public-data engineering pilot"
+            echo
+            echo "- Official ZIPs and paired checksums validated ephemerally"
+            echo "- Safe evidence contains hashes, sizes, schema fingerprints, row counts, and time bounds only"
+            echo "- Raw ZIP/CSV bytes retained or uploaded: no"
+            echo "- Derived price rows retained or uploaded: no"
+            echo "- Basis, funding PnL, or return computed: no"
+            echo "- Raw retention authorization: no"
+            echo "- Paper replication: no"
+            echo "- Economic edge: inconclusive"
+          } >> "$GITHUB_STEP_SUMMARY"
