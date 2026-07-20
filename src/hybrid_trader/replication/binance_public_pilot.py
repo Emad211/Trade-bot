@@ -15,6 +15,7 @@ from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
+from itertools import pairwise
 from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.parse import urlparse
@@ -272,7 +273,7 @@ def validate_kline(
         raise PilotError("kline count/order/uniqueness failure")
     if ts[0] != START or ts[-1] != START + (expected - 1) * 3_600_000:
         raise PilotError("kline span failure")
-    if any(b - a != 3_600_000 for a, b in zip(ts, ts[1:], strict=False)):
+    if any(b - a != 3_600_000 for a, b in pairwise(ts)):
         raise PilotError("kline cadence failure")
     return KLINE, tuple(ts)
 
