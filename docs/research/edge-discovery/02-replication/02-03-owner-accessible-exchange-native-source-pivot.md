@@ -3,61 +3,28 @@
 **Program:** Edge Discovery Research Program  
 **Section:** 2 — Research Replication  
 **Parent:** [Provider-probe controlling addendum](02-03-provider-probe-controlling-addendum.md)  
-**Decision date:** 2026-07-19  
-**Status:** `DATABENTO_OPERATIONALLY_REJECTED; PUBLIC_EXCHANGE_NATIVE_PIVOT_AUTHORIZED`
+**Decision date:** 2026-07-20  
+**Status:** `DATABENTO_REJECTED; CBOE_BLOCKED; CME_BLOCKED; CRYPTO_OFFICIAL_SOURCE_PIVOT_REQUIRED`
 
 ---
 
-## 1. Decision
+## 1. Controlling decision
 
-Databento is no longer an actionable provider candidate for this project owner.
+Traditional-futures historical price linkage remains blocked for this project owner under the currently verified sources.
 
-The owner cannot obtain the required account and API-key access because the service requires payment, banking, or account-verification capabilities that are not practically available to the owner. The project will not use:
+Databento is operationally inaccessible to the owner without unavailable payment/account capabilities. The project will not use false identity information, borrowed payment methods, third-party accounts, shared credentials, misleading residence data, or jurisdiction/payment circumvention.
 
-- fabricated personal or company information;
-- borrowed payment cards;
-- third-party account intermediaries;
-- misleading residence or jurisdiction data;
-- sanctions or payment-circumvention methods;
-- another person's API credentials.
+Cboe's public VX engineering pilot remains valid, but historical return use is blocked because the verified public terms do not authorize the required retention and derivative workflow, and the exact historical website-publication timestamp is not established.
 
-The provider classification is therefore:
+CME is also blocked as a historical price source. Current delayed website values are reference-only; historical files route through DataMine account/order/license workflows, and the verified CME Data Terms do not authorize the intended systematic software/AI extraction, dataset compilation, derivative construction, and private retention without written consent.
 
-```text
-Provider:
-DATABENTO
+ICE complete historical end-of-day packages remain paid and operationally inaccessible to the owner.
 
-Technical candidate status:
-PREVIOUSLY_SELECTED
-
-Owner operational accessibility:
-FAILED
-
-Final operational classification:
-OPERATIONALLY_REJECTED_OWNER_ACCESS_CONSTRAINT
-
-Provider accepted:
-false
-
-Purchase authorized:
-false
-
-Price linkage authorized:
-false
-
-Returns authorized:
-false
-```
-
-This is an accessibility rejection. It is not a claim that Databento's technical data quality is poor.
-
-Issue `#42` is closed as `not planned` and preserves the reason for the decision.
+The next authorized source-search scope is therefore official crypto exchange data whose terms and delivery mechanism genuinely permit reproducible acquisition, private retention, checksum lineage, and internal derived research.
 
 ---
 
-## 2. New non-negotiable accessibility gate
-
-A source may not be promoted merely because it is technically suitable.
+## 2. Non-negotiable accessibility and license gate
 
 Every future source must pass all of the following:
 
@@ -66,221 +33,138 @@ OWNER_ACCESSIBLE_WITHOUT_FALSE_IDENTITY
 NO_UNAVAILABLE_FOREIGN_PAYMENT_METHOD_REQUIRED
 NO_SANCTIONS_OR_JURISDICTION_CIRCUMVENTION
 TERMS_AND_LICENSE_REVIEWED
+AUTOMATED_ACQUISITION_EXPLICITLY_ALLOWED_OR_NOT_PROHIBITED
+PRIVATE_RETENTION_ALLOWED
+INTERNAL_DERIVED_RESEARCH_ALLOWED
 RAW_BYTES_ACQUIRABLE
 CHECKSUM_AND_LINEAGE_PRESERVABLE
-POINT_IN_TIME_CONTRACT_IDENTITY_AVAILABLE
-SETTLEMENT_SEMANTICS_EXPLICIT
+POINT_IN_TIME_INSTRUMENT_IDENTITY_AVAILABLE
+PRICE_OR_SETTLEMENT_SEMANTICS_EXPLICIT
+HISTORICAL_AVAILABLE_AT_CONTRACT_AVAILABLE
 ```
 
-Failure of the first three requirements is an operational rejection even when the data is otherwise high quality.
+Public URL accessibility alone does not pass this gate.
 
 ---
 
-## 3. Official exchange-source assessment
+## 3. Traditional-futures source decisions
 
-### 3.1 Cboe Futures Exchange
-
-Official public locations:
-
-- `https://www.cboe.com/markets/us/futures/market-statistics/historical-data/futures`
-- `https://www.cboe.com/markets/us/futures/market-statistics/settlement/futures/daily/`
-- `https://www.cboe.com/markets/us/futures/market-statistics/settlement/futures/final/`
-
-The official historical-data page identifies contract-level CFE price and volume detail for selected futures products from 2013 to the present. The public settlement pages expose daily and final settlement tables and CSV-download controls.
-
-Current classification:
+### 3.1 Databento
 
 ```text
-Source family:
-CBOE_PUBLIC_CFE_HISTORY_AND_SETTLEMENTS
-
-Owner-accessibility evidence:
-PUBLIC_WEB_ACCESS_OBSERVED
-
-Payment evidence:
-NO_PAYMENT_REQUIRED_FOR_PUBLIC_PAGES_OBSERVED
-
-Historical contract-level candidate:
-VX
-
-Decision:
-GO_FOR_PUBLIC_VX_PILOT
+Technical suitability: previously selected
+Owner operational accessibility: failed
+Final classification: OPERATIONALLY_REJECTED_OWNER_ACCESS_CONSTRAINT
+Provider accepted: false
+Purchase authorized: false
+Price linkage authorized: false
 ```
 
-This decision authorizes only acquisition and validation of a bounded VX pilot. It does not authorize a return, signal, or strategy.
-
-Required pilot evidence:
-
-- exact contract-month symbol;
-- trade date;
-- open, high, low, close, and settlement fields where available;
-- expiration identity;
-- public-page or CSV source URL;
-- retrieval timestamp;
-- raw SHA-256 and byte count;
-- schema fingerprint;
-- settlement-field interpretation;
-- Cboe terms snapshot;
-- no continuous-series substitution.
-
-### 3.2 CME Group
-
-Official public locations:
-
-- `https://www.cmegroup.com/market-data/daily-bulletin.html`
-- `https://www.cmegroup.com/articles/faqs/access-to-cme-group-settlement-data-faq.html`
-
-CME states that settlement prices on product pages are delayed until midnight Central Time and are then freely available to view. The Daily Bulletin webpage publishes the previous trade date and links historical Daily Bulletin access to CME DataMine.
-
-CME's official documentation also states that DataMine requires a CME login and an ordering process. The settlement-access FAQ describes retrieval or subscription fees for several End of Market datasets, while earlier CME notices described selected midnight settlement files as free of charge. These statements do not prove that the required 2022 historical files are accessible to this owner without an unavailable payment method.
-
-Current classification:
+### 3.2 Cboe Futures Exchange
 
 ```text
-Source family:
-CME_PUBLIC_DELAYED_WEBSITE_AND_DATAMINE
-
-Current delayed product-page settlements:
-PUBLIC_REFERENCE_AVAILABLE
-
-Historical 2022 flat-file accessibility:
-NOT VERIFIED FOR OWNER
-
-Official documentation state:
-ACCESS_AND_FEE_PATH_REQUIRES_EMPIRICAL_PROBE
-
-Decision:
-CONDITIONAL_ACCESS_PROBE_REQUIRED
+Public contract parser pilot: completed
+Engineering evidence: valid
+Private raw retention: not authorized
+Historical publication timing: not verified
+Historical return path: BLOCKED_LICENSE_OR_TIMING
 ```
 
-Allowed next actions:
+Controlling records:
 
-- test public delayed product pages without login;
-- test Historical Daily Bulletin navigation without ordering;
-- test whether a free CME account can retrieve the exact bounded 2022 files without payment details;
-- record every redirect, login wall, order screen, terms page, and fee request.
+- `02-03-cboe-vx-license-and-historical-availability-decision.md`
+- `02-03-cboe-vx-license-and-historical-availability-decision.yaml`
+- Issue `#44`
 
-Not allowed:
-
-- assuming that a file is free because an older notice used the phrase `free of charge`;
-- treating current delayed pages as proof of 2022 bulk-history accessibility;
-- assigning CME prices before contract-level bytes and lineage are acquired.
-
-### 3.3 ICE Futures U.S.
-
-Official public locations:
-
-- `https://www.ice.com/report-center`
-- `https://www.ice.com/report-center/data-subscription`
-
-The ICE Report Center exposes public report categories including deliveries, settlements, end-of-day reports, volume, and open interest. ICE also states that end-of-day report packages are available by annual subscription and that historical End-of-Day packages are available for one-off purchase.
-
-Current classification:
+### 3.3 CME Group
 
 ```text
-Source family:
-ICE_REPORT_CENTER
-
-Public report navigation:
-AVAILABLE
-
-Complete historical 2022 End-of-Day package:
-PURCHASE_OR_SUBSCRIPTION_REQUIRED
-
-Owner payment accessibility:
-NOT AVAILABLE
-
-Decision:
-BLOCKED_PAID_ARCHIVE
+Current delayed public reference pages: available
+Historical 2022 anonymous flat-file access: not verified and not exposed
+Historical route: DataMine account/order/license
+Automated website extraction for intended software/AI workflow: not authorized
+Historical return path: BLOCKED_LICENSE_AND_OWNER_ACCESS
 ```
 
-Public ICE reports may support metadata or isolated verification when directly accessible, but they may not be represented as a complete historical price source.
+Controlling records:
+
+- `02-03-cme-historical-access-and-license-decision.md`
+- `02-03-cme-historical-access-and-license-decision.yaml`
+- Issue `#49`
+
+### 3.4 ICE Futures U.S.
+
+```text
+Public report navigation: available
+Complete historical 2022 end-of-day package: purchase or subscription required
+Owner payment accessibility: unavailable
+Historical return path: BLOCKED_PAID_ARCHIVE
+```
 
 ---
 
 ## 4. Revised source hierarchy
 
-The provider hierarchy is now:
-
 ```text
-1. CBOE_PUBLIC_EXCHANGE_NATIVE
-   First executable pilot: VX contract-level history
+1. OFFICIAL_CRYPTO_EXCHANGE_ARCHIVE_OR_API
+   Terms and retention review first
+   Exact instrument-version and contract semantics required
+   Bounded immutable pilot only after legal/access gate passes
 
-2. CME_PUBLIC_DELAYED_OR_FREE_ACCESS_PROBE
-   Current public reference pages first
-   Historical 2022 access only after a real no-payment acquisition test
+2. WRITTENLY_LICENSED_TRADITIONAL_FUTURES_SOURCE
+   Re-enter only after explicit permission or accessible executed license
 
-3. ICE_PUBLIC_REPORTS_ONLY
-   Isolated public evidence allowed
-   Full historical package blocked where purchase is required
+3. PUBLIC_REFERENCE_PAGES
+   Metadata and manual verification only
+   No raw retention, automated extraction, or price linkage unless terms permit
 
 4. COMMERCIAL_PROVIDER
-   Deferred unless genuinely accessible to the owner without circumvention
+   Deferred unless genuinely accessible without circumvention
 ```
 
-A convenient third-party continuous-futures series cannot inherit exchange-native exactness.
+A third-party continuous-futures series cannot inherit exchange-native or point-in-time exactness.
 
 ---
 
-## 5. Revised empirical scope
+## 5. Next authorized empirical scope
 
-The original 54-row pilot cannot currently receive complete cross-market price linkage.
+The next bounded research action is an official crypto-source license and delivery probe for the existing hypotheses:
 
-The immediate empirical scope becomes:
+- `EDGE-CRYPTO-BASIS-001`
+- `EDGE-CRYPTO-RV-001`
 
-```text
-Pilot identity:
-CBOE_VX_PUBLIC_CONTRACT_LEVEL_PILOT_V1
+The first source candidate must be selected by access and terms evidence, not popularity. Candidate families may include official Binance public-data archives and official OKX APIs, but neither is authorized for raw retention or derived research until its exact terms and delivery behavior are reviewed.
 
-Purpose:
-Validate end-to-end public exchange-native contract identity,
-settlement parsing, lineage, and same-contract return mechanics.
+The probe must establish:
 
-Exactness:
-CONSTRUCTIVE_OR_NEAR_EXACT_ENGINEERING_PILOT
-
-Paper replication:
-NOT CLAIMED
-
-Economic edge:
-NOT TESTED
-```
-
-The VX pilot must not be generalized to CME or ICE products.
+- official host and source identity;
+- anonymous or owner-accessible authentication requirements;
+- applicable terms and jurisdiction restrictions;
+- automated download/API permission;
+- private retention permission;
+- internal derived-use permission;
+- instrument and contract-version metadata;
+- historical timestamps and availability semantics;
+- checksum or reproducible content identity;
+- bounded pilot size and explicit stop conditions.
 
 ---
 
-## 6. Stop conditions
-
-The public exchange-native path must stop if:
-
-- the historical contract CSV requires payment or an inaccessible account;
-- the downloaded object is not an individual contract-month history;
-- settlement cannot be distinguished from close;
-- timestamps or contract identifiers are ambiguous;
-- the source silently serves a continuous or back-adjusted series;
-- source terms prohibit the intended internal research use;
-- raw bytes cannot be retained with checksum and retrieval evidence;
-- a current page is projected backward as 2022 historical evidence.
-
----
-
-## 7. Authorization state
+## 6. Authorization state
 
 ```yaml
 databento_provider_candidate: false
 databento_operationally_rejected: true
+cboe_historical_return_source: false
+cme_historical_return_source: false
+ice_complete_historical_source: false
 circumvention_authorized: false
 
-cboe_public_vx_acquisition: true
-cboe_contract_level_parser_design: true
-cboe_source_terms_capture: true
-cboe_same_contract_formula_validation: true
-
-cme_public_access_probe: true
-cme_historical_price_linkage: false
-ice_public_report_probe: true
-ice_historical_package_purchase: false
+crypto_official_source_terms_probe: true
+crypto_official_source_metadata_probe: true
+crypto_raw_acquisition: false
+crypto_raw_retention: false
+crypto_derived_returns: false
 
 price_series_assignment: false
 returns_computation: false
@@ -296,20 +180,18 @@ report_2_4_full_authorization: false
 
 ---
 
-## 8. Final controlling verdict
+## 7. Final controlling verdict
 
 ```text
-DATABENTO ACCESSIBILITY: FAILED FOR OWNER
-DATABENTO OPERATIONAL STATUS: REJECTED
-CIRCUMVENTION: PROHIBITED
-CBOE PUBLIC VX PILOT: AUTHORIZED FOR ACQUISITION AND VALIDATION
-CME HISTORICAL 2022 ACCESS: UNVERIFIED
-ICE COMPLETE HISTORICAL ACCESS: BLOCKED BY PAID ARCHIVE
-PROVIDER CONTRACT IDS: ZERO
-PRICE-LINKAGE-AUTHORIZED ROWS: ZERO
-RETURNS AUTHORIZED: NO
+DATABENTO: OPERATIONALLY REJECTED
+CBOE HISTORICAL RETURN PATH: BLOCKED LICENSE OR TIMING
+CME HISTORICAL RETURN PATH: BLOCKED LICENSE AND OWNER ACCESS
+ICE COMPLETE HISTORICAL PATH: BLOCKED PAID ARCHIVE
+TRADITIONAL-FUTURES PRICE LINKAGE: ZERO AUTHORIZED ROWS
+CRYPTO OFFICIAL-SOURCE TERMS PROBE: AUTHORIZED
+CRYPTO RAW ACQUISITION: NOT YET AUTHORIZED
+RETURNS: NOT AUTHORIZED
 PAPER REPLICATION: NOT COMPLETE
 ECONOMIC EDGE: NOT ESTABLISHED
-EDGE-FUT-POSITION-001: INCONCLUSIVE
 REPORT 2.4: BLOCKED
 ```
