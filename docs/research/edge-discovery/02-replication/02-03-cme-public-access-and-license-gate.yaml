@@ -1,0 +1,134 @@
+schema_version: "1.0"
+record_id: CME_PUBLIC_ACCESS_AND_LICENSE_GATE_2026_07_20
+program: EDGE_DISCOVERY_RESEARCH_PROGRAM
+section: 2
+report: 2.3I
+decision_date: "2026-07-20"
+status: BLOCKED_LOGIN_ORDER_FEE_AND_LICENSE
+
+scope:
+  source_family: CME_PUBLIC_DELAYED_WEBSITE_AND_DATAMINE
+  bounded_historical_year: 2022
+  probe_mode: PUBLIC_ANONYMOUS_DOCUMENTATION_AND_NAVIGATION_ONLY
+  account_created: false
+  login_used: false
+  order_started: false
+  payment_information_supplied: false
+  raw_market_data_downloaded: false
+  access_control_bypassed: false
+  automated_market_data_scraping_performed: false
+
+official_sources:
+  - source_id: CME_DAILY_BULLETIN
+    url: https://www.cmegroup.com/market-data/daily-bulletin.html
+    observation:
+      current_previous_trade_date_reference: true
+      historical_link_destination: CME_DATAMINE
+      exact_2022_anonymous_download: false
+  - source_id: CME_SETTLEMENT_ACCESS_FAQ
+    url: https://www.cmegroup.com/articles/faqs/access-to-cme-group-settlement-data-faq.html
+    observation:
+      legacy_ftp_removed: true
+      historical_files_moved_to_datamine: true
+      datamine_login_required: true
+      ordering_process_required: true
+      retrieval_or_subscription_fees_stated: true
+  - source_id: CME_DATAMINE
+    url: https://www.cmegroup.com/datamine.html
+    observation:
+      account_or_login_to_order: true
+      license_request: true
+      one_time_historical_order_supported: true
+      anonymous_no_order_download: false
+  - source_id: CME_DATA_TERMS
+    url: https://www.cmegroup.com/trading/market-data-explanation-disclaimer.html
+    observation:
+      personal_noncommercial_viewing_only: true
+      automated_collection_without_written_authorization_prohibited: true
+      database_compilation_without_written_authorization_prohibited: true
+      derivative_creation_without_written_authorization_prohibited: true
+      software_ml_ai_development_use_without_written_consent_prohibited: true
+  - source_id: CME_WEBSITE_TERMS
+    url: https://www.cmegroup.com/tools-information/cme-website-terms-of-use.html
+    observation:
+      truthful_account_information_required: true
+      unauthorized_access_prohibited: true
+      ai_or_ml_use_of_website_data_prohibited: true
+  - source_id: CME_DATA_SERVICES_PORTAL_GETTING_STARTED
+    url: https://www.cmegroup.com/tools-information/webhelp/data-services-portal/Content/GettingStarted.html
+    observation:
+      registration_required: true
+      account_manager_enablement_described: true
+      licensing_and_billing_management: true
+
+access_gate:
+  owner_accessible_without_false_identity: UNPROVEN
+  no_unavailable_foreign_payment_required: FAILED_OR_UNPROVEN
+  no_circumvention_required: true
+  exact_2022_raw_bytes_acquired: false
+  checksum_lineage_possible_under_current_permission: false
+  point_in_time_contract_identity_acquired: false
+  settlement_semantics_acquired: false
+
+license_gate:
+  ordinary_public_view_permission: REFERENCE_ONLY
+  automated_research_pipeline_permission: NOT_GRANTED
+  private_content_addressed_retention: NOT_AUTHORIZED
+  repeated_reproducible_processing: NOT_AUTHORIZED
+  combination_with_cftc_positions: NOT_AUTHORIZED
+  internal_derived_features_and_returns: NOT_AUTHORIZED
+  redistribution: NOT_AUTHORIZED
+  written_permission_or_executed_license_present: false
+
+historical_timing_gate:
+  current_daily_bulletin_preliminary_publication: APPROXIMATELY_MIDNIGHT_CT_FOLLOWING_BUSINESS_DAY
+  current_daily_bulletin_final_publication: "10:00_AM_CT_NEXT_BUSINESS_DAY"
+  current_product_page_settlement_delay: MIDNIGHT_CT
+  original_2022_publication_timestamp_verified: false
+  historical_available_at_established: false
+  retrospective_retrieval_used_as_2022_availability: false
+
+exactness:
+  cme_provider_contract_ids: 0
+  cftc_to_cme_linked_rows: 0
+  admitted_cme_settlement_values: 0
+  computed_cme_returns: 0
+  continuous_series_substitution: false
+  constructive_contract_assignment: false
+
+authorization:
+  cme_public_page_viewing: true
+  cme_public_metadata_review: true
+  cme_terms_review: true
+  cme_permission_or_license_inquiry_preparation: true
+  cme_automated_website_collection: false
+  cme_historical_2022_raw_acquisition: false
+  cme_private_raw_retention: false
+  cme_cftc_price_linkage: false
+  cme_derived_features: false
+  cme_return_computation: false
+  cme_empirical_fitting: false
+  parameter_tuning: false
+  strategy_tournament: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  report_2_4_full_authorization: false
+
+reentry_conditions:
+  - written_permission_or_executed_license_covers_private_retention
+  - permission_covers_automated_reproducible_processing
+  - permission_covers_combination_with_cftc_data
+  - permission_covers_internal_derived_features_and_returns
+  - owner_can_access_without_identity_payment_or_jurisdiction_circumvention
+  - exact_historical_product_and_file_identity_acquired
+  - original_historical_publication_time_or_conservative_contract_established
+  - checksum_license_and_storage_lineage_recorded
+
+verdicts:
+  cme_historical_source: BLOCKED_LOGIN_ORDER_FEE_AND_LICENSE
+  edge_fut_position_001: INCONCLUSIVE
+  paper_replication: NOT_COMPLETE
+  economic_edge: NOT_ESTABLISHED
+  report_2_4: BLOCKED
