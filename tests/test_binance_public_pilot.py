@@ -160,11 +160,21 @@ def test_evidence_rejects_source_reordering(monkeypatch: pytest.MonkeyPatch) -> 
     raw_a = z("a.csv", kcsv())
     raw_b = z("b.csv", kcsv())
     profile_a, timestamps_a = bp.validate(first, raw_a, checksum(first.filename, raw_a))
-    profile_b, timestamps_b = bp.validate(
-        second, raw_b, checksum(second.filename, raw_b)
-    )
+    profile_b, timestamps_b = bp.validate(second, raw_b, checksum(second.filename, raw_b))
     with pytest.raises(bp.PilotError, match="source identity/order mismatch"):
         bp.evidence(
             [(second, profile_b, timestamps_b), (first, profile_a, timestamps_a)],
             datetime(2026, 7, 20, tzinfo=UTC),
         )
+
+
+def test_exact_archive_header_is_admitted() -> None:
+    sp = spec("KLINE", bp.HOURS)
+    stream = io.StringIO(newline="")
+    writer = csv.writer(stream, lineterminator="\n")
+    writer.writerow(bp.KLINE)
+    stream.write(kcsv().decode())
+    raw = z("x.csv", stream.getvalue().encode())
+    profile, _ = bp.validate(sp, raw, checksum(sp.filename, raw))
+    assert profile.header is True
+    assert profile.schema_sha256 == bp.schema_hash(bp.KLINE)
