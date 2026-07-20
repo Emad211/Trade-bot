@@ -4,7 +4,7 @@ This directory is the durable research memory for the trading-system project. It
 
 ## Objective
 
-Build a defensible path from economic hypotheses to a live trading system without confusing prediction accuracy, backtest profitability, hidden risk premia, or execution assumptions with a genuine exploitable edge.
+Build a defensible path from economic hypotheses to a live trading system without confusing prediction accuracy, backtest profitability, hidden risk premia, public-source visibility, or execution assumptions with a genuine exploitable edge.
 
 ## Research Tree
 
@@ -18,9 +18,9 @@ Build a defensible path from economic hypotheses to a live trading system withou
 | [1.4 — Falsification and Evidence Design](01-edge-map/01-04-falsification-and-evidence-design.md) | Negative controls, robustness, trial accounting, prospective tests, execution stress, and kill criteria | Complete |
 | [1.5 — Edge Map Synthesis and Replication Admissions](01-edge-map/01-05-edge-map-synthesis.md) | Ranked hypotheses, admissions, deferrals, rejections, dependencies, and Section 2 handoff | Complete |
 
-The machine-readable admissions and dependencies are stored in [the replication admission manifest](01-edge-map/01-05-replication-admission-manifest.yaml).
+Machine-readable admissions: [replication admission manifest](01-edge-map/01-05-replication-admission-manifest.yaml).
 
-Section 1 admits the following hypothesis identities for formal, dependent, or conditional replication:
+Admitted research identities:
 
 - `EDGE-FUT-CARRY-001`
 - `EDGE-FUT-TREND-001`
@@ -29,110 +29,104 @@ Section 1 admits the following hypothesis identities for formal, dependent, or c
 - `EDGE-RISK-POLICY-001`
 - `EDGE-CRYPTO-RV-001`
 
-Admission authorizes research replication only. It does not authorize paper trading, live trading, leverage, automatic promotion, or capital deployment.
+Admission authorizes research replication only. It does not authorize fitting, parameter tuning, paper trading, live trading, leverage, automatic promotion, or capital deployment.
 
-### 2. Research Replication
+### 2. Research Replication — Partially complete
 
 | Report | Scope | Status |
 |---|---|---|
 | [2.1 — Anchor Papers, Opposing Evidence, Modern Updates, Data, and Replication-Code Selection](02-replication/02-01-anchor-opposition-code-selection.md) | Binding paper roles, exactness classes, official data routes, code-admission rules, table-level targets, and kill criteria | Complete |
 | [2.2 — Data, Timing, and Information-Contract Reconstruction](02-replication/02-02-data-timing-information-contract-reconstruction.md) | Availability clocks, immutable raw artifacts, source licenses, point-in-time instruments, futures rolls, regulator releases, crypto contract versions, lineage, costs, and acquisition decisions | Complete |
-| [2.3 — Current Controlling Status](02-replication/02-03-current-controlling-status.md) | Official CFTC acquisition, parser, dated pilot, release ledger, versioned product registry, and remaining empirical gates | Partially complete |
-| [2.3 — Provider-Gate Controlling Addendum](02-replication/02-03-provider-gate-controlling-addendum.md) | Provider requirements and fail-closed price authorization | Historical snapshot; superseded where conflicting |
-| [2.3 — Provider-Probe Controlling Addendum](02-replication/02-03-provider-probe-controlling-addendum.md) | Permanent Databento zero-purchase probe and verified missing-secret blocker | Historical verified blocker; provider subsequently rejected for owner accessibility |
-| [2.3 — Owner-Accessible Exchange-Native Source Pivot](02-replication/02-03-owner-accessible-exchange-native-source-pivot.md) | Owner-accessibility gate, Databento operational rejection, Cboe/CME/ICE public-source decisions, and VX pilot handoff | Current controlling provider-source decision |
-| [2.3 — Cboe VX Public Contract Pilot](02-replication/02-03-cboe-vx-public-contract-pilot-evidence.md) | Official contract-level VX acquisition, exact schema/parser, safe evidence-only artifact, and license/timing gates | Engineering verified; raw retention and price linkage blocked |
-| 2.4 — Sensitivity, Cost, Failure, and Disagreement Analysis | Conditional sensitivity analysis on numerically reconstructed evidence | Blocked until Report 2.3 artifact and price-linkage gates pass |
-| 2.5 | Replication dossier and continue/stop decisions | Planned |
+| [2.3 — Current Controlling Status](02-replication/02-03-current-controlling-status.md) | Verified CFTC foundation, traditional-provider blockers, safe OKX/Binance public-source profiles, and remaining empirical gates | Partially complete |
+| 2.4 — Sensitivity, Cost, Failure, and Disagreement Analysis | Conditional analysis after exact artifact, timing, instrument, price, and return gates pass | Blocked |
+| 2.5 — Replication dossier and continue/stop decisions | Final Section 2 synthesis | Planned |
 
-Report 2.1 selects what must be replicated. Report 2.2 freezes what each datum means and when it becomes usable. Report 2.3 contains a real official CFTC raw artifact, an exact parser, a deterministic dated pilot, a fail-closed scheduled-release ledger, a 54-row reporting-to-product registry, and a verified two-contract public Cboe VX engineering pilot. Databento was technically evaluated but is operationally rejected because the required account, payment, or banking path is not practically accessible to the project owner. The Cboe pilot verifies exact contract identities, explicit settlement semantics, and safe evidence handling, but raw retention, historical availability timing, price linkage, returns, paper replication, and economic edge remain blocked or unproven.
+#### Current Report 2.3 state
 
-Report 2.2 machine-readable contracts:
+The current verified foundation includes:
 
-- [Data-contract manifest](02-replication/02-02-data-contract-manifest.yaml)
-- [Source and license registry](02-replication/02-02-source-license-registry.yaml)
-- [Instrument and point-in-time universe manifest](02-replication/02-02-instrument-universe-manifest.yaml)
-- [Lineage and timing schema](02-replication/02-02-lineage-timing-schema.yaml)
+- official CFTC 2022 TFF Futures Only archive acquisition;
+- exact 87-field parser and 2,719-row annual profile;
+- deterministic 54-row pilot for `2022-09-13`;
+- fail-closed 52-row scheduled-release ledger with zero claimed actual historical release times;
+- versioned 54-row reporting-to-product registry with zero provider contract IDs and zero price-linkage-authorized rows;
+- a bounded Cboe VX contract-engineering pilot whose raw retention and canonical historical timing remain blocked;
+- a bounded OKX public funding metadata profile whose artifact contains no funding-rate values or reconstructable market series;
+- a bounded Binance BTCUSDT January 2024 checksum/schema/timing pilot whose artifact contains hashes and profiles only, with no raw or derived market rows.
 
-Report 2.3 evidence and implementation:
+Current hard blockers include:
+
+```text
+Traditional-futures provider contract chains and point-in-time prices: INCOMPLETE
+Databento owner accessibility: REJECTED
+Cboe raw retention / canonical historical timing: BLOCKED
+CME historical route: BLOCKED_LOGIN_ORDER_FEE_AND_LICENSE
+ICE complete history: BLOCKED_PAID_ARCHIVE
+OKX 2022 historical delivery and revocable retention: OPEN GATE
+Binance persistent raw retention and historical available_at: OPEN GATES
+Basis / funding PnL / returns: NOT AUTHORIZED
+Paper-level numerical replication: NOT COMPLETE
+Economic edge: NOT ESTABLISHED
+Report 2.4: BLOCKED
+```
+
+All six hypothesis verdicts remain `INCONCLUSIVE`.
+
+## Report 2.3 Evidence Index
+
+### Core verification and historical snapshots
 
 - [Current controlling status](02-replication/02-03-current-controlling-status.md)
-- [Owner-accessible exchange-native source pivot](02-replication/02-03-owner-accessible-exchange-native-source-pivot.md)
-- [Machine-readable owner-accessible source pivot](02-replication/02-03-owner-accessible-exchange-native-source-pivot.yaml)
-- [Verified Cboe VX public contract pilot](02-replication/02-03-cboe-vx-public-contract-pilot-evidence.md)
-- [Machine-readable Cboe VX pilot evidence](02-replication/02-03-cboe-vx-public-contract-pilot-evidence.yaml)
-- [Provider-gate controlling addendum](02-replication/02-03-provider-gate-controlling-addendum.md)
-- [Provider-probe controlling addendum](02-replication/02-03-provider-probe-controlling-addendum.md)
 - [Initial controlled execution snapshot](02-replication/02-03-controlled-empirical-and-code-replication.md)
 - [Replication execution manifest](02-replication/02-03-replication-execution-manifest.yaml)
 - [Independent reality verification and correction log](02-replication/02-03-independent-reality-verification-log.md)
 - [Static analysis, test, and coverage verification](02-replication/02-03-static-analysis-and-test-verification.md)
-- [Verified CFTC TFF acquisition and pilot evidence](02-replication/02-03-cftc-tff-2022-acquisition-and-pilot-evidence.md)
+- [Provider-gate historical addendum](02-replication/02-03-provider-gate-controlling-addendum.md)
+- [Provider-probe historical addendum](02-replication/02-03-provider-probe-controlling-addendum.md)
+
+### CFTC source, timing, and product identity
+
+- [Verified CFTC acquisition and dated-pilot evidence](02-replication/02-03-cftc-tff-2022-acquisition-and-pilot-evidence.md)
 - [Machine-readable CFTC acquisition evidence](02-replication/02-03-cftc-tff-2022-evidence.yaml)
 - [Verified CFTC release-ledger evidence](02-replication/02-03-cftc-tff-2022-release-ledger-evidence.md)
-- [Machine-readable CFTC release-ledger evidence](02-replication/02-03-cftc-tff-2022-release-ledger-evidence.yaml)
+- [Machine-readable release-ledger evidence](02-replication/02-03-cftc-tff-2022-release-ledger-evidence.yaml)
 - [Verified CFTC instrument-registry evidence](02-replication/02-03-cftc-tff-2022-instrument-registry-evidence.md)
-- [Machine-readable CFTC instrument-registry evidence](02-replication/02-03-cftc-tff-2022-instrument-registry-evidence.yaml)
-- [Provider-candidate and point-in-time price-linkage evidence](02-replication/02-03-provider-price-linkage-candidate-evidence.md)
-- [Machine-readable provider-candidate evidence](02-replication/02-03-provider-price-linkage-candidate-evidence.yaml)
-- [Databento zero-purchase probe evidence](02-replication/02-03-databento-zero-purchase-probe-evidence.md)
-- [Machine-readable Databento probe evidence](02-replication/02-03-databento-zero-purchase-probe-evidence.yaml)
+- [Machine-readable instrument-registry evidence](02-replication/02-03-cftc-tff-2022-instrument-registry-evidence.yaml)
 - [Versioned official CFTC mapping-source registry](02-replication/02-03-cftc-tff-instrument-mapping-sources.json)
 - `02-replication/02-03-cftc-tff-2022-instrument-map-contract.csv.gz.b64`
 - `02-replication/02-03-cftc-tff-2022-instrument-registry.csv.gz.b64`
-- `02-replication/02-03-provider-candidate-plan.csv.gz.b64`
+
+### Traditional-futures provider gates
+
+- [Provider price-linkage candidate evidence](02-replication/02-03-provider-price-linkage-candidate-evidence.md)
+- [Machine-readable provider-candidate evidence](02-replication/02-03-provider-price-linkage-candidate-evidence.yaml)
+- [Databento zero-purchase probe evidence](02-replication/02-03-databento-zero-purchase-probe-evidence.md)
+- [Machine-readable Databento probe evidence](02-replication/02-03-databento-zero-purchase-probe-evidence.yaml)
+- [Owner-accessible exchange-native source pivot](02-replication/02-03-owner-accessible-exchange-native-source-pivot.md)
+- [Machine-readable owner-accessible source pivot](02-replication/02-03-owner-accessible-exchange-native-source-pivot.yaml)
+- [Verified Cboe VX public contract pilot](02-replication/02-03-cboe-vx-public-contract-pilot-evidence.md)
+- [Machine-readable Cboe VX pilot evidence](02-replication/02-03-cboe-vx-public-contract-pilot-evidence.yaml)
+- [CME public access and license gate](02-replication/02-03-cme-public-access-and-license-gate.md)
+- [Machine-readable CME gate](02-replication/02-03-cme-public-access-and-license-gate.yaml)
+
+### Crypto public-source gates
+
+- [Official crypto source, license, and access selection](02-replication/02-03-crypto-official-source-license-and-access-selection.md)
+- [Machine-readable crypto source selection](02-replication/02-03-crypto-official-source-license-and-access-selection.yaml)
+- [Verified OKX public funding metadata pilot](02-replication/02-03-okx-public-funding-metadata-pilot-evidence.md)
+- [Machine-readable OKX pilot evidence](02-replication/02-03-okx-public-funding-metadata-pilot-evidence.yaml)
+- [Verified Binance BTCUSDT ephemeral pilot](02-replication/02-03-binance-btcusdt-public-ephemeral-pilot-evidence.md)
+- [Machine-readable Binance pilot evidence](02-replication/02-03-binance-btcusdt-public-ephemeral-pilot-evidence.yaml)
+
+### Key workflows
+
 - `.github/workflows/cftc-tff-historical-2022-ingestion.yml`
 - `.github/workflows/cftc-tff-2022-pilot-derivation.yml`
 - `.github/workflows/cftc-tff-2022-release-ledger.yml`
 - `.github/workflows/cftc-tff-2022-instrument-registry.yml`
-- `.github/workflows/cftc-tff-2022-provider-candidate-plan.yml`
-- `.github/workflows/databento-zero-purchase-metadata-probe.yml`
 - `.github/workflows/cboe-vx-public-contract-pilot.yml`
-- `src/hybrid_trader/replication/`
-- `tests/test_replication_*.py`
-- `tests/test_cftc_*.py`
-- `tests/test_provider_price_linkage.py`
-- `tests/test_databento_metadata_probe.py`
-- `tests/test_cboe_vx_public.py`
-
-Report 2.3 currently records:
-
-- the original committed implementation was independently reconstructed from authenticated GitHub commit content;
-- an over-permissive factor-audit verdict was found and corrected;
-- the hardened local replication suite passed Ruff, strict mypy, 15 tests, 85.44% statement coverage, and compilation;
-- dedicated hosted CFTC acquisition, pilot, release-ledger, instrument-registry, provider-candidate, Databento gate-evaluation, and Cboe VX workflows passed in their explicitly defined scopes;
-- the official CFTC 2022 TFF Futures Only ZIP was acquired with raw SHA-256 `94c9c1f...88601`;
-- its only member, `FinFutYY.txt`, passed CRC and has SHA-256 `7c309cb7...8bb3b`;
-- the exact CFTC source schema has 87 fields and fingerprint `fe012305...45d42`;
-- the full-year CFTC profile contains 2,719 unique report-date/contract rows across 52 dates;
-- 56 consolidated CFTC rows have recorded one-unit reconciliation differences, with no material accounting failure;
-- the `2022-09-13` CFTC pilot contains 54 unique market codes and zero reconciliation difference;
-- the canonical CFTC pilot CSV has SHA-256 `1be0028b...d268b`;
-- the scheduled-release ledger contains 52 rows and has SHA-256 `4196c144...ccb40`;
-- all 52 historical actual-release fields remain unverified and null;
-- the versioned instrument registry contains 54 unique reporting-code rows, is 38,903 bytes, and has SHA-256 `70a8e89d...25c74`;
-- 47 rows have historical screen-tradable product roots, three are non-tradable consolidated aggregates, two are historical later-delisted products, one is a nonstandard execution product, and one still requires a technical provider symbol;
-- the Databento candidate and zero-purchase client were implemented and tested, but authenticated provider access was unavailable;
-- Databento is classified `OPERATIONALLY_REJECTED_OWNER_ACCESS_CONSTRAINT` and Issue #42 is closed as not planned;
-- fabricated identity, borrowed cards, third-party accounts, credential sharing, and payment or jurisdiction circumvention are prohibited;
-- the public Cboe VX pilot acquired and verified exact September and October 2022 contract files with raw SHA-256 identities `a74598b...bb626` and `270abe03...778d`;
-- the Cboe source has eleven exact fields with schema fingerprint `7ec53b47...f3f2`, including separate `Close` and `Settle` fields;
-- the deterministic Cboe contract-level pilot contains 35 rows and has SHA-256 `ebe1326a...13ad0`;
-- the Cboe pilot uses two explicit contracts, no continuous series, no back adjustment, and computes no returns;
-- permanent Cboe run `29696828324` passed Ruff, strict mypy, eight tests, official acquisition, parser validation, license-page hashing, restricted-content deletion, and safe evidence upload;
-- the safe Cboe evidence artifact contains no CSV, HTML, raw contract file, or derived price row;
-- Cboe raw retention is incomplete and internal research use remains `PENDING_FORMAL_LICENSE_INTERPRETATION`;
-- historical Cboe settlement availability timing is not verified and zero rows authorize canonical price linkage or returns;
-- CME public delayed pages may support current reference checks, but owner-accessible 2022 historical flat-file retrieval remains unverified;
-- ICE public reports may support isolated verification, while complete historical End-of-Day packages remain blocked where purchase or subscription is required;
-- all provider contract identifiers remain empty and zero rows authorize price linkage or returns;
-- all Actions staging remains retention-limited and is not long-term immutable ingestion;
-- the CFTC PRE API identity is verified, but row-level cross-check remains pending because repeated GitHub-runner calls returned HTTP 503;
-- AQR workbooks, Moreira–Muir factor artifacts, licensed traditional-futures histories, Chi et al. source data, and Binance/OKX pilot artifacts remain unavailable or un-ingested;
-- no paper-level numerical replication is complete;
-- all six empirical edge verdicts remain `INCONCLUSIVE`.
-
-Public Cboe VX source engineering, exact parser maintenance, terms hashing, checksum/lineage work, and same-contract formula validation are authorized. Cboe raw publication, long-term retention without an approved legal basis, canonical price linkage, empirical return computation, provider purchases, unavailable payment workarounds, fitting, parameter tuning, strategy tournaments, paper trading, live trading, leverage, and capital deployment remain unauthorized.
+- `.github/workflows/okx-public-funding-metadata-pilot.yml`
+- `.github/workflows/binance-btcusdt-public-ephemeral-pilot.yml`
 
 ### 3. Dataset and Experiment System
 
@@ -170,7 +164,7 @@ Each leaf report must contain:
 
 1. Problem definition.
 2. Evidence supporting and challenging the proposition.
-3. Review of relevant production code and engineering practice.
+3. Relevant production code and engineering practice.
 4. Data and timing requirements.
 5. Acceptance and rejection criteria.
 6. Known limitations and unresolved questions.
@@ -181,44 +175,30 @@ Five leaf reports form one section-level synthesis. The five section syntheses f
 ## Governance Rules
 
 - Every hypothesis, feature family, label, threshold, parameter range, asset, venue, horizon, and metric choice counts toward the research trial ledger.
-- Negative results are retained permanently.
+- Negative results and access blockers are retained permanently.
 - Historical evidence can qualify a candidate for prospective testing but cannot prove a live edge.
-- No strategy is promoted because it uses a complex model, a famous paper, or a high backtest Sharpe ratio.
-- Data availability time, executable prices, realistic costs, failure modes, capacity, and owner accessibility are part of the hypothesis itself.
-- Primitive effects must be reported separately before signal integration.
-- Exact, near-exact, constructive, and theoretical reproductions are separate experiment identities.
-- No hypothesis may skip its strongest selected opposing evidence.
-- A single timestamp field is prohibited; `available_at` governs usability.
-- Continuous futures may support signal diagnostics but cannot create executable PnL.
-- Public data under provider terms are not assumed redistributable.
-- A public URL is not a license to retain, redistribute, or publicly redisplay provider content.
-- Safe evidence may retain hashes and metadata while restricted raw and derived price rows remain absent.
-- Implementation tests are not empirical paper replications.
+- Data availability time, executable prices, realistic costs, failure modes, capacity, owner accessibility, and license terms are part of the hypothesis.
+- A single timestamp is prohibited; `available_at` governs usability.
+- Continuous futures may support diagnostics but cannot create executable PnL.
+- Public visibility is not permission to retain, redistribute, mine, combine, or derive returns.
+- Safe evidence may retain hashes and non-market metadata while raw and derived market rows remain absent.
 - Source-page verification is not raw-artifact acquisition.
 - API reachability is not immutable ingestion.
-- Raw acquisition is not immutable ingestion until checksum, retrieval, license, and storage evidence exist.
 - Actions staging is not long-term immutable storage.
 - A scheduled release time is not a verified actual historical release time.
-- A CFTC reporting code is not automatically a tradable instrument.
+- A reporting code is not automatically a tradable instrument.
 - A product root is not a provider contract-chain identity.
-- A technically suitable provider that is inaccessible to the owner is not an actionable provider.
-- False identity, borrowed payment instruments, third-party accounts, credential sharing, and payment or jurisdiction circumvention are prohibited.
-- A provider candidate is not an accepted provider.
-- A parent symbol is only a lookup key until point-in-time child resolution is verified.
-- A cost endpoint is not purchase authorization.
-- OHLCV is not a substitute for official settlement.
-- A green gate-evaluation workflow may represent a verified blocker rather than an authenticated provider pass.
-- Provider credentials must never be committed, reported, or pasted into chat; they belong only in approved secret storage.
-- Missing credentials do not prove provider rejection or provider acceptance.
-- Consolidated reporting aggregates must never receive a direct price series.
 - Current product metadata may not be projected backward into historical observations.
+- Provider credentials belong only in approved secret storage and must never be committed or pasted into chat.
+- False identity, borrowed payment instruments, third-party accounts, credential sharing, and payment or jurisdiction circumvention are prohibited.
+- A green engineering workflow may establish a blocker or safe metadata profile rather than an empirical pass.
 - A derived-data pass is not an artifact-audit pass.
 - An artifact-audit pass is not a paper-replication pass.
 - A paper-replication pass is not an economic-edge pass.
-- Blocked or licensed data must remain blocked or pending; a convenient substitute cannot inherit an exact verdict.
-- An admitted hypothesis remains unproven until it survives genuinely new forward data and realistic execution.
+- Blocked or licensed data remain blocked or pending; convenient substitutes cannot inherit exact verdicts.
+- No admitted hypothesis is proven until it survives genuinely new forward data and realistic execution.
 - The final outcome may legitimately be to reject every candidate.
 
 ## Branch
 
-These reports are developed on `agent/edge-research-reports` until the research package is mature enough for review and integration.
+These reports are developed on `agent/edge-research-reports` under Draft PR #41 until the research package is mature enough for review and integration.
