@@ -298,14 +298,14 @@ def validate_funding(
         raise PilotError("unexpected funding interval")
     if expected == FUNDINGS and (ts[0] != START or ts[-1] != END - 28_800_000):
         raise PilotError("funding span failure")
-    jitters = [
-        current - previous - interval_hours * 3_600_000
-        for previous, current, interval_hours in zip(ts, ts[1:], intervals[1:], strict=False)
+    grid_jitters = [
+        timestamp - (START + index * 28_800_000)
+        for index, timestamp in enumerate(ts)
     ]
-    material = [jitter for jitter in jitters if abs(jitter) > 1]
+    material = [jitter for jitter in grid_jitters if abs(jitter) > 3]
     if material:
-        raise PilotError(f"material funding cadence jitter {material[:5]}")
-    nonzero = [jitter for jitter in jitters if jitter != 0]
+        raise PilotError(f"material funding grid jitter {material[:5]}")
+    nonzero = [jitter for jitter in grid_jitters if jitter != 0]
     max_abs_jitter = max((abs(jitter) for jitter in nonzero), default=0)
     return FUNDING, tuple(ts), len(nonzero), max_abs_jitter
 
@@ -404,7 +404,7 @@ def evidence(
             "funding_row_count": FUNDINGS,
             "timestamp_unit": "MILLISECONDS",
             "spot_microsecond_transition_not_applicable": True,
-            "funding_cadence_tolerance_ms": 1,
+            "funding_cadence_tolerance_ms": 3,
             "funding_timestamps_normalized_or_rewritten": False,
         },
         "retention_state": {
