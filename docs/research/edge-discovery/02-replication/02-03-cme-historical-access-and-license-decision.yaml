@@ -1,0 +1,74 @@
+schema_version: '1.0'
+decision:
+  id: CME-HISTORICAL-ACCESS-LICENSE-DECISION-2026-07-20
+  date: '2026-07-20'
+  source_family: CME_PUBLIC_DELAYED_WEBSITE_AND_DATAMINE
+  verdict: BLOCKED_LICENSE_AND_OWNER_ACCESS
+  legal_advice: false
+official_evidence:
+  daily_bulletin:
+    url: https://www.cmegroup.com/market-data/daily-bulletin.html
+    current_previous_trade_date_only: true
+    preliminary_publication: APPROXIMATELY_MIDNIGHT_CT_NEXT_BUSINESS_DAY
+    final_publication: APPROXIMATELY_10_00_CT_NEXT_BUSINESS_DAY
+    historical_link_target: CME_DATAMINE
+  datamine:
+    url: https://www.cmegroup.com/datamine.html
+    account_or_login_required_to_order: true
+    license_request_required: true
+    order_process_required: true
+    anonymous_historical_download_verified: false
+  settlement_faq:
+    url: https://www.cmegroup.com/articles/faqs/access-to-cme-group-settlement-data-faq.html
+    current_website_settlement_view_delay: MIDNIGHT_CT
+    historical_flat_file_channel: CME_DATAMINE
+    retrieval_or_platform_fees_documented: true
+  former_ftp:
+    settle_url: https://www.cmegroup.com/ftp/settle/
+    historical_settlement_files_present: false
+    bulletin_url: https://www.cmegroup.com/ftp/bulletin/
+    bulletin_result: NOT_FOUND
+terms:
+  data_terms_url: https://www.cmegroup.com/trading/market-data-explanation-disclaimer.html
+  website_terms_url: https://www.cmegroup.com/files/terms-of-use.pdf
+  written_consent_required_for_software_or_ai_development: true
+  systematic_retrieval_without_authorization_prohibited: true
+  dataset_compilation_without_authorization_prohibited: true
+  derivative_work_without_authorization_prohibited: true
+  automated_collection_authorized: false
+project_requirements:
+  reproducible_automated_acquisition: true
+  private_content_addressed_retention: true
+  parser_and_software_processing: true
+  cftc_combination: true
+  derived_returns: true
+  permanent_lineage: true
+compatibility:
+  requirements_covered_by_public_terms: false
+  exact_2022_contract_history_acquired: false
+  historical_publication_time_verified: false
+  provider_contract_ids_assigned: 0
+  price_linkage_authorized_rows: 0
+authorization:
+  manual_public_reference: true
+  terms_and_access_research: true
+  automated_website_extraction: false
+  historical_datamine_order: false
+  raw_retention: false
+  contract_price_linkage: false
+  returns_computation: false
+  empirical_fitting: false
+  paper_trading: false
+  live_trading: false
+  capital_deployment: false
+reentry:
+  written_permission_or_executed_license_required: true
+  owner_accessible_delivery_channel_required: true
+  exact_contract_identity_required: true
+  historical_settlement_semantics_required: true
+  historical_publication_timing_required: true
+  immutable_lineage_required: true
+verdicts:
+  paper_replication: NOT_COMPLETE
+  economic_edge: NOT_ESTABLISHED
+  EDGE-FUT-POSITION-001: INCONCLUSIVE
