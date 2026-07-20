@@ -145,6 +145,8 @@ class Profile:
     last_ms: int
     cadence_ms: int
     cadence_breaks: int
+    exact_cadence_deviation_count: int
+    max_abs_cadence_jitter_ms: int
 
 
 def sha256(data: bytes) -> str:
@@ -159,9 +161,7 @@ def fetch(url: str, timeout: float = 60) -> bytes:
     u = urlparse(url)
     if (u.scheme, u.hostname) != ("https", "data.binance.vision"):
         raise PilotError(f"disallowed URL {url}")
-    req = urllib.request.Request(
-        url, headers={"User-Agent": "Emad211-Trade-bot-replication/1.0"}
-    )
+    req = urllib.request.Request(url, headers={"User-Agent": "Emad211-Trade-bot-replication/1.0"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as response:
             body = bytes(response.read())
@@ -280,7 +280,7 @@ def validate_kline(
 
 def validate_funding(
     data: Sequence[Sequence[str]], expected: int
-) -> tuple[tuple[str, ...], tuple[int, ...]]:
+) -> tuple[tuple[str, ...], tuple[int, ...], int, int]:
     ts: list[int] = []
     intervals: list[int] = []
     for n, r in enumerate(data, 2):
@@ -298,26 +298,19 @@ def validate_funding(
         raise PilotError("unexpected funding interval")
     if expected == FUNDINGS and (ts[0] != START or ts[-1] != END - 28_800_000):
         raise PilotError("funding span failure")
-    anomalies = [
-        {
-            "previous_ms": previous,
-            "current_ms": current,
-            "delta_ms": current - previous,
-            "declared_interval_hours": interval_hours,
-        }
-        for previous, current, interval_hours in zip(
-            ts, ts[1:], intervals[1:], strict=False
-        )
-        if current - previous != interval_hours * 3_600_000
+    jitters = [
+        current - previous - interval_hours * 3_600_000
+        for previous, current, interval_hours in zip(ts, ts[1:], intervals[1:], strict=False)
     ]
-    if anomalies:
-        raise PilotError(f"funding cadence anomalies {anomalies[:5]}")
-    return FUNDING, tuple(ts)
+    material = [jitter for jitter in jitters if abs(jitter) > 1]
+    if material:
+        raise PilotError(f"material funding cadence jitter {material[:5]}")
+    nonzero = [jitter for jitter in jitters if jitter != 0]
+    max_abs_jitter = max((abs(jitter) for jitter in nonzero), default=0)
+    return FUNDING, tuple(ts), len(nonzero), max_abs_jitter
 
 
-def validate(
-    spec: Spec, zip_raw: bytes, checksum_raw: bytes
-) -> tuple[Profile, tuple[int, ...]]:
+def validate(spec: Spec, zip_raw: bytes, checksum_raw: bytes) -> tuple[Profile, tuple[int, ...]]:
     if len(zip_raw) > 20_000_000:
         raise PilotError("ZIP exceeds pilot size limit")
     provider = parse_checksum(checksum_raw, spec.filename)
@@ -335,15 +328,15 @@ def validate(
             require_positive_prices=spec.data_type != "premiumIndexKlines",
         )
         cadence = 3_600_000
+        exact_deviations = 0
+        max_abs_jitter = 0
     elif spec.kind == "FUNDING":
-        expected_schema, ts = validate_funding(data, spec.rows)
+        expected_schema, ts, exact_deviations, max_abs_jitter = validate_funding(data, spec.rows)
         cadence = 28_800_000
     else:
         raise PilotError("unknown parser kind")
     schema = header or expected_schema
-    if header and tuple(x.lower() for x in header) != tuple(
-        x.lower() for x in expected_schema
-    ):
+    if header and tuple(x.lower() for x in header) != tuple(x.lower() for x in expected_schema):
         raise PilotError(f"unexpected header {header}")
     return Profile(
         spec.source_id,
@@ -362,6 +355,8 @@ def validate(
         ts[-1],
         cadence,
         0,
+        exact_deviations,
+        max_abs_jitter,
     ), ts
 
 
@@ -409,6 +404,8 @@ def evidence(
             "funding_row_count": FUNDINGS,
             "timestamp_unit": "MILLISECONDS",
             "spot_microsecond_transition_not_applicable": True,
+            "funding_cadence_tolerance_ms": 1,
+            "funding_timestamps_normalized_or_rewritten": False,
         },
         "retention_state": {
             "raw_bytes_written_to_disk": False,
