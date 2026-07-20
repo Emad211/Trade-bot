@@ -1,0 +1,91 @@
+schema_version: '1.0'
+decision:
+  id: CRYPTO-OFFICIAL-SOURCE-SELECTION-2026-07-20
+  date: '2026-07-20'
+  verdict: GO_OKX_BOUNDED_PUBLIC_FUNDING_METADATA_PILOT
+selected_source:
+  venue: OKX
+  source_family: PUBLIC_FUNDING_RATE_HISTORY
+  host: www.okx.com
+  endpoint: /api/v5/public/funding-rate-history
+  instrument_id: BTC-USDT-SWAP
+  authentication_required: false
+  rate_limit_rule: IP_PLUS_INSTRUMENT
+  maximum_records: 100
+license:
+  historical_data_terms_url: https://www.okx.com/en-gb/help/historicaldata-terms-and-conditions
+  api_agreement_url: https://www.okx.com/en-ae/help/okx-api-agreement
+  personal_possession_allowed: true
+  personal_retention_allowed: true
+  own_trading_strategy_development_allowed: true
+  redistribution_allowed: false
+  sublicensing_allowed: false
+  license_revocable: true
+  deletion_on_revocation_or_expiry_required: true
+safe_handling:
+  ephemeral_raw_validation: true
+  raw_rows_in_git: false
+  raw_rows_in_public_actions_artifact: false
+  raw_rows_deleted_before_upload: true
+  safe_evidence_allowed:
+    - request_fingerprint
+    - retrieval_time
+    - http_status
+    - content_type
+    - response_byte_count
+    - response_sha256
+    - row_count
+    - schema_fields
+    - schema_sha256
+    - min_funding_time
+    - max_funding_time
+    - observed_interval_counts
+    - validation_results
+pilot_contract:
+  response_limit: 100
+  required_top_level_fields:
+    - code
+    - msg
+    - data
+  required_row_fields:
+    - instType
+    - instId
+    - formulaType
+    - fundingRate
+    - realizedRate
+    - fundingTime
+    - method
+  expected_inst_type: SWAP
+  unique_funding_times_required: true
+  fixed_eight_hour_interval_assumption: false
+  returns_computed: false
+limitations:
+  public_endpoint_history_horizon: UP_TO_THREE_MONTHS
+  historical_2022_funding_acquired: false
+  historical_download_file_delivery_verified: false
+  point_in_time_2022_instrument_metadata_verified: false
+  long_term_private_retention_authorized: false
+binance:
+  technical_archive_candidate: true
+  per_file_checksum_available: true
+  repository_license: MIT
+  market_data_license_scope_resolved: false
+  raw_acquisition_authorized: false
+authorization:
+  okx_bounded_metadata_pilot: true
+  okx_ephemeral_raw_fetch: true
+  okx_public_raw_artifact: false
+  okx_bulk_download: false
+  okx_returns: false
+  binance_raw_acquisition: false
+  empirical_fitting: false
+  parameter_tuning: false
+  paper_trading: false
+  live_trading: false
+  capital_deployment: false
+  report_2_4_full_authorization: false
+verdicts:
+  EDGE-CRYPTO-BASIS-001: INCONCLUSIVE
+  EDGE-CRYPTO-RV-001: INCONCLUSIVE
+  paper_replication: NOT_COMPLETE
+  economic_edge: NOT_ESTABLISHED
