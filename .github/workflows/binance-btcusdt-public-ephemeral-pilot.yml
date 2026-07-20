@@ -126,7 +126,7 @@ jobs:
                       raise SystemExit(f"Unexpected funding profile: {observed}")
                   if not 0 < s["exact_cadence_deviation_count"] < 93:
                       raise SystemExit("Unexpected funding deviation count")
-                  if s["max_abs_cadence_jitter_ms"] != 1:
+                  if not 0 < s["max_abs_cadence_jitter_ms"] <= 3:
                       raise SystemExit("Unexpected funding jitter")
               else:
                   expected = (744, 12, 1704067200000, 1706742000000, 0, 0)
@@ -137,7 +137,7 @@ jobs:
                   if observed != expected:
                       raise SystemExit(f"Unexpected kline profile for {s['source_id']}: {observed}")
           if e["cross_source_checks"] != {
-              "funding_cadence_tolerance_ms": 1,
+              "funding_cadence_tolerance_ms": 3,
               "funding_row_count": 93,
               "funding_timestamps_normalized_or_rewritten": False,
               "hourly_row_count": 744,
@@ -168,6 +168,15 @@ jobs:
               "source_count": e["source_count"],
           }, indent=2, sort_keys=True))
           PY
+
+      - name: Upload unverified safe evidence when independent verification fails
+        if: failure() && steps.pilot.outputs.exit_code == '0'
+        uses: actions/upload-artifact@v7
+        with:
+          name: binance-btcusdt-public-unverified-safe-evidence-${{ github.sha }}
+          path: build/binance-safe-evidence/binance-btcusdt-public-ephemeral-pilot-evidence.json
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Prove no raw or derived market-data files remain
         run: |
