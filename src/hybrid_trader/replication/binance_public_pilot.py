@@ -298,11 +298,20 @@ def validate_funding(
         raise PilotError("unexpected funding interval")
     if expected == FUNDINGS and (ts[0] != START or ts[-1] != END - 28_800_000):
         raise PilotError("funding span failure")
-    if any(
-        b - a != h * 3_600_000
-        for a, b, h in zip(ts, ts[1:], intervals[1:], strict=False)
-    ):
-        raise PilotError("funding cadence failure")
+    anomalies = [
+        {
+            "previous_ms": previous,
+            "current_ms": current,
+            "delta_ms": current - previous,
+            "declared_interval_hours": interval_hours,
+        }
+        for previous, current, interval_hours in zip(
+            ts, ts[1:], intervals[1:], strict=False
+        )
+        if current - previous != interval_hours * 3_600_000
+    ]
+    if anomalies:
+        raise PilotError(f"funding cadence anomalies {anomalies[:5]}")
     return FUNDING, tuple(ts)
 
 
