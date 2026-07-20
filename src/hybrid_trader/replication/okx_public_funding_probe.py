@@ -11,6 +11,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
+from itertools import pairwise
 from pathlib import Path
 from typing import Any, cast
 from urllib.parse import urlencode, urlparse
@@ -193,8 +194,7 @@ def validate_response(
         raise OKXFundingProbeError("Funding timestamps are not deterministically ordered")
     chronological = sorted(timestamps)
     intervals = Counter(
-        (current - previous) // 1000
-        for previous, current in zip(chronological, chronological[1:], strict=True)
+        (current - previous) // 1000 for previous, current in pairwise(chronological)
     )
     schema_fields = tuple(sorted(schema))
     schema_bytes = "\x00".join(schema_fields).encode("utf-8")
