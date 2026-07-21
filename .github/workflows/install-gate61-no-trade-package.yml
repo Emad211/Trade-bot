@@ -22,7 +22,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  verify-and-publish:
+  verify-and-build-candidate:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -105,36 +105,109 @@ jobs:
               raise SystemExit('Synthetic Gate 61 lifecycle did not complete')
           PY
 
-      - name: Publish verified non-workflow package files
-        shell: bash
+      - name: Create verified atomic publication candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          BRANCH: agent/edge-research-reports
         run: |
-          set -euo pipefail
-          branch='agent/edge-research-reports'
-          git fetch origin "$branch"
-          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/$branch)"
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          python - <<'PY'
+          import base64
+          import json
+          import os
+          import urllib.request
+          from pathlib import Path
 
-          git add \
-            src/hybrid_trader/replication/okx_no_trade_observation.py \
-            scripts/run_okx_no_trade_observation.py \
-            scripts/validate_okx_no_trade_observation_contract.py \
-            tests/test_okx_no_trade_observation.py \
-            configs/okx_no_trade_observation_policy_v1.yaml \
-            docs/research/edge-discovery/02-replication/02-04-okx-owner-controlled-no-trade-observation-gate.yaml \
-            docs/research/edge-discovery/02-replication/02-04-okx-owner-controlled-no-trade-observation-runbook.md
+          repo = os.environ['REPOSITORY']
+          branch = os.environ['BRANCH']
+          token = os.environ['GH_TOKEN']
+          api = f'https://api.github.com/repos/{repo}'
+          headers = {
+              'Authorization': f'Bearer {token}',
+              'Accept': 'application/vnd.github+json',
+              'X-GitHub-Api-Version': '2022-11-28',
+              'Content-Type': 'application/json',
+          }
 
-          git rm \
-            .gate61-package.part00 \
-            .gate61-package.part01 \
-            .gate61-package.part02 \
-            .gate61-package.part03 \
-            .gate61-package.part04 \
-            .gate61-package.part05 \
-            .gate61-package.part06 \
-            .gate61-package.part07 \
-            docs/research/edge-discovery/02-replication/02-04-owner-controlled-no-trade-observation-gate-draft.md
+          def call(method, url, payload=None):
+              data = None if payload is None else json.dumps(payload).encode()
+              request = urllib.request.Request(url, data=data, headers=headers, method=method)
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  return json.loads(response.read().decode())
 
-          git diff --cached --check
-          git commit -m 'Prepare owner-controlled OKX no-trade observation package'
-          git push origin "HEAD:$branch"
+          ref = call('GET', f'{api}/git/ref/heads/{branch}')
+          parent = ref['object']['sha']
+          if parent != os.environ['GITHUB_SHA']:
+              raise SystemExit(f'Branch moved during verification: {parent}')
+          parent_commit = call('GET', f'{api}/git/commits/{parent}')
+          base_tree = parent_commit['tree']['sha']
+          paths = [
+              'src/hybrid_trader/replication/okx_no_trade_observation.py',
+              'scripts/run_okx_no_trade_observation.py',
+              'scripts/validate_okx_no_trade_observation_contract.py',
+              'tests/test_okx_no_trade_observation.py',
+              'configs/okx_no_trade_observation_policy_v1.yaml',
+              '.github/workflows/okx-no-trade-observation-contract.yml',
+              'docs/research/edge-discovery/02-replication/02-04-okx-owner-controlled-no-trade-observation-gate.yaml',
+              'docs/research/edge-discovery/02-replication/02-04-okx-owner-controlled-no-trade-observation-runbook.md',
+          ]
+          entries = []
+          blob_receipts = {}
+          for path in paths:
+              raw = Path(path).read_bytes()
+              blob = call('POST', f'{api}/git/blobs', {
+                  'content': base64.b64encode(raw).decode(),
+                  'encoding': 'base64',
+              })
+              entries.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']})
+              blob_receipts[path] = blob['sha']
+
+          cleanup = [
+              '.gate61-package.part00',
+              '.gate61-package.part01',
+              '.gate61-package.part02',
+              '.gate61-package.part03',
+              '.gate61-package.part04',
+              '.gate61-package.part05',
+              '.gate61-package.part06',
+              '.gate61-package.part07',
+              '.github/workflows/install-gate61-no-trade-package.yml',
+              'docs/research/edge-discovery/02-replication/02-04-owner-controlled-no-trade-observation-gate-draft.md',
+          ]
+          entries.extend(
+              {'path': path, 'mode': '100644', 'type': 'blob', 'sha': None}
+              for path in cleanup
+          )
+          tree = call('POST', f'{api}/git/trees', {'base_tree': base_tree, 'tree': entries})
+          commit = call('POST', f'{api}/git/commits', {
+              'message': 'Prepare owner-controlled OKX no-trade observation package',
+              'tree': tree['sha'],
+              'parents': [parent],
+          })
+          receipt = {
+              'schema_version': '1.0',
+              'repository': repo,
+              'branch': branch,
+              'verified_parent_sha': parent,
+              'candidate_tree_sha': tree['sha'],
+              'candidate_commit_sha': commit['sha'],
+              'permanent_blob_shas': blob_receipts,
+              'deleted_paths': cleanup,
+              'real_requests_performed': False,
+              'orders_sent': False,
+              'report_2_4_authorized': False,
+          }
+          output = Path('build/gate61-publish-candidate.json')
+          output.parent.mkdir(parents=True, exist_ok=True)
+          output.write_text(json.dumps(receipt, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+          print(json.dumps(receipt, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload publication candidate receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: gate61-publication-candidate-${{ github.sha }}
+          path: build/gate61-publish-candidate.json
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
