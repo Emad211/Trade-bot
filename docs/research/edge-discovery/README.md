@@ -52,6 +52,9 @@ Verified foundations include:
 - verified OKX March 2022 funding archive identity, schema, timestamp grid, deletion proof, and private revocable-retention controls;
 - a completed OKX historical instrument/version gate that refused to backdate current metadata;
 - an append-only, content-addressed OKX prospective registry with two verified observations for both the instrument and funding-source streams;
+- verified prospective spot, swap, mark, and index source-linkage metadata with non-monotonic provider-cache timing preserved;
+- an owner-controlled private four-source sampling contract and a disabled-by-default one-batch runner, both validated synthetically with zero real raw execution;
+- a fail-closed account-fee, per-fill, funding-bill, position-aggregate, and current funding-formula accounting contract;
 - repository-wide static analysis, unit testing, package-smoke, and dedicated source workflows.
 
 Gate outcomes:
@@ -61,9 +64,14 @@ Issue #50: CLOSED — GO_PRIVATE_REVOCABLE_2022_FUNDING_PILOT
 Issue #51: CLOSED — BLOCKED_INSTRUMENT_VERSION_HISTORY
 Independent Issue #51 blocker: BLOCKED_ARCHIVE_AVAILABILITY_TIMING
 Issue #52: CLOSED — GO_PROSPECTIVE_OKX_POINT_IN_TIME_REGISTRY
+Issue #53: CLOSED — GO_PROSPECTIVE_OKX_PRICE_LINKAGE_METADATA_PILOT
+Issue #54: CLOSED — GO_OWNER_CONTROLLED_PRIVATE_OKX_SAMPLING_CONTRACT
+Issue #55: CLOSED — GO_OWNER_SIDE_OKX_ONE_BATCH_RUNNER_READY
+Issue #56: CLOSED — GO_OKX_FEE_AND_FUNDING_ACCOUNTING_CONTRACT
+Independent Issue #56 blocker: BLOCKED_ACCOUNT_SPECIFIC_FEE_SNAPSHOT
 ```
 
-The Issue #52 GO is deliberately narrow. It authorizes prospective registry collection, content-version monitoring, source-health monitoring, and safe schema/field-change detection from `2026-07-21T10:30:16.294785Z` forward. It does not repair history or authorize basis, funding PnL, returns, fitting, tuning, strategy tests, paper/live trading, leverage, Report 2.4, or capital deployment.
+The GO outcomes are deliberately narrow. They authorize prospective source/version monitoring, safe metadata linkage, tested private-retention and owner-runner contracts, and synthetic accounting validation. They do not repair history, execute a real raw batch, acquire owner fee rates, or authorize basis, funding PnL, returns, numerical transaction costs, fitting, tuning, strategy tests, paper/live trading, leverage, Report 2.4, or capital deployment.
 
 Current hard blockers:
 
@@ -75,8 +83,11 @@ CME historical route: BLOCKED_LOGIN_ORDER_FEE_AND_LICENSE
 ICE complete history: BLOCKED_PAID_ARCHIVE
 OKX March 2022 complete instrument/version history: BLOCKED
 OKX March 2022 archive publication available_at: BLOCKED
+Real owner-controlled OKX raw batch: NOT EXECUTED
+Owner-account-specific fee snapshot: BLOCKED_OWNER_READ_ONLY_CREDENTIALS
+Executable-price / spread / slippage / impact / latency contract: INCOMPLETE
 Binance persistent raw retention and historical available_at: OPEN GATES
-Basis / funding PnL / returns: NOT AUTHORIZED
+Basis / funding PnL / returns / transaction costs: NOT AUTHORIZED
 Paper-level numerical replication: NOT COMPLETE
 Economic edge: NOT ESTABLISHED
 Report 2.4: BLOCKED
@@ -124,6 +135,10 @@ All six hypothesis verdicts remain `INCONCLUSIVE`.
 - [Initial prospective registry snapshot](02-replication/02-03-okx-prospective-registry-initial-snapshot.json)
 - [Second prospective registry evidence](02-replication/02-03-okx-prospective-registry-second-evidence.yaml)
 - [Second prospective registry snapshot](02-replication/02-03-okx-prospective-registry-second-snapshot.json)
+- [Verified prospective price-linkage metadata](02-replication/02-03-okx-prospective-price-linkage-metadata-evidence.md)
+- [Owner-controlled private synchronized-sampling contract](02-replication/02-03-okx-private-synchronized-sampling-contract-evidence.md)
+- [Disabled owner-side one-batch runner](02-replication/02-03-okx-owner-side-one-batch-runner-evidence.md)
+- [Verified fee and funding accounting contract](02-replication/02-03-okx-fee-and-funding-accounting-contract-evidence.md)
 - [Verified Binance BTCUSDT ephemeral pilot](02-replication/02-03-binance-btcusdt-public-ephemeral-pilot-evidence.md)
 
 ### Key workflows
@@ -136,7 +151,11 @@ All six hypothesis verdicts remain `INCONCLUSIVE`.
 - `.github/workflows/okx-2022-instrument-version-source-audit.yml`
 - `.github/workflows/okx-prospective-registry-initial-snapshot.yml`
 - `.github/workflows/okx-prospective-registry-second-snapshot.yml`
+- `.github/workflows/okx-prospective-price-linkage-metadata-pilot.yml`
 - `.github/workflows/okx-private-revocable-retention-contract.yml`
+- `.github/workflows/okx-private-synchronized-sampling-contract.yml`
+- `.github/workflows/okx-owner-side-one-batch-runner.yml`
+- `.github/workflows/okx-fee-accounting-contract.yml`
 - `.github/workflows/binance-btcusdt-public-ephemeral-pilot.yml`
 
 ### 3. Dataset and Experiment System
