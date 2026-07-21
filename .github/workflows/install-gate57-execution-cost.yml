@@ -103,18 +103,69 @@ jobs:
           assert not any(value in text for value in forbidden)
           PY
 
-      - name: Publish verified contract code
+      - name: Publish verified contract through Git Data API
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
-          rm -rf build/okx-execution-cost-semantics
-          rm .github/workflows/okx-execution-cost-semantics-contract.yml
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add \
-            src/hybrid_trader/replication/okx_execution_cost_semantics.py \
-            scripts/validate_okx_execution_cost_semantics.py \
-            tests/test_okx_execution_cost_semantics.py \
-            docs/research/edge-discovery/02-replication/02-03-okx-executable-price-and-cost-semantics-gate.yaml
-          git status --short
-          git commit -m 'Add OKX execution-cost semantics contract'
-          git push origin HEAD:agent/edge-research-reports
+          python - <<'PY'
+          import base64
+          import json
+          import os
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+
+          repository = os.environ['GITHUB_REPOSITORY']
+          token = os.environ['GITHUB_TOKEN']
+          branch = 'agent/edge-research-reports'
+          api_root = f'https://api.github.com/repos/{repository}'
+
+          def call(method: str, path: str, payload: dict | None = None) -> dict:
+              data = None if payload is None else json.dumps(payload).encode('utf-8')
+              request = Request(
+                  api_root + path,
+                  data=data,
+                  method=method,
+                  headers={
+                      'Accept': 'application/vnd.github+json',
+                      'Authorization': f'Bearer {token}',
+                      'X-GitHub-Api-Version': '2022-11-28',
+                      'User-Agent': 'Trade-bot-Gate-57-installer',
+                  },
+              )
+              with urlopen(request, timeout=60) as response:
+                  return json.loads(response.read())
+
+          ref = call('GET', f'/git/ref/heads/{branch}')
+          parent_sha = ref['object']['sha']
+          parent_commit = call('GET', f'/git/commits/{parent_sha}')
+          base_tree_sha = parent_commit['tree']['sha']
+
+          paths = (
+              'src/hybrid_trader/replication/okx_execution_cost_semantics.py',
+              'scripts/validate_okx_execution_cost_semantics.py',
+              'tests/test_okx_execution_cost_semantics.py',
+              'docs/research/edge-discovery/02-replication/02-03-okx-executable-price-and-cost-semantics-gate.yaml',
+          )
+          entries = []
+          for path in paths:
+              content = base64.b64encode(Path(path).read_bytes()).decode('ascii')
+              blob = call('POST', '/git/blobs', {'content': content, 'encoding': 'base64'})
+              entries.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']})
+
+          tree = call('POST', '/git/trees', {'base_tree': base_tree_sha, 'tree': entries})
+          commit = call(
+              'POST',
+              '/git/commits',
+              {
+                  'message': 'Add OKX execution-cost semantics contract',
+                  'tree': tree['sha'],
+                  'parents': [parent_sha],
+              },
+          )
+          call(
+              'PATCH',
+              f'/git/refs/heads/{branch}',
+              {'sha': commit['sha'], 'force': False},
+          )
+          print(json.dumps({'parent': parent_sha, 'commit': commit['sha']}, sort_keys=True))
+          PY
