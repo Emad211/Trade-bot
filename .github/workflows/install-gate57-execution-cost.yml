@@ -103,20 +103,18 @@ jobs:
           assert not any(value in text for value in forbidden)
           PY
 
-      - name: Retire installer and publish verified contract code
+      - name: Publish verified contract code
         run: |
           set -euo pipefail
           rm -rf build/okx-execution-cost-semantics
           rm .github/workflows/okx-execution-cost-semantics-contract.yml
-          rm .github/workflows/install-gate57-execution-cost.yml
-          rm .gate57-payload.b64.part00 \
-             .gate57-payload.b64.part01 \
-             .gate57-payload.b64.part02 \
-             .gate57-payload.b64.part03 \
-             .gate57-payload.b64.part04
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
+          git add \
+            src/hybrid_trader/replication/okx_execution_cost_semantics.py \
+            scripts/validate_okx_execution_cost_semantics.py \
+            tests/test_okx_execution_cost_semantics.py \
+            docs/research/edge-discovery/02-replication/02-03-okx-executable-price-and-cost-semantics-gate.yaml
           git status --short
           git commit -m 'Add OKX execution-cost semantics contract'
           git push origin HEAD:agent/edge-research-reports
