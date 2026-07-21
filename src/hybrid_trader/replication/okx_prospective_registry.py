@@ -237,6 +237,47 @@ def diff_selected_fields(
     return tuple(sorted(key for key in keys if previous.get(key) != current.get(key)))
 
 
+def diff_safe_values(
+    previous: Any,
+    current: Any,
+    *,
+    prefix: str = "",
+) -> tuple[str, ...]:
+    """Return stable dotted paths for safe metadata changes."""
+
+    path = prefix or "$"
+    if isinstance(previous, Mapping) and isinstance(current, Mapping):
+        changes: list[str] = []
+        for key in sorted(set(previous) | set(current), key=str):
+            child = f"{prefix}.{key}" if prefix else str(key)
+            if key not in previous or key not in current:
+                changes.append(child)
+            else:
+                changes.extend(diff_safe_values(previous[key], current[key], prefix=child))
+        return tuple(changes)
+    if (
+        isinstance(previous, Sequence)
+        and not isinstance(previous, (str, bytes, bytearray))
+        and isinstance(current, Sequence)
+        and not isinstance(current, (str, bytes, bytearray))
+    ):
+        return () if list(previous) == list(current) else (path,)
+    return () if previous == current else (path,)
+
+
+def tail_by_content_kind(
+    observations: Sequence[ProspectiveRegistryObservation],
+    *,
+    content_kind: str,
+) -> ProspectiveRegistryObservation:
+    """Return the last observation in one source stream."""
+
+    matches = [item for item in observations if item.content_kind == content_kind]
+    if not matches:
+        raise OKXProspectiveRegistryError(f"registry has no observations for {content_kind!r}")
+    return matches[-1]
+
+
 def append_observation(
     existing: Sequence[ProspectiveRegistryObservation],
     observation: ProspectiveRegistryObservation,
@@ -246,6 +287,10 @@ def append_observation(
     observation_id = observation.observation_id
     if any(item.observation_id == observation_id for item in existing):
         raise OKXProspectiveRegistryError("observation identity already exists")
+    if any(item.content_kind != observation.content_kind for item in existing):
+        raise OKXProspectiveRegistryError(
+            "append_observation accepts exactly one content-kind stream"
+        )
     if existing:
         previous = existing[-1]
         previous_time = previous.observation_clock.registry_committed_at.astimezone(UTC)
