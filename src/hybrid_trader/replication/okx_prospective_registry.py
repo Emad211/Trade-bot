@@ -78,7 +78,9 @@ class SourceHealthObservation(BaseModel):
             raise ValueError("raw errors cannot be retained in the prospective registry")
         if self.status == SourceHealthStatus.SUCCESS:
             if self.http_status != 200 or self.response_sha256 is None:
-                raise ValueError("successful health observations require HTTP 200 and a response hash")
+                raise ValueError(
+                    "successful health observations require HTTP 200 and a response hash"
+                )
             if self.error_fingerprint_sha256 is not None:
                 raise ValueError("successful observations cannot carry an error fingerprint")
         else:
@@ -249,9 +251,7 @@ def append_observation(
         previous_time = previous.observation_clock.registry_committed_at.astimezone(UTC)
         current_time = observation.observation_clock.registry_committed_at.astimezone(UTC)
         if current_time <= previous_time:
-            raise OKXProspectiveRegistryError(
-                "registry_committed_at must increase monotonically"
-            )
+            raise OKXProspectiveRegistryError("registry_committed_at must increase monotonically")
         if observation.previous_observation_id != previous.observation_id:
             raise OKXProspectiveRegistryError(
                 "previous_observation_id must reference the registry tail"
@@ -262,9 +262,7 @@ def append_observation(
                 "content version changes require a non-empty field diff"
             )
         if not changed and observation.changed_fields:
-            raise OKXProspectiveRegistryError(
-                "unchanged content cannot declare changed fields"
-            )
+            raise OKXProspectiveRegistryError("unchanged content cannot declare changed fields")
     else:
         if observation.previous_observation_id is not None:
             raise OKXProspectiveRegistryError(
@@ -272,7 +270,7 @@ def append_observation(
             )
         changed = True
     return AppendResult(
-        observations=tuple(existing) + (observation,),
+        observations=(*tuple(existing), observation),
         appended_observation_id=observation_id,
         content_version_changed=changed,
     )
