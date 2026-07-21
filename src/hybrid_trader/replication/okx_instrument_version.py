@@ -257,12 +257,13 @@ def earliest_verified_availability(
     for claim in claims:
         if not claim.verified or claim.scope != scope:
             continue
-        if scope in {AvailabilityScope.MODULE, AvailabilityScope.SPECIFIC_FILE}:
-            if claim.module_id != module_id:
-                continue
-        if scope == AvailabilityScope.SPECIFIC_FILE:
-            if claim.file_sha256 != file_sha256:
-                continue
+        if (
+            scope in {AvailabilityScope.MODULE, AvailabilityScope.SPECIFIC_FILE}
+            and claim.module_id != module_id
+        ):
+            continue
+        if scope == AvailabilityScope.SPECIFIC_FILE and claim.file_sha256 != file_sha256:
+            continue
         matches.append(claim)
     if not matches:
         return None
