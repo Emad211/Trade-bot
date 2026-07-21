@@ -78,14 +78,26 @@ jobs:
           assert evidence['paper_or_live_trading_authorized'] is False
           assert evidence['gate_verdict'] == 'PRIVATE_REVOCABLE_PILOT_TECHNICALLY_VERIFIED'
           assert profile['member_count'] == 1
-          assert len(profile['archive_sha256']) == 64
-          assert profile['archive_byte_count'] > 0
-          assert member['row_count'] > 0
-          assert member['unique_timestamp_count'] > 0
+          assert profile['archive_byte_count'] == 1403
+          assert profile['archive_sha256'] == (
+              'ce4fe9aaf1dfdee16e1d11cdabcbb405eb348966902950db1ca862dc86779013'
+          )
+          assert member['filename'] == 'BTC-USDT-SWAP-fundingrates-2022-03.csv'
+          assert member['uncompressed_size'] == 4546
+          assert member['member_sha256'] == (
+              '508195adcc2fd9e9a1978926d8da89af4054d79de4675268cbfb2ac9539e73da'
+          )
+          assert member['crc32_hex'] == '01e95991'
+          assert member['fieldnames'] == [
+              'instrument_name', 'funding_rate', 'funding_time'
+          ]
+          assert member['timestamp_field'] == 'funding_time'
+          assert member['row_count'] == 93
+          assert member['unique_timestamp_count'] == 93
           assert member['duplicate_timestamp_count'] == 0
-          assert member['minimum_timestamp_utc'].startswith('2022-03-')
-          assert member['maximum_timestamp_utc'].startswith('2022-03-')
-          assert member['filename'].lower().endswith('.csv')
+          assert member['minimum_timestamp_utc'] == '2022-02-28T16:00:00Z'
+          assert member['maximum_timestamp_utc'] == '2022-03-31T08:00:00Z'
+          assert member['timestamp_order'] == 'ascending'
           assert evidence['export_metadata']['archive_link']['host'] == 'static.okx.com'
           assert evidence['export_metadata']['archive_link']['path'].endswith(
               'BTC-USDT-SWAP-fundingrates-2022-03.zip'
