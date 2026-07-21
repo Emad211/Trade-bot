@@ -1,0 +1,158 @@
+name: OKX 2022 Instrument Version Source Audit
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/okx-2022-instrument-version-source-audit.yml
+      - src/hybrid_trader/replication/okx_instrument_version.py
+      - src/hybrid_trader/replication/okx_instrument_sources.py
+      - scripts/audit_okx_2022_instrument_sources.py
+      - tests/test_okx_instrument_version.py
+      - tests/test_okx_instrument_sources.py
+      - docs/research/edge-discovery/02-replication/02-03-okx-2022-instrument-version-and-archive-availability-gate.*
+  push:
+    branches: [agent/edge-research-reports]
+    paths:
+      - .github/workflows/okx-2022-instrument-version-source-audit.yml
+      - src/hybrid_trader/replication/okx_instrument_version.py
+      - src/hybrid_trader/replication/okx_instrument_sources.py
+      - scripts/audit_okx_2022_instrument_sources.py
+      - tests/test_okx_instrument_version.py
+      - tests/test_okx_instrument_sources.py
+      - docs/research/edge-discovery/02-replication/02-03-okx-2022-instrument-version-and-archive-availability-gate.*
+
+permissions:
+  contents: read
+
+concurrency:
+  group: okx-2022-instrument-version-source-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  audit-official-sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install project verification dependencies
+        run: python -m pip install -e '.[dev,replication]'
+
+      - name: Verify scoped implementation
+        run: |
+          ruff format --check \
+            src/hybrid_trader/replication/okx_instrument_version.py \
+            src/hybrid_trader/replication/okx_instrument_sources.py \
+            scripts/audit_okx_2022_instrument_sources.py \
+            tests/test_okx_instrument_version.py \
+            tests/test_okx_instrument_sources.py
+          ruff check \
+            src/hybrid_trader/replication/okx_instrument_version.py \
+            src/hybrid_trader/replication/okx_instrument_sources.py \
+            scripts/audit_okx_2022_instrument_sources.py \
+            tests/test_okx_instrument_version.py \
+            tests/test_okx_instrument_sources.py
+          mypy \
+            src/hybrid_trader/replication/okx_instrument_version.py \
+            src/hybrid_trader/replication/okx_instrument_sources.py \
+            scripts/audit_okx_2022_instrument_sources.py
+          pytest -q \
+            tests/test_okx_instrument_version.py \
+            tests/test_okx_instrument_sources.py
+
+      - name: Audit bounded official sources
+        run: |
+          python scripts/audit_okx_2022_instrument_sources.py \
+            --output-dir build/okx-2022-instrument-source-audit
+
+      - name: Independently verify safe evidence and fail-closed boundaries
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('build/okx-2022-instrument-source-audit')
+          files = sorted(path.name for path in root.iterdir() if path.is_file())
+          assert files == ['okx-2022-instrument-source-audit.json'], files
+          evidence = json.loads((root / files[0]).read_text(encoding='utf-8'))
+          assert evidence['audit_id'] == 'OKX_BTC_USDT_SWAP_2022_SOURCE_IDENTITY_AUDIT_V1'
+          assert evidence['page_source_count'] == 8
+          assert len(evidence['page_sources']) == 8
+          source_ids = {source['source_id'] for source in evidence['page_sources']}
+          assert source_ids == {
+              'OKX_BTCUSDT_SWAP_LAUNCH_2019_12_16',
+              'OKX_BTCUSDT_FACE_VALUE_2020_03_04',
+              'OKX_BTC_FUNDING_RULES_2020_10_14',
+              'OKX_FACE_VALUE_POSTPONEMENT_2021_05_08',
+              'OKX_PERPETUAL_GUIDE_2022_06_20_CURRENTLY_REVISED',
+              'OKX_HISTORICAL_DATA_TERMS_2023_10_26',
+              'OKX_HISTORICAL_DATA_CATALOG_CURRENT',
+              'OKX_API_CHANGELOG_2025_09_02',
+          }
+          for source in evidence['page_sources']:
+              assert source['http_status'] == 200
+              assert source['final_scheme'] == 'https'
+              assert source['final_host'] == 'www.okx.com'
+              assert source['byte_count'] > 0
+              assert len(source['sha256']) == 64
+              assert source['markers_all_present'] is True
+              assert all(count > 0 for count in source['marker_counts'].values())
+              assert source['raw_body_retained'] is False
+              assert source['historical_use_authorized_by_audit'] is False
+
+          current = evidence['current_instrument_negative_control']
+          fields = current['selected_fields']
+          assert current['http_status'] == 200
+          assert current['raw_response_retained'] is False
+          assert current['historical_use_authorized'] is False
+          assert fields['instId'] == 'BTC-USDT-SWAP'
+          assert fields['instFamily'] == 'BTC-USDT'
+          assert fields['instType'] == 'SWAP'
+          assert fields['ctType'] == 'linear'
+          assert fields['ctVal'] == '0.01'
+          assert fields['ctValCcy'] == 'BTC'
+          assert fields['settleCcy'] == 'USDT'
+          assert fields['tickSz'] == '0.1'
+          assert fields['lotSz'] == '0.01'
+          assert fields['minSz'] == '0.01'
+
+          availability = evidence['availability_boundaries']
+          assert availability['historical_data_service']['scope'] == 'SERVICE'
+          assert availability['historical_data_service']['available_by_utc'].startswith('2023-10-26')
+          assert availability['historical_data_service']['specific_file_promoted'] is False
+          assert availability['historical_batch_api']['scope'] == 'MODULE'
+          assert availability['historical_batch_api']['available_by_utc'].startswith('2025-09-02')
+          assert availability['historical_batch_api']['specific_file_promoted'] is False
+          assert availability['march_2022_funding_file'] == {
+              'scope': 'SPECIFIC_FILE',
+              'historical_publication_time_verified': False,
+              'available_by_utc_from_this_audit': None,
+              'current_retrieval_may_be_backdated': False,
+          }
+
+          retention = evidence['retention_state']
+          assert all(value is False for value in retention.values())
+          authorization = evidence['authorization']
+          assert all(value is False for value in authorization.values())
+          assert evidence['audit_verdict'] == (
+              'SOURCE_IDENTITIES_VERIFIED_NO_HISTORICAL_PROMOTION'
+          )
+          assert evidence['issue_51_outcome'] is None
+          assert evidence['economic_edge_verdict'] == 'INCONCLUSIVE'
+          assert not list(root.glob('*.html'))
+          assert not list(root.glob('*.csv'))
+          assert not list(root.glob('*.zip'))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: okx-2022-instrument-source-safe-evidence-${{ github.sha }}
+          path: build/okx-2022-instrument-source-audit/okx-2022-instrument-source-audit.json
+          if-no-files-found: error
+          retention-days: 90
