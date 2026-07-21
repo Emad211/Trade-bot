@@ -33,7 +33,7 @@ concurrency:
 jobs:
   audit-official-sources:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -68,7 +68,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Verify scoped implementation
+      - name: Verify exact formatting
         run: |
           ruff format --check \
             src/hybrid_trader/replication/okx_instrument_version.py \
@@ -76,19 +76,57 @@ jobs:
             scripts/audit_okx_2022_instrument_sources.py \
             tests/test_okx_instrument_version.py \
             tests/test_okx_instrument_sources.py
+
+      - name: Run scoped lint, type, and test diagnostics
+        id: scoped-diagnostics
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          mkdir -p build/okx-2022-gate-diagnostics
+
           ruff check \
             src/hybrid_trader/replication/okx_instrument_version.py \
             src/hybrid_trader/replication/okx_instrument_sources.py \
             scripts/audit_okx_2022_instrument_sources.py \
             tests/test_okx_instrument_version.py \
-            tests/test_okx_instrument_sources.py
+            tests/test_okx_instrument_sources.py \
+            2>&1 | tee build/okx-2022-gate-diagnostics/ruff.log
+          ruff_status=${PIPESTATUS[0]}
+
           mypy \
             src/hybrid_trader/replication/okx_instrument_version.py \
             src/hybrid_trader/replication/okx_instrument_sources.py \
-            scripts/audit_okx_2022_instrument_sources.py
+            scripts/audit_okx_2022_instrument_sources.py \
+            2>&1 | tee build/okx-2022-gate-diagnostics/mypy.log
+          mypy_status=${PIPESTATUS[0]}
+
           pytest -q \
             tests/test_okx_instrument_version.py \
-            tests/test_okx_instrument_sources.py
+            tests/test_okx_instrument_sources.py \
+            2>&1 | tee build/okx-2022-gate-diagnostics/pytest.log
+          pytest_status=${PIPESTATUS[0]}
+
+          cat > build/okx-2022-gate-diagnostics/status.json <<JSON
+          {
+            "ruff": ${ruff_status},
+            "mypy": ${mypy_status},
+            "pytest": ${pytest_status}
+          }
+          JSON
+
+          if (( ruff_status != 0 || mypy_status != 0 || pytest_status != 0 )); then
+            exit 1
+          fi
+
+      - name: Upload scoped diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: okx-2022-gate-diagnostics-${{ github.sha }}
+          path: build/okx-2022-gate-diagnostics/
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Audit bounded official sources
         run: |
