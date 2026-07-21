@@ -68,16 +68,25 @@ jobs:
           payload = json.loads(path.read_text(encoding='utf-8'))
 
           assert payload['schema_version'] == '1.0'
-          assert payload['gate_id'] == 'OKX_FEE_AND_FUNDING_ACCOUNTING_CONTRACT_V1'
+          assert payload['gate_id'] == 'OKX_FEE_FILL_FUNDING_ACCOUNTING_CONTRACT_V1'
           assert payload['issue_number'] == 56
-          assert payload['validation_mode'] == 'SYNTHETIC_ONLY'
+          assert payload['validation_mode'] == 'SYNTHETIC_ACCOUNT_RESPONSES_ONLY'
           assert payload['real_account_request_performed'] is False
-          assert payload['account_specific_fee_snapshot_status'] == 'BLOCKED_OWNER_READ_ONLY_CREDENTIALS'
-          assert payload['fill_chronology_field'] == 'fillTime'
-          assert payload['funding_bill_subtypes'] == {'expense': '173', 'income': '174'}
-          assert payload['position_realized_pnl_re_add_components'] is False
-          assert payload['current_funding_formula_backdated_to_2022'] is False
-          assert all(value is False for value in payload['authorization'].values())
+          assert payload['owner_account_fee_snapshot_status'] == 'BLOCKED_OWNER_READ_ONLY_CREDENTIALS'
+          assert payload['chronology_rules'] == {
+              'record_generation_field': 'ts',
+              'trade_chronology_field': 'fillTime',
+              'ts_replaces_fillTime': False,
+          }
+          assert payload['funding_bill_rules']['173'] == 'FUNDING_EXPENSE'
+          assert payload['funding_bill_rules']['174'] == 'FUNDING_INCOME'
+          assert payload['funding_bill_rules']['funding_cashflow_merged_with_trading_fee'] is False
+          assert payload['aggregation_rules']['position_aggregate_readds_fill_fee_or_funding_bill'] is False
+          assert payload['funding_formula_version']['projected_backward_to_2022'] is False
+          assert payload['sign_and_currency_rules']['fee_currency_inferred_from_quote_currency'] is False
+          assert all(value is False for value in payload['authorizations'].values())
+          assert payload['public_evidence_contains_account_values'] is False
+          assert payload['public_evidence_contains_credentials'] is False
 
           text = path.read_text(encoding='utf-8')
           forbidden = (
