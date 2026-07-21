@@ -1,7 +1,7 @@
-schema_version: "1.0"
+schema_version: "1.1"
 gate_id: OKX_BTC_USDT_SWAP_PROSPECTIVE_POINT_IN_TIME_REGISTRY_V1
 issue_number: 52
-status: OPEN
+status: INITIAL_SNAPSHOT_VERIFIED
 status_date: "2026-07-21"
 repository: Emad211/Trade-bot
 branch: agent/edge-research-reports
@@ -19,7 +19,8 @@ objective: >-
 collection_boundary:
   mode: PROSPECTIVE_ONLY
   first_effective_semantics: FIRST_OBSERVED_NOT_PROVIDER_EFFECTIVE
-  start_time: null
+  start_time: "2026-07-21T10:30:16.294785Z"
+  start_time_source: FIRST_VERIFIED_INITIAL_SNAPSHOT_REQUEST
   start_time_must_come_from_first_verified_observation: true
   current_metadata_projected_backward: false
   observation_gap_interpolation: false
@@ -150,11 +151,27 @@ allowed_outcomes:
   - BLOCKED_TERMS_OR_RETENTION
 current_outcome: null
 initial_snapshot:
+  status: VERIFIED
+  workflow_name: OKX Prospective Registry Initial Snapshot
+  workflow_run_id: 29822410788
+  triggering_head_sha: f56a151b3cc15b48d4627f36726d4d8e343b8e0a
+  artifact_id: 8491912580
+  artifact_digest: sha256:3d9c58788f5c1f07b83be906cd97b7780c125edad32306f4a1c14db3ef2b6407
+  artifact_expires_at: "2026-10-19"
+  evidence_filename: okx-prospective-registry-initial-snapshot.json
+  evidence_byte_count: 7366
+  evidence_sha256: 729dfb417385a6ccdb9efbb39c0b856eb86a69db89f5c47044080920b2593a75
+  durable_snapshot: 02-03-okx-prospective-registry-initial-snapshot.json
+  evidence_manifest: 02-03-okx-prospective-registry-initial-evidence.yaml
+  instrument_content_version_id: 90e429110215d9f4df991d9447b96a1bc31cccf54f88af63a7dd96702c480b3f
+  instrument_observation_id: 66c27d62616ce0f25355e3acd5e0fd2dcdbcde0a13fa7db1bcf20d34cfa104f4
+  funding_content_version_id: dcb752c70225b47c0e3aa9ff0ce89dca5154dbd95c24a5fb84ddbe126913ae4d
+  funding_observation_id: 122a88bbc72fefb3b43a20ffd5212b91856d9a1b6f2f2fd7a6cc54c09fd1e234
+  raw_or_market_values_retained: false
+second_observation:
   status: NOT_YET_VERIFIED
-  workflow_run_id: null
-  artifact_id: null
-  artifact_digest: null
-  evidence_sha256: null
+  must_reference_initial_observation_ids: true
+  must_not_infer_continuity_across_gap: true
 hypothesis_verdicts:
   EDGE-CRYPTO-BASIS-001: INCONCLUSIVE
   EDGE-CRYPTO-RV-001: INCONCLUSIVE
