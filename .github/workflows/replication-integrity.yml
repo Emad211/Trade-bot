@@ -68,6 +68,7 @@ jobs:
         env:
           PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
         run: |
+          set +e
           set -o pipefail
           COVERAGE=/tmp/hybrid-trader-replication-integrity/bin/coverage
           PYTHON=/tmp/hybrid-trader-replication-integrity/bin/python
@@ -79,17 +80,41 @@ jobs:
             -m pytest \
             -q -m "not optional_ml" \
             2>&1 | tee replication-pytest.log
+          test_status=${PIPESTATUS[0]}
+
+          "$COVERAGE" xml -o replication-coverage.xml \
+            2>&1 | tee replication-coverage-xml.log
+          xml_status=${PIPESTATUS[0]}
+
+          "$COVERAGE" json -o replication-coverage.json \
+            2>&1 | tee replication-coverage-json.log
+          json_status=${PIPESTATUS[0]}
 
           "$COVERAGE" report --show-missing --fail-under=70 \
             2>&1 | tee -a replication-pytest.log
-          "$COVERAGE" xml -o replication-coverage.xml
-          "$COVERAGE" json -o replication-coverage.json
-          "$PYTHON" - <<'PY'
+          report_status=${PIPESTATUS[0]}
+
+          if [[ -f replication-coverage.json ]]; then
+            "$PYTHON" - <<'PY'
           import json
           from pathlib import Path
           report = json.loads(Path("replication-coverage.json").read_text())
           print(json.dumps(report["totals"], indent=2, sort_keys=True))
           PY
+          fi
+
+          cat > replication-coverage-status.json <<JSON
+          {
+            "tests": ${test_status},
+            "xml": ${xml_status},
+            "json": ${json_status},
+            "threshold_report": ${report_status}
+          }
+          JSON
+
+          if (( test_status != 0 || xml_status != 0 || json_status != 0 || report_status != 0 )); then
+            exit 1
+          fi
 
       - name: Upload replication coverage evidence
         if: always()
@@ -99,6 +124,9 @@ jobs:
           path: |
             replication-coverage.xml
             replication-coverage.json
+            replication-coverage-status.json
+            replication-coverage-xml.log
+            replication-coverage-json.log
             replication-pytest.log
           if-no-files-found: warn
           retention-days: 30
