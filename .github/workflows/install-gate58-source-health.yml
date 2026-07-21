@@ -1,0 +1,153 @@
+name: install-gate58-source-health
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/install-gate58-source-health.yml
+      - .gate58-payload.b64
+
+permissions:
+  contents: write
+
+concurrency:
+  group: install-gate58-source-health
+  cancel-in-progress: false
+
+jobs:
+  install-verify-publish:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/edge-research-reports
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install verification dependencies
+        run: python -m pip install -e '.[dev,replication]'
+      - name: Decode and install verified payload
+        run: |
+          set -euo pipefail
+          base64 -d .gate58-payload.b64 > /tmp/gate58-payload.tar.gz
+          echo 'ced15dade5d3d1666a1234be0e2bd667bab5fba3bc13ee2ef6a68c74b7e48708  /tmp/gate58-payload.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/gate58-payload.tar.gz
+      - name: Verify source-health contract
+        run: |
+          set -euo pipefail
+          files=(
+            src/hybrid_trader/replication/okx_source_health.py
+            scripts/validate_okx_source_health_contract.py
+            tests/test_okx_source_health.py
+          )
+          ruff format --check "${files[@]}"
+          ruff check "${files[@]}"
+          mypy \
+            src/hybrid_trader/replication/okx_source_health.py \
+            scripts/validate_okx_source_health_contract.py
+          pytest -q tests/test_okx_source_health.py
+          python scripts/validate_okx_source_health_contract.py \
+            --output-dir build/okx-source-health
+      - name: Independently verify safe synthetic evidence
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path('build/okx-source-health')
+          files = sorted(path.name for path in root.iterdir() if path.is_file())
+          assert files == ['okx-source-health-contract-safe-evidence.json'], files
+          path = root / files[0]
+          raw = path.read_bytes()
+          evidence = json.loads(raw)
+
+          assert len(raw) == 3981
+          assert hashlib.sha256(raw).hexdigest() == 'cbb91b6d4dd02704495f477a0cae1a8d0694836a4aff3a085d03b3facb8bf0a3'
+          assert evidence['gate_id'] == 'OKX_SOURCE_HEALTH_AND_SAMPLING_ABORT_CONTRACT_V1'
+          assert evidence['issue_number'] == 58
+          assert evidence['validation_mode'] == 'SYNTHETIC_METADATA_AND_SEQUENCE_ONLY'
+          assert evidence['real_market_request_performed'] is False
+          assert evidence['real_order_request_performed'] is False
+          assert evidence['private_trading_endpoint_called'] is False
+          assert evidence['official_contract']['rest_rate_limit_code'] == '50011'
+          assert evidence['official_contract']['service_upgrade_notice_code'] == '64008'
+          assert evidence['sequence_contract']['checksum_deprecated'] is True
+          assert evidence['sequence_contract']['checksum_used_for_integrity'] is False
+          assert evidence['sequence_contract']['sequence_authoritative'] is True
+          assert evidence['sequence_contract']['heartbeat_admitted_as_new_book_data'] is False
+          assert evidence['batch_contract']['healthy_batch_decision'] == 'ADMIT_PRIVATE_BATCH'
+          assert evidence['batch_contract']['numerical_calculation_authorized'] is False
+          assert evidence['incident_contract']['raw_payload_retained'] is False
+          assert evidence['incident_contract']['market_values_retained'] is False
+          assert evidence['incident_contract']['price_null_created'] is False
+          assert evidence['incident_contract']['carry_forward_used'] is False
+          assert evidence['incident_contract']['interpolation_used'] is False
+          assert all(value is False for value in evidence['authorizations'].values())
+          assert evidence['economic_edge_verdict'] == 'INCONCLUSIVE'
+
+          text = raw.decode('utf-8')
+          forbidden = (
+              'API_KEY', 'SECRET_KEY', 'PASSPHRASE',
+              'synthetic-price', 'synthetic-size',
+              'markPx', 'idxPx', 'fillPx',
+          )
+          assert not any(value in text for value in forbidden)
+          assert not list(root.glob('*.csv'))
+          assert not list(root.glob('*.zip'))
+          PY
+      - name: Publish verified contract through Git Data API
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+
+          repository = os.environ['GITHUB_REPOSITORY']
+          token = os.environ['GH_TOKEN']
+          branch = 'agent/edge-research-reports'
+          api = f'https://api.github.com/repos/{repository}'
+          headers = {
+              'Accept': 'application/vnd.github+json',
+              'Authorization': f'Bearer {token}',
+              'X-GitHub-Api-Version': '2022-11-28',
+              'Content-Type': 'application/json',
+          }
+
+          def call(method: str, url: str, payload: dict | None = None) -> dict:
+              data = None if payload is None else json.dumps(payload).encode('utf-8')
+              request = Request(url, data=data, headers=headers, method=method)
+              with urlopen(request) as response:
+                  return json.loads(response.read())
+
+          ref = call('GET', f'{api}/git/ref/heads/{branch}')
+          parent = ref['object']['sha']
+          commit = call('GET', f'{api}/git/commits/{parent}')
+          base_tree = commit['tree']['sha']
+          paths = (
+              'src/hybrid_trader/replication/okx_source_health.py',
+              'scripts/validate_okx_source_health_contract.py',
+              'tests/test_okx_source_health.py',
+              'docs/research/edge-discovery/02-replication/02-03-okx-source-health-and-sampling-abort-gate.yaml',
+          )
+          entries = []
+          for path_text in paths:
+              content = Path(path_text).read_text(encoding='utf-8')
+              blob = call('POST', f'{api}/git/blobs', {'content': content, 'encoding': 'utf-8'})
+              entries.append({'path': path_text, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']})
+          tree = call('POST', f'{api}/git/trees', {'base_tree': base_tree, 'tree': entries})
+          created = call('POST', f'{api}/git/commits', {
+              'message': 'Add OKX source-health and sampling-abort contract',
+              'tree': tree['sha'],
+              'parents': [parent],
+          })
+          call('PATCH', f'{api}/git/refs/heads/{branch}', {'sha': created['sha'], 'force': False})
+          print(created['sha'])
+          PY
