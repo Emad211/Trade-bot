@@ -21,14 +21,10 @@ class EvidenceClass(StrEnum):
     OFFICIAL_DATED_EFFECTIVE_NOTICE = "OFFICIAL_DATED_EFFECTIVE_NOTICE"
     OFFICIAL_DATED_POSTPONEMENT = "OFFICIAL_DATED_POSTPONEMENT"
     OFFICIAL_DATED_GUIDE_FROZEN = "OFFICIAL_DATED_GUIDE_FROZEN"
-    OFFICIAL_DATED_GUIDE_CURRENTLY_REVISED = (
-        "OFFICIAL_DATED_GUIDE_CURRENTLY_REVISED"
-    )
+    OFFICIAL_DATED_GUIDE_CURRENTLY_REVISED = "OFFICIAL_DATED_GUIDE_CURRENTLY_REVISED"
     OFFICIAL_DATED_SERVICE_TERMS = "OFFICIAL_DATED_SERVICE_TERMS"
     OFFICIAL_DATED_CHANGELOG = "OFFICIAL_DATED_CHANGELOG"
-    OFFICIAL_CURRENT_API_NEGATIVE_CONTROL = (
-        "OFFICIAL_CURRENT_API_NEGATIVE_CONTROL"
-    )
+    OFFICIAL_CURRENT_API_NEGATIVE_CONTROL = "OFFICIAL_CURRENT_API_NEGATIVE_CONTROL"
     OFFICIAL_CURRENT_PAGE = "OFFICIAL_CURRENT_PAGE"
     VERIFIED_PROVIDER_ARTIFACT = "VERIFIED_PROVIDER_ARTIFACT"
 
@@ -120,17 +116,11 @@ class HistoricalFieldClaim(BaseModel):
 
         if self.historical_use_authorized:
             if self.evidence_class not in _HISTORICALLY_AUTHORIZING_EVIDENCE:
-                raise ValueError(
-                    f"{self.evidence_class} cannot authorize a historical field"
-                )
+                raise ValueError(f"{self.evidence_class} cannot authorize a historical field")
             if effective_from is None:
-                raise ValueError(
-                    "historically authorized claims require effective_from"
-                )
+                raise ValueError("historically authorized claims require effective_from")
             if self.source_sha256 is None:
-                raise ValueError(
-                    "historically authorized claims require a frozen source SHA-256"
-                )
+                raise ValueError("historically authorized claims require a frozen source SHA-256")
         elif self.evidence_class in _NON_HISTORICAL_EVIDENCE:
             return self
 
@@ -195,9 +185,7 @@ class AvailabilityClaim(BaseModel):
             if not self.module_id:
                 raise ValueError("specific-file availability requires module_id")
             if self.file_sha256 is None or not self.file_path:
-                raise ValueError(
-                    "specific-file availability requires file_sha256 and file_path"
-                )
+                raise ValueError("specific-file availability requires file_sha256 and file_path")
         return self
 
 
@@ -247,9 +235,7 @@ def resolve_historical_field(
         if claim.field_name == field_name and claim.applies_at(point_in_time)
     ]
     if not candidates:
-        raise OKXInstrumentVersionError(
-            f"No authorized historical claim for {field_name!r}"
-        )
+        raise OKXInstrumentVersionError(f"No authorized historical claim for {field_name!r}")
     if len(candidates) != 1:
         source_ids = sorted(claim.source_id for claim in candidates)
         raise OKXInstrumentVersionError(
@@ -322,10 +308,7 @@ def evaluate_point_in_time_gate(
     )
     if unresolved:
         outcome = GateOutcome.BLOCKED_INSTRUMENT_VERSION
-    elif (
-        specific_file_available_by is None
-        or specific_file_available_by > availability_cutoff
-    ):
+    elif specific_file_available_by is None or specific_file_available_by > availability_cutoff:
         outcome = GateOutcome.BLOCKED_ARCHIVE_TIMING
     else:
         outcome = GateOutcome.GO
