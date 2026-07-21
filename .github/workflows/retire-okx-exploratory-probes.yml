@@ -1,0 +1,68 @@
+name: retire-okx-exploratory-probes
+
+on:
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - .github/workflows/retire-okx-exploratory-probes.yml
+
+permissions:
+  contents: write
+
+jobs:
+  retire:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/edge-research-reports
+          fetch-depth: 0
+      - name: Remove superseded exploratory workflows
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f \
+            .github/workflows/okx-historical-confirm-contract-probe.yml \
+            .github/workflows/okx-historical-confirm-contract-probe-v2.yml \
+            .github/workflows/okx-historical-confirm-contract-probe-v3.yml \
+            .github/workflows/okx-historical-confirm-contract-probe-v4.yml \
+            .github/workflows/okx-historical-confirm-contract-probe-v5.yml \
+            .github/workflows/okx-historical-confirm-contract-probe-v6.yml \
+            .github/workflows/okx-historical-delivery-metadata-probe.yml \
+            .github/workflows/okx-historical-form-structure-probe.yml \
+            .github/workflows/okx-historical-instrument-family-metadata-probe.yml \
+            .github/workflows/okx-historical-instrument-family-metadata-probe-v2.yml \
+            .github/workflows/okx-historical-instrument-family-shape-probe.yml \
+            .github/workflows/okx-historical-symbol-listbox-structure-probe.yml \
+            .github/workflows/okx-historical-bundle-contract-probe.yml \
+            .github/workflows/okx-2022-funding-ephemeral-validation.yml
+          rm .github/workflows/retire-okx-exploratory-probes.yml
+
+      - name: Verify retained controlling workflows
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f .github/workflows/okx-public-funding-metadata-pilot.yml
+          test -f .github/workflows/okx-historical-static-call-contract-probe.yml
+          test -f .github/workflows/okx-2022-funding-bounded-delivery-probe.yml
+          test -f .github/workflows/okx-2022-funding-ephemeral-file-validation.yml
+          test -f .github/workflows/okx-private-revocable-retention-contract.yml
+          test -f docs/research/edge-discovery/02-replication/02-03-okx-2022-funding-delivery-and-retention-gate.md
+          test -f docs/research/edge-discovery/02-replication/02-03-okx-private-revocable-retention-contract.yaml
+
+      - name: Commit workflow retirement
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows
+          if git diff --cached --quiet; then
+            echo 'No obsolete workflow remained.'
+            exit 0
+          fi
+          git commit -m 'Retire superseded OKX exploratory probes'
+          git push origin HEAD:agent/edge-research-reports
