@@ -54,8 +54,7 @@ def _specific_file_availability(available_by: datetime) -> AvailabilityClaim:
         module_id="FUNDING_RATES",
         file_sha256=FILE_SHA,
         file_path=(
-            "/cdn/okex/traderecords/swaprates/monthly/202203/"
-            "BTC-USDT-SWAP-fundingrates-2022-03.zip"
+            "/cdn/okex/traderecords/swaprates/monthly/202203/BTC-USDT-SWAP-fundingrates-2022-03.zip"
         ),
     )
 
