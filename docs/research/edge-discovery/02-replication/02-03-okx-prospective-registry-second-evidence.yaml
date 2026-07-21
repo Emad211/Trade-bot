@@ -1,0 +1,100 @@
+schema_version: "1.0"
+evidence_id: OKX_BTC_USDT_SWAP_PROSPECTIVE_REGISTRY_SECOND_SNAPSHOT_V1
+issue_number: 52
+status_date: "2026-07-21"
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+workflow:
+  name: OKX Prospective Registry Second Snapshot
+  run_id: 29823341681
+  conclusion: SUCCESS
+  triggering_head_sha: c3dda81daa9fefbba8f7fe40c903c927d76c06e9
+verification:
+  ruff_format: PASS
+  ruff_lint: PASS
+  mypy: PASS
+  scoped_tests:
+    passed: 14
+    failed: 0
+  append_builder: PASS
+  predecessor_chain_verifier: PASS
+  safe_diff_verifier: PASS
+  independent_safe_snapshot_verifier: PASS
+safe_artifact:
+  artifact_id: 8492272929
+  artifact_digest: sha256:8cf07b6b3de36514be49f8ff7bf654fb2f9c11d1a59b6cc0ffc71b5cc352269d
+  evidence_filename: okx-prospective-registry-second-snapshot.json
+  evidence_byte_count: 10827
+  evidence_sha256: e34c9931cdc5a263b5abfe263a76ff60e327989f91ec32050367370baf265c27
+  expires_at: "2026-10-19"
+  durable_repository_copy: 02-03-okx-prospective-registry-second-snapshot.json
+chain:
+  snapshot_sequence: 2
+  previous_snapshot_sha256: 729dfb417385a6ccdb9efbb39c0b856eb86a69db89f5c47044080920b2593a75
+  collection_started_at_utc: "2026-07-21T10:30:16.294785Z"
+  second_registry_committed_at_utc: "2026-07-21T10:44:35.402300Z"
+instrument_stream:
+  previous_observation_id: 66c27d62616ce0f25355e3acd5e0fd2dcdbcde0a13fa7db1bcf20d34cfa104f4
+  current_observation_id: 96812116bee5dceae618714ad199f05b80609ba8b0bf6ab1ba908b6935a2a807
+  previous_content_version_id: 90e429110215d9f4df991d9447b96a1bc31cccf54f88af63a7dd96702c480b3f
+  current_content_version_id: 90e429110215d9f4df991d9447b96a1bc31cccf54f88af63a7dd96702c480b3f
+  content_version_changed: false
+  changed_fields: []
+  request_started_at_utc: "2026-07-21T10:44:34.902563Z"
+  response_received_at_utc: "2026-07-21T10:44:35.180178Z"
+  research_available_at_utc: "2026-07-21T10:44:35.180432Z"
+  registry_committed_at_utc: "2026-07-21T10:44:35.402300Z"
+  provider_timestamp: null
+  source_health:
+    status: SUCCESS
+    http_status: 200
+    application_code: "0"
+    latency_milliseconds: 278
+funding_source_stream:
+  previous_observation_id: 122a88bbc72fefb3b43a20ffd5212b91856d9a1b6f2f2fd7a6cc54c09fd1e234
+  current_observation_id: c9d49d39fda12f75d0991c2cf3b31728918f1e51267845b9f5a8698edcb01b96
+  previous_content_version_id: dcb752c70225b47c0e3aa9ff0ce89dca5154dbd95c24a5fb84ddbe126913ae4d
+  current_content_version_id: dcb752c70225b47c0e3aa9ff0ce89dca5154dbd95c24a5fb84ddbe126913ae4d
+  content_version_changed: false
+  changed_fields: []
+  request_started_at_utc: "2026-07-21T10:44:35.180594Z"
+  response_received_at_utc: "2026-07-21T10:44:35.401397Z"
+  research_available_at_utc: "2026-07-21T10:44:35.402201Z"
+  registry_committed_at_utc: "2026-07-21T10:44:35.402300Z"
+  provider_timestamp: null
+  source_health:
+    status: SUCCESS
+    http_status: 200
+    application_code: "0"
+    latency_milliseconds: 221
+registry_findings:
+  predecessor_chain_valid: true
+  stream_tail_reference_valid: true
+  registry_commit_time_monotonic: true
+  observation_ids_unique: true
+  version_ids_content_addressed: true
+  unchanged_content_has_empty_diff: true
+  gap_continuity_inferred: false
+  provider_timestamp_inferred: false
+  historical_backfill: false
+  current_metadata_projected_backward: false
+retention_state:
+  raw_instrument_response_retained: false
+  raw_funding_response_retained: false
+  funding_rate_values_retained: false
+  ordered_timestamp_series_retained: false
+  public_market_rows_retained: false
+authorization:
+  basis_computation: false
+  funding_pnl_computation: false
+  returns_computation: false
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_testing: false
+  paper_trading: false
+  live_trading: false
+  capital_deployment: false
+  report_2_4_full_authorization: false
+registry_verdict: PROSPECTIVE_APPEND_SNAPSHOT
+issue_52_outcome: null
+economic_edge_verdict: INCONCLUSIVE
