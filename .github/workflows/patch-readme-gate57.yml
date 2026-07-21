@@ -1,0 +1,149 @@
+name: patch-readme-gate57
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/patch-readme-gate57.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-readme:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/edge-research-reports
+          fetch-depth: 0
+
+      - name: Apply deterministic Gate 57 README patch
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('docs/research/edge-discovery/README.md')
+          text = path.read_text(encoding='utf-8')
+
+          replacements = (
+              (
+                  '- a fail-closed account-fee, per-fill, funding-bill, position-aggregate, and current funding-formula accounting contract;\n- repository-wide static analysis, unit testing, package-smoke, and dedicated source workflows.',
+                  '- a fail-closed account-fee, per-fill, funding-bill, position-aggregate, and current funding-formula accounting contract;\n- a fail-closed executable-price, order/fill lifecycle, latency, spread/slippage, and non-overlapping cost-aggregation semantics contract;\n- repository-wide static analysis, unit testing, package-smoke, and dedicated source workflows.',
+              ),
+              (
+                  'Issue #56: CLOSED — GO_OKX_FEE_AND_FUNDING_ACCOUNTING_CONTRACT\nIndependent Issue #56 blocker: BLOCKED_ACCOUNT_SPECIFIC_FEE_SNAPSHOT',
+                  'Issue #56: CLOSED — GO_OKX_FEE_AND_FUNDING_ACCOUNTING_CONTRACT\nIndependent Issue #56 blocker: BLOCKED_ACCOUNT_SPECIFIC_FEE_SNAPSHOT\nIssue #57: CLOSED — GO_OKX_EXECUTABLE_PRICE_AND_COST_SEMANTICS_CONTRACT\nIndependent Issue #57 blocker: BLOCKED_OWNER_FEE_OR_EXECUTION_INPUTS',
+              ),
+              (
+                  'They do not repair history, execute a real raw batch, acquire owner fee rates, or authorize basis, funding PnL, returns, numerical transaction costs, fitting, tuning, strategy tests, paper/live trading, leverage, Report 2.4, or capital deployment.',
+                  'They do not repair history, execute a real raw batch, acquire owner fee rates, admit real order/book/fill inputs, or authorize basis, funding PnL, returns, numerical transaction costs, fitting, tuning, strategy tests, paper/live trading, leverage, Report 2.4, or capital deployment.',
+              ),
+              (
+                  'Owner-account-specific fee snapshot: BLOCKED_OWNER_READ_ONLY_CREDENTIALS\nExecutable-price / spread / slippage / impact / latency contract: INCOMPLETE',
+                  'Owner-account-specific fee snapshot: BLOCKED_OWNER_READ_ONLY_CREDENTIALS\nExecutable-price / spread / slippage / impact / latency semantics: VERIFIED SYNTHETIC CONTRACT\nReal order / book / fill inputs: NOT ADMITTED\nNumerical transaction-cost estimation: NOT AUTHORIZED',
+              ),
+              (
+                  '- [Verified fee and funding accounting contract](02-replication/02-03-okx-fee-and-funding-accounting-contract-evidence.md)\n- [Verified Binance BTCUSDT ephemeral pilot]',
+                  '- [Verified fee and funding accounting contract](02-replication/02-03-okx-fee-and-funding-accounting-contract-evidence.md)\n- [Verified executable-price and cost-semantics contract](02-replication/02-03-okx-executable-price-and-cost-semantics-evidence.md)\n- [Verified Binance BTCUSDT ephemeral pilot]',
+              ),
+              (
+                  '- `.github/workflows/okx-fee-accounting-contract.yml`\n- `.github/workflows/binance-btcusdt-public-ephemeral-pilot.yml`',
+                  '- `.github/workflows/okx-fee-accounting-contract.yml`\n- `.github/workflows/okx-execution-cost-semantics-contract.yml`\n- `.github/workflows/binance-btcusdt-public-ephemeral-pilot.yml`',
+              ),
+          )
+
+          for old, new in replacements:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'Expected exactly one README marker, found {count}: {old[:80]!r}')
+              text = text.replace(old, new, 1)
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Verify README Gate 57 state
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('docs/research/edge-discovery/README.md').read_text(encoding='utf-8')
+          required = (
+              'Issue #57: CLOSED — GO_OKX_EXECUTABLE_PRICE_AND_COST_SEMANTICS_CONTRACT',
+              'Independent Issue #57 blocker: BLOCKED_OWNER_FEE_OR_EXECUTION_INPUTS',
+              'Real order / book / fill inputs: NOT ADMITTED',
+              '02-03-okx-executable-price-and-cost-semantics-evidence.md',
+              '.github/workflows/okx-execution-cost-semantics-contract.yml',
+          )
+          assert all(value in text for value in required)
+          assert 'Executable-price / spread / slippage / impact / latency contract: INCOMPLETE' not in text
+          PY
+
+      - name: Publish README through Git Data API
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import base64
+          import json
+          import os
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+
+          repository = os.environ['GITHUB_REPOSITORY']
+          token = os.environ['GITHUB_TOKEN']
+          branch = 'agent/edge-research-reports'
+          api_root = f'https://api.github.com/repos/{repository}'
+
+          def call(method: str, path: str, payload: dict | None = None) -> dict:
+              data = None if payload is None else json.dumps(payload).encode('utf-8')
+              request = Request(
+                  api_root + path,
+                  data=data,
+                  method=method,
+                  headers={
+                      'Accept': 'application/vnd.github+json',
+                      'Authorization': f'Bearer {token}',
+                      'X-GitHub-Api-Version': '2022-11-28',
+                      'User-Agent': 'Trade-bot-Gate-57-README-patch',
+                  },
+              )
+              with urlopen(request, timeout=60) as response:
+                  return json.loads(response.read())
+
+          ref = call('GET', f'/git/ref/heads/{branch}')
+          parent_sha = ref['object']['sha']
+          parent_commit = call('GET', f'/git/commits/{parent_sha}')
+          base_tree_sha = parent_commit['tree']['sha']
+          content = base64.b64encode(
+              Path('docs/research/edge-discovery/README.md').read_bytes()
+          ).decode('ascii')
+          blob = call('POST', '/git/blobs', {'content': content, 'encoding': 'base64'})
+          tree = call(
+              'POST',
+              '/git/trees',
+              {
+                  'base_tree': base_tree_sha,
+                  'tree': [
+                      {
+                          'path': 'docs/research/edge-discovery/README.md',
+                          'mode': '100644',
+                          'type': 'blob',
+                          'sha': blob['sha'],
+                      }
+                  ],
+              },
+          )
+          commit = call(
+              'POST',
+              '/git/commits',
+              {
+                  'message': 'Synchronize edge research README through Gate 57',
+                  'tree': tree['sha'],
+                  'parents': [parent_sha],
+              },
+          )
+          call('PATCH', f'/git/refs/heads/{branch}', {'sha': commit['sha'], 'force': False})
+          print(json.dumps({'parent': parent_sha, 'commit': commit['sha']}, sort_keys=True))
+          PY
