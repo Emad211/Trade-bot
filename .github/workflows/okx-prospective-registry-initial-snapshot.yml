@@ -1,0 +1,151 @@
+name: OKX Prospective Registry Initial Snapshot
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/okx-prospective-registry-initial-snapshot.yml
+      - src/hybrid_trader/replication/okx_prospective_registry.py
+      - src/hybrid_trader/replication/okx_instrument_sources.py
+      - src/hybrid_trader/replication/okx_public_funding_probe.py
+      - scripts/build_okx_prospective_registry_snapshot.py
+      - tests/test_okx_prospective_registry.py
+      - docs/research/edge-discovery/02-replication/02-03-okx-prospective-point-in-time-registry-gate.yaml
+  push:
+    branches: [agent/edge-research-reports]
+    paths:
+      - .github/workflows/okx-prospective-registry-initial-snapshot.yml
+      - src/hybrid_trader/replication/okx_prospective_registry.py
+      - src/hybrid_trader/replication/okx_instrument_sources.py
+      - src/hybrid_trader/replication/okx_public_funding_probe.py
+      - scripts/build_okx_prospective_registry_snapshot.py
+      - tests/test_okx_prospective_registry.py
+      - docs/research/edge-discovery/02-replication/02-03-okx-prospective-point-in-time-registry-gate.yaml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: okx-prospective-registry-initial-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-safe-initial-snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install verification dependencies
+        run: python -m pip install -e '.[dev,replication]'
+
+      - name: Verify prospective registry implementation
+        run: |
+          ruff format --check \
+            src/hybrid_trader/replication/okx_prospective_registry.py \
+            scripts/build_okx_prospective_registry_snapshot.py \
+            tests/test_okx_prospective_registry.py
+          ruff check \
+            src/hybrid_trader/replication/okx_prospective_registry.py \
+            scripts/build_okx_prospective_registry_snapshot.py \
+            tests/test_okx_prospective_registry.py
+          mypy \
+            src/hybrid_trader/replication/okx_prospective_registry.py \
+            scripts/build_okx_prospective_registry_snapshot.py
+          pytest -q tests/test_okx_prospective_registry.py
+
+      - name: Build first prospective-only snapshot
+        run: |
+          python scripts/build_okx_prospective_registry_snapshot.py \
+            --output-dir build/okx-prospective-registry-initial
+
+      - name: Independently verify safe snapshot contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('build/okx-prospective-registry-initial')
+          files = sorted(path.name for path in root.iterdir() if path.is_file())
+          assert files == ['okx-prospective-registry-initial-snapshot.json'], files
+          path = root / files[0]
+          evidence = json.loads(path.read_text(encoding='utf-8'))
+
+          assert evidence['registry_id'] == 'OKX_BTC_USDT_SWAP_PROSPECTIVE_REGISTRY_V1'
+          assert evidence['collection_mode'] == 'PROSPECTIVE_ONLY'
+          assert evidence['registry_verdict'] == 'INITIAL_PROSPECTIVE_SNAPSHOT_ONLY'
+          assert evidence['issue_52_outcome'] is None
+          assert evidence['economic_edge_verdict'] == 'INCONCLUSIVE'
+          assert len(evidence['observations']) == 2
+          assert {item['content_kind'] for item in evidence['observations']} == {
+              'INSTRUMENT', 'FUNDING_SOURCE'
+          }
+          assert len(evidence['version_ids']['instrument']) == 64
+          assert len(evidence['version_ids']['funding_source']) == 64
+          for observation in evidence['observations']:
+              assert len(observation['observation_id']) == 64
+              assert observation['previous_observation_id'] is None
+              assert observation['changed_fields'] == []
+              assert observation['historical_backfill'] is False
+              assert observation['historical_effective_time_inferred'] is False
+              assert observation['source_health']['status'] == 'SUCCESS'
+              assert observation['source_health']['http_status'] == 200
+              assert observation['source_health']['raw_error_retained'] is False
+              assert observation['observation_clock']['provider_timestamp'] is None
+
+          instrument = evidence['instrument_content']
+          assert instrument['source_id'] == 'OKX_CURRENT_BTC_USDT_SWAP_INSTRUMENT_API'
+          assert instrument['official_host'] == 'www.okx.com'
+          assert instrument['endpoint_path'] == '/api/v5/public/instruments'
+          assert instrument['raw_response_retained'] is False
+          assert instrument['historical_effective_from'] is None
+          assert instrument['effective_from_semantics'] == (
+              'FIRST_OBSERVED_NOT_PROVIDER_EFFECTIVE'
+          )
+          assert instrument['selected_fields']['instId'] == 'BTC-USDT-SWAP'
+          assert instrument['selected_fields']['instFamily'] == 'BTC-USDT'
+          assert instrument['selected_fields']['instType'] == 'SWAP'
+          assert instrument['selected_fields']['ctType'] == 'linear'
+          assert instrument['selected_fields']['settleCcy'] == 'USDT'
+          assert instrument['provider_time_fields'] == {
+              'listTime': instrument['selected_fields']['listTime'],
+              'contTdSwTime': instrument['selected_fields']['contTdSwTime'],
+          }
+
+          funding = evidence['funding_source_content']
+          assert funding['source_id'] == 'OKX_PUBLIC_FUNDING_RATE_HISTORY'
+          assert funding['official_host'] == 'www.okx.com'
+          assert funding['endpoint_path'] == '/api/v5/public/funding-rate-history'
+          assert funding['row_count'] == 100
+          assert funding['unique_provider_timestamps'] == 100
+          assert funding['raw_response_retained'] is False
+          assert funding['funding_rate_values_retained'] is False
+          assert funding['ordered_timestamp_series_retained'] is False
+          assert funding['interval_seconds_counts'] == [[28800, 99]]
+
+          provider_policy = evidence['provider_timestamp_policy']
+          assert provider_policy == {
+              'instrument_response_provider_timestamp': None,
+              'funding_response_provider_timestamp': None,
+              'funding_settlement_times_are_provider_response_timestamps': False,
+              'missing_provider_timestamp_preserved_as_null': True,
+          }
+          assert all(value is False for value in evidence['retention_state'].values())
+          assert all(value is False for value in evidence['historical_state'].values())
+          assert all(value is False for value in evidence['authorization'].values())
+          assert not list(root.glob('*.html'))
+          assert not list(root.glob('*.csv'))
+          assert not list(root.glob('*.zip'))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: okx-prospective-registry-initial-safe-snapshot-${{ github.sha }}
+          path: build/okx-prospective-registry-initial/okx-prospective-registry-initial-snapshot.json
+          if-no-files-found: error
+          retention-days: 90
