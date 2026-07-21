@@ -115,6 +115,7 @@ jobs:
           import base64
           import json
           import os
+          import subprocess
           import urllib.request
           from pathlib import Path
 
@@ -135,10 +136,15 @@ jobs:
               with urllib.request.urlopen(request, timeout=60) as response:
                   return json.loads(response.read().decode())
 
+          verified_head = subprocess.check_output(
+              ['git', 'rev-parse', 'HEAD'], text=True
+          ).strip()
           ref = call('GET', f'{api}/git/ref/heads/{branch}')
           parent = ref['object']['sha']
-          if parent != os.environ['GITHUB_SHA']:
-              raise SystemExit(f'Branch moved during verification: {parent}')
+          if parent != verified_head:
+              raise SystemExit(
+                  f'Branch moved during verification: remote={parent}, verified={verified_head}'
+              )
           parent_commit = call('GET', f'{api}/git/commits/{parent}')
           base_tree = parent_commit['tree']['sha']
           paths = [
