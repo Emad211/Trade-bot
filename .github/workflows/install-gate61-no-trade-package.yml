@@ -105,7 +105,7 @@ jobs:
               raise SystemExit('Synthetic Gate 61 lifecycle did not complete')
           PY
 
-      - name: Create verified atomic publication candidate
+      - name: Create verified non-workflow publication candidate
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
@@ -147,7 +147,6 @@ jobs:
               'scripts/validate_okx_no_trade_observation_contract.py',
               'tests/test_okx_no_trade_observation.py',
               'configs/okx_no_trade_observation_policy_v1.yaml',
-              '.github/workflows/okx-no-trade-observation-contract.yml',
               'docs/research/edge-discovery/02-replication/02-04-okx-owner-controlled-no-trade-observation-gate.yaml',
               'docs/research/edge-discovery/02-replication/02-04-okx-owner-controlled-no-trade-observation-runbook.md',
           ]
@@ -171,7 +170,6 @@ jobs:
               '.gate61-package.part05',
               '.gate61-package.part06',
               '.gate61-package.part07',
-              '.github/workflows/install-gate61-no-trade-package.yml',
               'docs/research/edge-discovery/02-replication/02-04-owner-controlled-no-trade-observation-gate-draft.md',
           ]
           entries.extend(
@@ -193,6 +191,7 @@ jobs:
               'candidate_commit_sha': commit['sha'],
               'permanent_blob_shas': blob_receipts,
               'deleted_paths': cleanup,
+              'workflow_paths_changed': False,
               'real_requests_performed': False,
               'orders_sent': False,
               'report_2_4_authorized': False,
