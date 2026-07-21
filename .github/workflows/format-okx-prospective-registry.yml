@@ -1,0 +1,80 @@
+name: format-okx-prospective-registry
+
+on:
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - .github/workflows/format-okx-prospective-registry.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format-verify-publish:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/edge-research-reports
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install verification dependencies
+        run: python -m pip install -e '.[dev,replication]'
+      - name: Apply exact Ruff output
+        run: |
+          ruff format \
+            src/hybrid_trader/replication/okx_prospective_registry.py \
+            scripts/build_okx_prospective_registry_snapshot.py \
+            tests/test_okx_prospective_registry.py
+          ruff check --fix \
+            src/hybrid_trader/replication/okx_prospective_registry.py \
+            scripts/build_okx_prospective_registry_snapshot.py \
+            tests/test_okx_prospective_registry.py
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/hybrid_trader/replication/okx_prospective_registry.py')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace(
+              'observations=tuple(existing) + (observation,),',
+              'observations=(*tuple(existing), observation),',
+          )
+          path.write_text(text, encoding='utf-8')
+          PY
+          ruff format \
+            src/hybrid_trader/replication/okx_prospective_registry.py \
+            scripts/build_okx_prospective_registry_snapshot.py \
+            tests/test_okx_prospective_registry.py
+      - name: Verify scoped implementation
+        run: |
+          ruff format --check \
+            src/hybrid_trader/replication/okx_prospective_registry.py \
+            scripts/build_okx_prospective_registry_snapshot.py \
+            tests/test_okx_prospective_registry.py
+          ruff check \
+            src/hybrid_trader/replication/okx_prospective_registry.py \
+            scripts/build_okx_prospective_registry_snapshot.py \
+            tests/test_okx_prospective_registry.py
+          mypy \
+            src/hybrid_trader/replication/okx_prospective_registry.py \
+            scripts/build_okx_prospective_registry_snapshot.py
+          pytest -q tests/test_okx_prospective_registry.py
+      - name: Retire workflow and publish exact formatter output
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/format-okx-prospective-registry.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            src/hybrid_trader/replication/okx_prospective_registry.py \
+            scripts/build_okx_prospective_registry_snapshot.py \
+            tests/test_okx_prospective_registry.py \
+            .github/workflows/format-okx-prospective-registry.yml
+          git commit -m 'Normalize prospective OKX registry implementation'
+          git push origin HEAD:agent/edge-research-reports
