@@ -44,6 +44,30 @@ jobs:
       - name: Install project verification dependencies
         run: python -m pip install -e '.[dev,replication]'
 
+      - name: Generate exact Ruff formatter output
+        run: |
+          mkdir -p build
+          ruff format \
+            src/hybrid_trader/replication/okx_instrument_version.py \
+            src/hybrid_trader/replication/okx_instrument_sources.py \
+            scripts/audit_okx_2022_instrument_sources.py \
+            tests/test_okx_instrument_version.py \
+            tests/test_okx_instrument_sources.py
+          tar -czf build/okx-2022-gate-formatted-sources.tar.gz \
+            src/hybrid_trader/replication/okx_instrument_version.py \
+            src/hybrid_trader/replication/okx_instrument_sources.py \
+            scripts/audit_okx_2022_instrument_sources.py \
+            tests/test_okx_instrument_version.py \
+            tests/test_okx_instrument_sources.py
+
+      - name: Upload exact formatter output
+        uses: actions/upload-artifact@v4
+        with:
+          name: okx-2022-gate-formatted-sources-${{ github.sha }}
+          path: build/okx-2022-gate-formatted-sources.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Verify scoped implementation
         run: |
           ruff format --check \
