@@ -102,13 +102,15 @@ def reconcile_unmanaged_factors(
             raise ValueError(f"No overlapping observations for {factor}")
         if not paired.index.is_monotonic_increasing or not paired.index.is_unique:
             raise ValueError(f"Invalid reconciliation index for {factor}")
+        if not isinstance(paired.index, pd.DatetimeIndex):
+            raise ValueError(f"Reconciliation index must be a DatetimeIndex for {factor}")
 
         difference = paired["author"] - paired["current"]
         exact_mismatch = difference != 0.0
         tolerance_mismatch = difference.abs() > NUMERICAL_ZERO_TOLERANCE
         canonical_rows = [
-            f"{pd.Timestamp(month).strftime('%Y-%m')}|{_canonical_difference(float(value)):.12f}"
-            for month, value in difference.items()
+            f"{month.strftime('%Y-%m')}|{_canonical_difference(float(value)):.12f}"
+            for month, value in zip(paired.index, difference.to_numpy(), strict=True)
         ]
         mismatch_months = paired.index[exact_mismatch]
         absolute_difference = difference.abs()
@@ -232,7 +234,9 @@ def write_safe_reconciliation_evidence(
                 "factor": item["factor"],
                 "overlap_count": item["overlap_count"],
                 "exact_mismatch_count": item["exact_mismatch_count"],
-                "maximum_absolute_difference_percent": item["maximum_absolute_difference_percent"],
+                "maximum_absolute_difference_percent": item[
+                    "maximum_absolute_difference_percent"
+                ],
                 "difference_vector_sha256": item["difference_vector_sha256"],
             }
             for item in evidence["factor_results"]
