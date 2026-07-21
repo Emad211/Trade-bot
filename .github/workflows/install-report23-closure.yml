@@ -4,7 +4,11 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - .report23-closure-payload.b64
+      - .report23-closure.part00
+      - .report23-closure.part01
+      - .report23-closure.part02
+      - .report23-closure.part03
+      - .report23-closure.part04
       - .github/workflows/install-report23-closure.yml
 
 permissions:
@@ -32,7 +36,7 @@ jobs:
       - name: Decode content-addressed closure payload
         run: |
           set -euo pipefail
-          base64 -d .report23-closure-payload.b64 > /tmp/report23-closure.tar.gz
+          cat .report23-closure.part* | tr -d '\n' | base64 -d > /tmp/report23-closure.tar.gz
           echo '118681afe8f492f90df54c5d02ee94b03ad699211b789ba46445259ed79d723b  /tmp/report23-closure.tar.gz' | sha256sum -c -
           tar -xzf /tmp/report23-closure.tar.gz
 
@@ -44,7 +48,9 @@ jobs:
 
           root = Path('docs/research/edge-discovery')
           rep = root / '02-replication'
-          matrix = yaml.safe_load((rep / '02-03-report-closure-matrix.yaml').read_text(encoding='utf-8'))
+          matrix = yaml.safe_load(
+              (rep / '02-03-report-closure-matrix.yaml').read_text(encoding='utf-8')
+          )
           assert matrix['status'] == 'COMPLETE_WITH_EXPLICIT_BLOCKERS'
           assert matrix['target_outcome'] == 'COMPLETE_WITH_EXPLICIT_BLOCKERS'
           assert matrix['all_six_hypothesis_verdicts'] == 'INCONCLUSIVE'
@@ -57,7 +63,9 @@ jobs:
           assert all(value is False for value in matrix['hard_non_authorizations'].values())
 
           report = (rep / '02-03-report-closure.md').read_text(encoding='utf-8')
-          controlling = (rep / '02-03-current-controlling-status.md').read_text(encoding='utf-8')
+          controlling = (rep / '02-03-current-controlling-status.md').read_text(
+              encoding='utf-8'
+          )
           readme = (root / 'README.md').read_text(encoding='utf-8')
           for text in (report, controlling, readme):
               assert 'COMPLETE_WITH_EXPLICIT_BLOCKERS' in text
@@ -114,22 +122,46 @@ jobs:
           entries = []
           for path in paths:
               raw = Path(path).read_bytes()
-              blob = call('POST', f'{api}/git/blobs', {
-                  'content': base64.b64encode(raw).decode(),
-                  'encoding': 'base64',
-              })
-              entries.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']})
+              blob = call(
+                  'POST',
+                  f'{api}/git/blobs',
+                  {
+                      'content': base64.b64encode(raw).decode(),
+                      'encoding': 'base64',
+                  },
+              )
+              entries.append(
+                  {'path': path, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']}
+              )
 
-          entries.extend([
-              {'path': '.report23-closure-payload.b64', 'mode': '100644', 'type': 'blob', 'sha': None},
-              {'path': '.github/workflows/install-report23-closure.yml', 'mode': '100644', 'type': 'blob', 'sha': None},
-          ])
+          cleanup_paths = [
+              '.report23-closure-payload.b64',
+              '.report23-closure.part00',
+              '.report23-closure.part01',
+              '.report23-closure.part02',
+              '.report23-closure.part03',
+              '.report23-closure.part04',
+              '.github/workflows/install-report23-closure.yml',
+          ]
+          entries.extend(
+              {'path': path, 'mode': '100644', 'type': 'blob', 'sha': None}
+              for path in cleanup_paths
+          )
+
           tree = call('POST', f'{api}/git/trees', {'base_tree': base_tree, 'tree': entries})
-          new_commit = call('POST', f'{api}/git/commits', {
-              'message': 'Finalize Report 2.3 closure matrix',
-              'tree': tree['sha'],
-              'parents': [parent],
-          })
-          call('PATCH', f'{api}/git/refs/heads/{branch}', {'sha': new_commit['sha'], 'force': False})
+          new_commit = call(
+              'POST',
+              f'{api}/git/commits',
+              {
+                  'message': 'Finalize Report 2.3 closure matrix',
+                  'tree': tree['sha'],
+                  'parents': [parent],
+              },
+          )
+          call(
+              'PATCH',
+              f'{api}/git/refs/heads/{branch}',
+              {'sha': new_commit['sha'], 'force': False},
+          )
           print({'parent': parent, 'commit': new_commit['sha']})
           PY
