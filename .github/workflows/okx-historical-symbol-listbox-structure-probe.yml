@@ -1,0 +1,247 @@
+name: OKX Historical Symbol Listbox Structure Probe
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/okx-historical-symbol-listbox-structure-probe.yml
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-listbox:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Install isolated browser runtime
+        run: |
+          mkdir -p build/okx-listbox/runtime build/okx-listbox/output
+          cd build/okx-listbox/runtime
+          npm init -y >/dev/null
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Inspect official listbox without selecting or submitting
+        run: |
+          cat > build/okx-listbox/runtime/probe.mjs <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+          import { chromium } from 'playwright';
+
+          const root = process.env.GITHUB_WORKSPACE;
+          if (!root) throw new Error('GITHUB_WORKSPACE unavailable');
+          const output = path.join(root, 'build/okx-listbox/output/evidence.json');
+          const evidence = {
+            schema_version: '1.0',
+            purpose: 'OKX_HISTORICAL_SYMBOL_LISTBOX_STRUCTURE_ONLY',
+            modal_opened: false,
+            combobox: {},
+            controlled_element: {},
+            visible_candidates: [],
+            scrollable_elements: [],
+            errors: [],
+            option_selected: false,
+            form_submitted: false,
+            market_data_requested: false,
+            response_bodies_retained: false,
+            screenshots_retained: false,
+            gate_verdict: 'UNRESOLVED_LISTBOX_STRUCTURE_ONLY'
+          };
+
+          const compact = value => (value || '').replace(/\s+/g, ' ').trim().slice(0, 500);
+          let browser;
+          try {
+            browser = await chromium.launch({ headless: true });
+            const context = await browser.newContext({
+              acceptDownloads: false,
+              locale: 'en-GB',
+              timezoneId: 'UTC'
+            });
+            const page = await context.newPage();
+            await page.route('**/*', async route => {
+              const url = route.request().url();
+              let host = '';
+              try { host = new URL(url).hostname.toLowerCase(); } catch {}
+              if (host && host !== 'okx.com' && host !== 'www.okx.com' && !host.endsWith('.okx.com')) {
+                await route.abort('blockedbyclient');
+                return;
+              }
+              if (/\.(zip|csv|gz|parquet|tar|7z|bz2|xz)(?:$|[?#])/i.test(url)) {
+                await route.abort('blockedbyclient');
+                return;
+              }
+              await route.continue();
+            });
+
+            await page.goto('https://www.okx.com/en-gb/historical-data', {
+              waitUntil: 'domcontentloaded',
+              timeout: 90000
+            });
+            await page.waitForTimeout(7000);
+            evidence.modal_opened = await page.evaluate(() => {
+              const norm = value => (value || '').replace(/\s+/g, ' ').trim();
+              const heading = [...document.querySelectorAll('*')]
+                .find(node => norm(node.textContent) === 'Funding rate');
+              if (!heading) return false;
+              let container = heading;
+              for (let depth = 0; depth < 10 && container; depth += 1, container = container.parentElement) {
+                const button = [...container.querySelectorAll('button,a,[role="button"]')]
+                  .find(node => /download/i.test(norm(node.textContent) || node.getAttribute('aria-label') || ''));
+                if (button) { button.click(); return true; }
+              }
+              return false;
+            });
+            if (!evidence.modal_opened) throw new Error('Funding dialog did not open');
+            await page.waitForTimeout(5000);
+            const dialog = page.getByRole('dialog');
+            const symbol = dialog.getByRole('combobox').nth(1);
+            const controlsId = await symbol.getAttribute('aria-controls');
+            evidence.combobox = {
+              text: compact(await symbol.innerText()),
+              aria_controls: controlsId || '',
+              aria_expanded_before: await symbol.getAttribute('aria-expanded') || ''
+            };
+            await symbol.click();
+            await page.waitForTimeout(2500);
+            evidence.combobox.aria_expanded_after = await symbol.getAttribute('aria-expanded') || '';
+
+            const snapshot = await page.evaluate(controlsId => {
+              const compact = value => (value || '').replace(/\s+/g, ' ').trim().slice(0, 500);
+              const visible = element => {
+                const rect = element.getBoundingClientRect();
+                const style = getComputedStyle(element);
+                return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+              };
+              const safeAttrs = element => {
+                const attrs = {};
+                for (const name of [
+                  'id','role','aria-selected','aria-activedescendant','aria-controls',
+                  'aria-expanded','aria-label','tabindex','data-testid'
+                ]) {
+                  const value = element.getAttribute(name);
+                  if (value !== null) attrs[name] = compact(value);
+                }
+                return attrs;
+              };
+              const controlled = controlsId ? document.getElementById(controlsId) : null;
+              const roots = controlled
+                ? [controlled]
+                : [...document.querySelectorAll('[role="listbox"], [data-testid="okd-popup"]')].filter(visible);
+              const root = roots[0] || null;
+              const candidates = [...document.querySelectorAll('body *')]
+                .filter(visible)
+                .map((element, index) => {
+                  const role = element.getAttribute('role') || '';
+                  const text = compact(element.textContent);
+                  const className = String(element.className || '');
+                  return {
+                    index,
+                    tag: element.tagName,
+                    role,
+                    text,
+                    direct_text: compact(
+                      [...element.childNodes]
+                        .filter(node => node.nodeType === Node.TEXT_NODE)
+                        .map(node => node.textContent)
+                        .join(' ')
+                    ),
+                    class_tokens: className.split(/\s+/).filter(Boolean).slice(0, 20),
+                    attributes: safeAttrs(element),
+                    rect: (() => {
+                      const rect = element.getBoundingClientRect();
+                      return {
+                        x: Math.round(rect.x), y: Math.round(rect.y),
+                        width: Math.round(rect.width), height: Math.round(rect.height)
+                      };
+                    })()
+                  };
+                })
+                .filter(item =>
+                  item.role === 'option' ||
+                  item.role === 'listbox' ||
+                  /oxnv-select|option|listbox|virtual|popup|menu/i.test(item.class_tokens.join(' ')) ||
+                  (item.text && item.text.length <= 100 && /All|BTC|USDT|USD|ETH/i.test(item.text))
+                )
+                .slice(0, 500);
+              const scrollable = [...document.querySelectorAll('body *')]
+                .filter(visible)
+                .filter(element => element.scrollHeight > element.clientHeight + 5)
+                .map((element, index) => ({
+                  index,
+                  tag: element.tagName,
+                  text: compact(element.textContent),
+                  class_tokens: String(element.className || '').split(/\s+/).filter(Boolean).slice(0, 20),
+                  attributes: safeAttrs(element),
+                  client_height: element.clientHeight,
+                  scroll_height: element.scrollHeight,
+                  scroll_top: element.scrollTop
+                }))
+                .filter(item =>
+                  /select|option|list|virtual|popup|menu/i.test(item.class_tokens.join(' ')) ||
+                  item.attributes.role === 'listbox'
+                )
+                .slice(0, 100);
+              return {
+                controlled: root ? {
+                  tag: root.tagName,
+                  text: compact(root.textContent),
+                  class_tokens: String(root.className || '').split(/\s+/).filter(Boolean).slice(0, 30),
+                  attributes: safeAttrs(root),
+                  child_count: root.children.length,
+                  descendant_count: root.querySelectorAll('*').length,
+                  client_height: root.clientHeight,
+                  scroll_height: root.scrollHeight,
+                  scroll_top: root.scrollTop
+                } : {},
+                candidates,
+                scrollable
+              };
+            }, controlsId);
+            evidence.controlled_element = snapshot.controlled;
+            evidence.visible_candidates = snapshot.candidates;
+            evidence.scrollable_elements = snapshot.scrollable;
+          } catch (error) {
+            evidence.errors.push({ stage: 'listbox_probe', message: String(error?.stack || error) });
+          } finally {
+            if (browser) await browser.close().catch(() => {});
+            fs.writeFileSync(output, JSON.stringify(evidence, null, 2) + '\n');
+          }
+          NODE
+          cd build/okx-listbox/runtime
+          node probe.mjs
+          cd "$GITHUB_WORKSPACE"
+
+      - name: Verify no selection or submission occurred
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          evidence = json.loads(Path('build/okx-listbox/output/evidence.json').read_text())
+          assert evidence['modal_opened'] is True
+          assert evidence['option_selected'] is False
+          assert evidence['form_submitted'] is False
+          assert evidence['market_data_requested'] is False
+          assert evidence['response_bodies_retained'] is False
+          assert not evidence['errors'], evidence['errors']
+          print(json.dumps({
+              'combobox': evidence['combobox'],
+              'controlled_element': evidence['controlled_element'],
+              'visible_candidates': evidence['visible_candidates'],
+              'scrollable_elements': evidence['scrollable_elements'],
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload listbox structure evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: okx-symbol-listbox-structure-${{ github.sha }}
+          path: build/okx-listbox/output/evidence.json
+          if-no-files-found: error
+          retention-days: 30
