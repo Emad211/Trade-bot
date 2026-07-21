@@ -82,11 +82,15 @@ jobs:
             2>&1 | tee replication-pytest.log
           test_status=${PIPESTATUS[0]}
 
-          "$COVERAGE" xml -o replication-coverage.xml \
+          # XML and JSON are serialization steps, not independent quality gates.
+          # Override the repository-wide 75% default here so export succeeds even
+          # though this workflow intentionally enforces its frozen 70% threshold
+          # exactly once in the following `coverage report` command.
+          "$COVERAGE" xml --fail-under=0 -o replication-coverage.xml \
             2>&1 | tee replication-coverage-xml.log
           xml_status=${PIPESTATUS[0]}
 
-          "$COVERAGE" json -o replication-coverage.json \
+          "$COVERAGE" json --fail-under=0 -o replication-coverage.json \
             2>&1 | tee replication-coverage-json.log
           json_status=${PIPESTATUS[0]}
 
