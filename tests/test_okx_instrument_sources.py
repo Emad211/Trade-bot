@@ -6,8 +6,8 @@ import pytest
 
 from hybrid_trader.replication.okx_instrument_sources import (
     CURRENT_INSTRUMENT_FIELDS,
-    OKXInstrumentSourceError,
     OfficialPageContract,
+    OKXInstrumentSourceError,
     audit_official_page_bytes,
     normalize_document_text,
     parse_current_instrument_response,
