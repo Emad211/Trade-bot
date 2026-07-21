@@ -8,6 +8,7 @@ import io
 import zipfile
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
+from itertools import pairwise
 from pathlib import PurePosixPath
 from typing import Any
 
@@ -142,7 +143,7 @@ def _iso_utc(value: datetime) -> str:
 def _timestamp_order(values: list[datetime]) -> str:
     if len(values) < 2:
         return "single"
-    pairs = list(zip(values[:-1], values[1:], strict=True))
+    pairs = list(pairwise(values))
     ascending = all(left <= right for left, right in pairs)
     descending = all(left >= right for left, right in pairs)
     if ascending and descending:
