@@ -78,25 +78,18 @@ def _row_for(source_id: str, timestamp_ms: int = 1784635200000) -> dict[str, str
 
 
 def _response(
-    contract_index: int,
-    timestamp_ms: int = 1784635200000,
+    contract_index: int, timestamp_ms: int = 1784635200000
 ) -> tuple[str, HTTPResponse]:
     contract = SOURCE_CONTRACTS[contract_index]
     url = build_url(contract)
     body = json.dumps(
-        {
-            "code": "0",
-            "msg": "",
-            "data": [_row_for(contract.source_id, timestamp_ms)],
-        }
+        {"code": "0", "msg": "", "data": [_row_for(contract.source_id, timestamp_ms)]}
     ).encode()
     return url, HTTPResponse(body, 200, "application/json", url)
 
 
 def _observation(
-    contract_index: int,
-    timestamp_ms: int = 1784635200000,
-    offset: int = 0,
+    contract_index: int, timestamp_ms: int = 1784635200000, offset: int = 0
 ):
     contract = SOURCE_CONTRACTS[contract_index]
     url, response = _response(contract_index, timestamp_ms)
@@ -218,10 +211,7 @@ def test_wrong_final_path_or_query_contract_fails_closed() -> None:
     contract = SOURCE_CONTRACTS[0]
     url, response = _response(0)
     wrong_path = HTTPResponse(
-        response.body,
-        200,
-        "application/json",
-        url.replace("/ticker", "/tickers"),
+        response.body, 200, "application/json", url.replace("/ticker", "/tickers")
     )
     with pytest.raises(OKXPriceLinkageProbeError, match="path differs"):
         validate_source_response(
@@ -282,4 +272,5 @@ def test_clock_order_is_fail_closed() -> None:
             request_url=url,
             request_started_at=BASE + timedelta(seconds=2),
             response_received_at=BASE + timedelta(seconds=1),
+            research_available_at=BASE + timedelta(seconds=2),
         )
