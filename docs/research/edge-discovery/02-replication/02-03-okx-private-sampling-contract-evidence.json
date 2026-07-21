@@ -1,0 +1,172 @@
+{
+  "active_compliance": {
+    "active_artifact_count": 4,
+    "compliant": true
+  },
+  "authorization": {
+    "basis_computation": false,
+    "capital_deployment": false,
+    "empirical_fitting": false,
+    "funding_pnl_computation": false,
+    "paper_or_live_trading": false,
+    "report_2_4": false,
+    "returns_computation": false,
+    "strategy_testing": false,
+    "transaction_cost_estimation": false
+  },
+  "contract_outcome": "GO_OWNER_CONTROLLED_PRIVATE_OKX_SAMPLING_CONTRACT",
+  "deletion": {
+    "all_leases_deleted": true,
+    "all_raw_deleted": true,
+    "batch_id": "sha256-ff6aaf21ac9a18d2b15c138fba361d54203dba852cdcc9baa4e19da291bd1598",
+    "delete_reason": "SYNTHETIC_VALIDATION_COMPLETE",
+    "deleted_at_utc": "2026-07-21T13:32:33.381522+00:00",
+    "schema_version": "1.0",
+    "secure_erase_claimed": false,
+    "source_count": 4,
+    "sources": [
+      {
+        "artifact_id": "sha256-74e8ed3c76de88ff68eb63f9d4d5316125eab0e8d4944eac8547d9a6be3054d6",
+        "integrity_matched_before_delete": true,
+        "lease_exists_after_delete": false,
+        "raw_exists_after_delete": false,
+        "secure_erase_claimed": false,
+        "source_id": "OKX_SPOT_BTC_USDT_TICKER"
+      },
+      {
+        "artifact_id": "sha256-de27e6b7124a398f018363812e2d031d920cc1f3df00b68f0379653bd06a4b9a",
+        "integrity_matched_before_delete": true,
+        "lease_exists_after_delete": false,
+        "raw_exists_after_delete": false,
+        "secure_erase_claimed": false,
+        "source_id": "OKX_SWAP_BTC_USDT_SWAP_TICKER"
+      },
+      {
+        "artifact_id": "sha256-95c0e4ecd0ff24dfdc66be36f44a721cde52301a3039f91753df0e2fcb2436cb",
+        "integrity_matched_before_delete": true,
+        "lease_exists_after_delete": false,
+        "raw_exists_after_delete": false,
+        "secure_erase_claimed": false,
+        "source_id": "OKX_SWAP_BTC_USDT_SWAP_MARK_PRICE"
+      },
+      {
+        "artifact_id": "sha256-033b765cdfda61cf883ac7066ed6b9e83db1089cae904129264fdb1d79a4672c",
+        "integrity_matched_before_delete": true,
+        "lease_exists_after_delete": false,
+        "raw_exists_after_delete": false,
+        "secure_erase_claimed": false,
+        "source_id": "OKX_BTC_USDT_INDEX_TICKER"
+      }
+    ]
+  },
+  "execution_mode": "SYNTHETIC_VALIDATION",
+  "manifest": {
+    "basis_computation_authorized": false,
+    "batch_id": "sha256-ff6aaf21ac9a18d2b15c138fba361d54203dba852cdcc9baa4e19da291bd1598",
+    "contract_id": "OKX_PRIVATE_SYNCHRONIZED_PRICE_SAMPLING_V1",
+    "empirical_fitting_authorized": false,
+    "execution_mode": "SYNTHETIC_VALIDATION",
+    "funding_pnl_computation_authorized": false,
+    "license_snapshot_id": "OKX_API_AGREEMENT_2026-03-26_REVIEWED_2026-07-21_V1",
+    "owner_controlled_encryption_keys_attested": false,
+    "owner_controlled_private_storage_attested": false,
+    "paper_or_live_trading_authorized": false,
+    "policy_id": "OKX_LIVE_PRIVATE_SAMPLING_V1",
+    "public_manifest_contains_market_values": false,
+    "public_raw_artifact_authorized": false,
+    "real_raw_sampling_executed": false,
+    "redistribution_authorized": false,
+    "registry_committed_at": "2026-07-21T12:32:34.381522+00:00",
+    "report_2_4_authorized": false,
+    "requested_retention_days": 2,
+    "returns_computation_authorized": false,
+    "schema_version": "1.0",
+    "source_count": 4,
+    "source_order": [
+      "OKX_SPOT_BTC_USDT_TICKER",
+      "OKX_SWAP_BTC_USDT_SWAP_TICKER",
+      "OKX_SWAP_BTC_USDT_SWAP_MARK_PRICE",
+      "OKX_BTC_USDT_INDEX_TICKER"
+    ],
+    "sources": [
+      {
+        "artifact_id": "sha256-74e8ed3c76de88ff68eb63f9d4d5316125eab0e8d4944eac8547d9a6be3054d6",
+        "byte_count": 104,
+        "created_at_utc": "2026-07-21T12:32:34.381522+00:00",
+        "expires_at_utc": "2026-07-23T12:32:34.381522+00:00",
+        "provider_timestamp_age_ms_at_response": 910,
+        "provider_timestamp_ms": 1784637152481,
+        "provider_timestamp_utc": "2026-07-21T12:32:32.481000+00:00",
+        "raw_sha256": "74e8ed3c76de88ff68eb63f9d4d5316125eab0e8d4944eac8547d9a6be3054d6",
+        "raw_values_publicly_retained": false,
+        "request_started_at": "2026-07-21T12:32:33.381522+00:00",
+        "research_available_at": "2026-07-21T12:32:33.396522+00:00",
+        "response_received_at": "2026-07-21T12:32:33.391522+00:00",
+        "source_id": "OKX_SPOT_BTC_USDT_TICKER",
+        "source_object_key_sha256": "c47b2022b190ebee03389db32d31d6b2fb962b1495a9cd3618ec8e41f7775ceb"
+      },
+      {
+        "artifact_id": "sha256-de27e6b7124a398f018363812e2d031d920cc1f3df00b68f0379653bd06a4b9a",
+        "byte_count": 109,
+        "created_at_utc": "2026-07-21T12:32:34.381522+00:00",
+        "expires_at_utc": "2026-07-23T12:32:34.381522+00:00",
+        "provider_timestamp_age_ms_at_response": 1230,
+        "provider_timestamp_ms": 1784637152181,
+        "provider_timestamp_utc": "2026-07-21T12:32:32.181000+00:00",
+        "raw_sha256": "de27e6b7124a398f018363812e2d031d920cc1f3df00b68f0379653bd06a4b9a",
+        "raw_values_publicly_retained": false,
+        "request_started_at": "2026-07-21T12:32:33.401522+00:00",
+        "research_available_at": "2026-07-21T12:32:33.416522+00:00",
+        "response_received_at": "2026-07-21T12:32:33.411522+00:00",
+        "source_id": "OKX_SWAP_BTC_USDT_SWAP_TICKER",
+        "source_object_key_sha256": "1bd2d313c7b9c29a9616c3656f9425acae272f498e868c90065eed1a7926b418"
+      },
+      {
+        "artifact_id": "sha256-95c0e4ecd0ff24dfdc66be36f44a721cde52301a3039f91753df0e2fcb2436cb",
+        "byte_count": 113,
+        "created_at_utc": "2026-07-21T12:32:34.381522+00:00",
+        "expires_at_utc": "2026-07-23T12:32:34.381522+00:00",
+        "provider_timestamp_age_ms_at_response": 350,
+        "provider_timestamp_ms": 1784637153081,
+        "provider_timestamp_utc": "2026-07-21T12:32:33.081000+00:00",
+        "raw_sha256": "95c0e4ecd0ff24dfdc66be36f44a721cde52301a3039f91753df0e2fcb2436cb",
+        "raw_values_publicly_retained": false,
+        "request_started_at": "2026-07-21T12:32:33.421522+00:00",
+        "research_available_at": "2026-07-21T12:32:33.436522+00:00",
+        "response_received_at": "2026-07-21T12:32:33.431522+00:00",
+        "source_id": "OKX_SWAP_BTC_USDT_SWAP_MARK_PRICE",
+        "source_object_key_sha256": "8d6c3c244133400b896d8c4eb3fee5b7781d53dd0d6f360083ac6ee6296b3d38"
+      },
+      {
+        "artifact_id": "sha256-033b765cdfda61cf883ac7066ed6b9e83db1089cae904129264fdb1d79a4672c",
+        "byte_count": 105,
+        "created_at_utc": "2026-07-21T12:32:34.381522+00:00",
+        "expires_at_utc": "2026-07-23T12:32:34.381522+00:00",
+        "provider_timestamp_age_ms_at_response": 770,
+        "provider_timestamp_ms": 1784637152681,
+        "provider_timestamp_utc": "2026-07-21T12:32:32.681000+00:00",
+        "raw_sha256": "033b765cdfda61cf883ac7066ed6b9e83db1089cae904129264fdb1d79a4672c",
+        "raw_values_publicly_retained": false,
+        "request_started_at": "2026-07-21T12:32:33.441522+00:00",
+        "research_available_at": "2026-07-21T12:32:33.456522+00:00",
+        "response_received_at": "2026-07-21T12:32:33.451522+00:00",
+        "source_id": "OKX_BTC_USDT_INDEX_TICKER",
+        "source_object_key_sha256": "cac657b5fa83099634296dd14ca0613838cdaccfc75fc6e69f05c71579913f6d"
+      }
+    ],
+    "synthetic_validation_only": true,
+    "total_byte_count": 431,
+    "transaction_cost_estimation_authorized": false
+  },
+  "post_delete_compliance": {
+    "active_artifact_count": 0,
+    "compliant": true
+  },
+  "private_owner_storage_available_in_actions": false,
+  "real_execution_status": "NOT_EXECUTED_REQUIRES_OWNER_PRIVATE_STORAGE_AND_KEYS",
+  "real_okx_request_performed": false,
+  "real_raw_sampling_executed": false,
+  "schema_version": "1.0",
+  "synthetic_raw_values_published": false,
+  "validation_id": "OKX_PRIVATE_SYNCHRONIZED_SAMPLING_CONTRACT_V1"
+}
