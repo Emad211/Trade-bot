@@ -51,11 +51,10 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          # The old test_replication_*.py glob covered only the original framework
-          # tests and excluded the source-specific CFTC, OKX, Binance, Cboe,
-          # Kenneth-French and Moreira-Muir suites. Run the complete non-optional
-          # suite so the coverage result represents the current replication package.
-          python -m pytest -q -m "not optional_ml" \
+          # Use the same verified pytest entrypoint as the green repository CI.
+          # The prior `python -m pytest` path reproducibly caused NumPy's native
+          # extension to be loaded twice before collection on hosted Python 3.11.
+          pytest -q -m "not optional_ml" \
             --cov=hybrid_trader.replication \
             --cov-report=term-missing \
             --cov-report=xml:replication-coverage.xml \
