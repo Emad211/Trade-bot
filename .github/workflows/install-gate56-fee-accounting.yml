@@ -1,0 +1,108 @@
+name: install-gate56-fee-accounting
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/install-gate56-fee-accounting.yml
+      - .gate56-payload.tar.gz
+
+permissions:
+  contents: write
+
+concurrency:
+  group: install-gate56-fee-accounting
+  cancel-in-progress: false
+
+jobs:
+  install-verify-publish:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/edge-research-reports
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install verification dependencies
+        run: python -m pip install -e '.[dev,replication]'
+
+      - name: Install Gate 56 payload
+        run: |
+          set -euo pipefail
+          tar -xzf .gate56-payload.tar.gz
+
+      - name: Verify fee and funding accounting contract
+        run: |
+          set -euo pipefail
+          files=(
+            src/hybrid_trader/replication/okx_fee_accounting.py
+            scripts/validate_okx_fee_accounting_contract.py
+            tests/test_okx_fee_accounting.py
+          )
+          ruff format --check "${files[@]}"
+          ruff check "${files[@]}"
+          mypy \
+            src/hybrid_trader/replication/okx_fee_accounting.py \
+            scripts/validate_okx_fee_accounting_contract.py
+          pytest -q tests/test_okx_fee_accounting.py
+          python scripts/validate_okx_fee_accounting_contract.py \
+            --output-dir build/okx-fee-accounting
+
+      - name: Independently verify safe synthetic evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('build/okx-fee-accounting')
+          files = sorted(path.name for path in root.iterdir() if path.is_file())
+          assert files == ['okx-fee-accounting-contract-safe-evidence.json'], files
+          path = root / files[0]
+          payload = json.loads(path.read_text(encoding='utf-8'))
+
+          assert payload['schema_version'] == '1.0'
+          assert payload['gate_id'] == 'OKX_FEE_AND_FUNDING_ACCOUNTING_CONTRACT_V1'
+          assert payload['issue_number'] == 56
+          assert payload['validation_mode'] == 'SYNTHETIC_ONLY'
+          assert payload['real_account_request_performed'] is False
+          assert payload['account_specific_fee_snapshot_status'] == 'BLOCKED_OWNER_READ_ONLY_CREDENTIALS'
+          assert payload['fill_chronology_field'] == 'fillTime'
+          assert payload['funding_bill_subtypes'] == {'expense': '173', 'income': '174'}
+          assert payload['position_realized_pnl_re_add_components'] is False
+          assert payload['current_funding_formula_backdated_to_2022'] is False
+          assert all(value is False for value in payload['authorization'].values())
+
+          text = path.read_text(encoding='utf-8')
+          forbidden = (
+              'API_KEY', 'SECRET_KEY', 'PASSPHRASE',
+              'synthetic-order', 'synthetic-trade', 'synthetic-bill',
+              '-0.0008', '-0.001', '60000',
+          )
+          assert all(value not in text for value in forbidden)
+          PY
+
+      - name: Retire installer and publish verified contract
+        run: |
+          set -euo pipefail
+          rm .gate56-payload.tar.gz
+          rm .github/workflows/install-gate56-fee-accounting.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            src/hybrid_trader/replication/okx_fee_accounting.py \
+            scripts/validate_okx_fee_accounting_contract.py \
+            tests/test_okx_fee_accounting.py \
+            docs/research/edge-discovery/02-replication/02-03-okx-fee-and-funding-accounting-contract-gate.yaml \
+            .github/workflows/okx-fee-accounting-contract.yml
+          git add -u \
+            .gate56-payload.tar.gz \
+            .github/workflows/install-gate56-fee-accounting.yml
+          git commit -m 'Add OKX fee and funding accounting contract'
+          git push origin HEAD:agent/edge-research-reports
