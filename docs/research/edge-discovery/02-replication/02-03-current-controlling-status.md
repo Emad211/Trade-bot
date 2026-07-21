@@ -72,3 +72,7 @@ Report 2.4: no
 ## Final synchronization condition
 
 This status is valid only when general CI and Replication Integrity both pass on the exact synchronized closure head. The exact head and run IDs are recorded in the Issue #60 closure comment, and no repository mutation may occur before closure.
+
+## Connector-authored synchronization trigger
+
+This metadata-only amendment exists to ensure that GitHub Actions executes on a connector-authored exact head rather than stopping with `action_required` on the preceding bot-authored closure commit. It changes no evidence classification, blocker, authorization, hypothesis verdict, or Report 2.4 boundary. The resulting exact head and successful run IDs are recorded only in the Issue #60 closure comment.
