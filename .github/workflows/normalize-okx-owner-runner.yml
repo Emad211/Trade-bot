@@ -38,9 +38,10 @@ jobs:
           text = path.read_text(encoding='utf-8')
           old = 'research_available_at = datetime.now(UTC)\n'
           new = 'research_available_at = max(datetime.now(UTC), timed.response_received_at)\n'
-          if old not in text:
-              raise SystemExit('Expected clock line was not found')
-          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          if old in text:
+              path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          elif new not in text:
+              raise SystemExit('Neither the old nor the verified clock line was found')
           PY
           files=(
             src/hybrid_trader/replication/okx_owner_sampling_runner.py
