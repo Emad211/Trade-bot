@@ -1,0 +1,149 @@
+name: OKX Owner-Side One-Batch Runner
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/okx-owner-side-one-batch-runner.yml
+      - src/hybrid_trader/replication/okx_owner_sampling_runner.py
+      - src/hybrid_trader/replication/okx_private_sampling.py
+      - src/hybrid_trader/replication/okx_price_linkage_probe.py
+      - scripts/run_okx_owner_private_sampling.py
+      - scripts/validate_okx_owner_sampling_runner.py
+      - tests/test_okx_owner_sampling_runner.py
+      - tests/test_okx_private_sampling.py
+      - docs/research/edge-discovery/02-replication/02-03-okx-owner-side-one-batch-runner-gate.yaml
+  push:
+    branches: [agent/edge-research-reports]
+    paths:
+      - .github/workflows/okx-owner-side-one-batch-runner.yml
+      - src/hybrid_trader/replication/okx_owner_sampling_runner.py
+      - src/hybrid_trader/replication/okx_private_sampling.py
+      - src/hybrid_trader/replication/okx_price_linkage_probe.py
+      - scripts/run_okx_owner_private_sampling.py
+      - scripts/validate_okx_owner_sampling_runner.py
+      - tests/test_okx_owner_sampling_runner.py
+      - tests/test_okx_private_sampling.py
+      - docs/research/edge-discovery/02-replication/02-03-okx-owner-side-one-batch-runner-gate.yaml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: okx-owner-side-one-batch-runner-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-synthetic-runner-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install verification dependencies
+        run: python -m pip install -e '.[dev,replication]'
+
+      - name: Verify runner implementation and lifecycle tests
+        run: |
+          ruff format --check \
+            src/hybrid_trader/replication/okx_owner_sampling_runner.py \
+            scripts/run_okx_owner_private_sampling.py \
+            scripts/validate_okx_owner_sampling_runner.py \
+            tests/test_okx_owner_sampling_runner.py
+          ruff check \
+            src/hybrid_trader/replication/okx_owner_sampling_runner.py \
+            scripts/run_okx_owner_private_sampling.py \
+            scripts/validate_okx_owner_sampling_runner.py \
+            tests/test_okx_owner_sampling_runner.py
+          mypy \
+            src/hybrid_trader/replication/okx_owner_sampling_runner.py \
+            scripts/run_okx_owner_private_sampling.py \
+            scripts/validate_okx_owner_sampling_runner.py
+          pytest -q \
+            tests/test_okx_owner_sampling_runner.py \
+            tests/test_okx_private_sampling.py \
+            tests/test_revocable_retention.py
+
+      - name: Verify CLI help without executing retain or delete
+        run: |
+          python scripts/run_okx_owner_private_sampling.py --help
+          python scripts/run_okx_owner_private_sampling.py retain --help
+          python scripts/run_okx_owner_private_sampling.py delete --help
+
+      - name: Run injected synthetic owner-runner lifecycle
+        run: |
+          python scripts/validate_okx_owner_sampling_runner.py \
+            --output-dir build/okx-owner-sampling-runner
+
+      - name: Independently verify runner readiness and zero real execution
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('build/okx-owner-sampling-runner')
+          files = sorted(path.name for path in root.iterdir() if path.is_file())
+          assert files == ['okx-owner-sampling-runner-evidence.json'], files
+          path = root / files[0]
+          text = path.read_text(encoding='utf-8')
+          evidence = json.loads(text)
+
+          assert evidence['schema_version'] == '1.0'
+          assert evidence['validation_id'] == 'OKX_OWNER_SIDE_ONE_BATCH_RUNNER_V1'
+          assert evidence['runner_outcome'] == 'GO_OWNER_SIDE_OKX_ONE_BATCH_RUNNER_READY'
+          assert evidence['execution_mode'] == 'SYNTHETIC_INJECTED'
+          assert evidence['official_network_fetcher_used'] is False
+          assert evidence['real_okx_request_performed'] is False
+          assert evidence['real_raw_sampling_executed'] is False
+          assert evidence['real_execution_status'] == (
+              'NOT_EXECUTED_REQUIRES_OWNER_PRIVATE_STORAGE_AND_KEYS'
+          )
+          assert evidence['requested_urls_match_frozen_contract'] is True
+          assert evidence['requested_urls'] == [
+              'https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT',
+              'https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT-SWAP',
+              'https://www.okx.com/api/v5/public/mark-price?instType=SWAP&instId=BTC-USDT-SWAP',
+              'https://www.okx.com/api/v5/market/index-tickers?instId=BTC-USDT',
+          ]
+
+          result = evidence['run_result']
+          assert result['mode'] == 'SYNTHETIC_INJECTED'
+          assert result['real_okx_request_performed'] is False
+          assert result['real_raw_sampling_executed'] is False
+          assert result['source_count'] == 4
+          assert result['private_artifact_count'] == 4
+          assert len(result['safe_manifest_sha256']) == 64
+
+          manifest = evidence['safe_manifest']
+          assert manifest['source_count'] == 4
+          assert manifest['synthetic_validation_only'] is True
+          assert manifest['real_raw_sampling_executed'] is False
+          assert manifest['public_manifest_contains_market_values'] is False
+          assert evidence['raw_artifact_count_before_delete'] == 4
+          assert evidence['lease_count_before_delete'] == 4
+          assert evidence['deletion']['all_raw_deleted'] is True
+          assert evidence['deletion']['all_leases_deleted'] is True
+          assert evidence['raw_artifact_count_after_delete'] == 0
+          assert evidence['lease_count_after_delete'] == 0
+          assert evidence['safe_manifest_contains_fake_market_value'] is False
+          assert evidence['safe_deletion_contains_fake_market_value'] is False
+          assert all(value is False for value in evidence['authorization'].values())
+
+          forbidden = ('987654.321987', '987655', '987653')
+          assert all(marker not in text for marker in forbidden)
+          assert not list(root.glob('*.bin'))
+          assert not list(root.glob('*.csv'))
+          assert not list(root.glob('*.zip'))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: okx-owner-sampling-runner-safe-evidence-${{ github.sha }}
+          path: build/okx-owner-sampling-runner/okx-owner-sampling-runner-evidence.json
+          if-no-files-found: error
+          retention-days: 90
