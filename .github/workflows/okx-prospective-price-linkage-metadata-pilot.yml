@@ -40,6 +40,29 @@ jobs:
       - name: Install verification dependencies
         run: python -m pip install -e '.[dev,replication]'
 
+      - name: Generate exact Ruff output
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          files=(
+            src/hybrid_trader/replication/okx_price_linkage_probe.py
+            scripts/audit_okx_prospective_price_linkage.py
+            tests/test_okx_price_linkage_probe.py
+          )
+          ruff format "${files[@]}"
+          ruff check --fix "${files[@]}"
+          ruff format "${files[@]}"
+          tar -czf build/okx-price-linkage-formatted-sources.tar.gz "${files[@]}"
+
+      - name: Upload exact Ruff output
+        uses: actions/upload-artifact@v4
+        with:
+          name: okx-price-linkage-formatted-sources-${{ github.sha }}
+          path: build/okx-price-linkage-formatted-sources.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Run scoped diagnostics
         shell: bash
         run: |
