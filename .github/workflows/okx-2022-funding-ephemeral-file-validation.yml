@@ -1,0 +1,676 @@
+name: OKX 2022 Funding Ephemeral File Validation
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/okx-2022-funding-ephemeral-file-validation.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: okx-2022-funding-ephemeral-file-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-and-delete:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out triggering commit
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Acquire one official monthly file ephemerally, validate, and delete
+        shell: bash
+        run: |
+          mkdir -p build/okx-2022-funding-ephemeral
+          python - <<'PY'
+          from __future__ import annotations
+
+          import csv
+          import hashlib
+          import io
+          import json
+          import os
+          import shutil
+          import stat
+          import tempfile
+          import urllib.error
+          import urllib.request
+          import zipfile
+          from collections import Counter
+          from collections.abc import Mapping
+          from datetime import UTC, datetime
+          from pathlib import Path, PurePosixPath
+          from typing import Any
+          from urllib.parse import parse_qsl, urlsplit
+
+          METADATA_ENDPOINT = (
+              "https://www.okx.com/priapi/v5/broker/public/"
+              "trade-data/download-link"
+          )
+          REFERER = "https://www.okx.com/en-gb/historical-data"
+          EXPECTED_HOST = "static.okx.com"
+          EXPECTED_PATH = (
+              "/cdn/okex/traderecords/swaprates/monthly/202203/"
+              "BTC-USDT-SWAP-fundingrates-2022-03.zip"
+          )
+          EXPECTED_FILENAME = "BTC-USDT-SWAP-fundingrates-2022-03.zip"
+          MAX_METADATA_BYTES = 2_000_000
+          MAX_ZIP_BYTES = 20_000_000
+          MAX_MEMBER_COUNT = 10
+          MAX_TOTAL_UNCOMPRESSED_BYTES = 50_000_000
+          MAX_COMPRESSION_RATIO = 250.0
+          BEGIN_MS = "1646092800000"
+          END_MS = "1648684800000"
+          OUTPUT = Path("build/okx-2022-funding-ephemeral/evidence.json")
+          RUNNER_TEMP = Path(os.environ["RUNNER_TEMP"]).resolve()
+
+          def sha256(value: bytes) -> str:
+              return hashlib.sha256(value).hexdigest()
+
+          def bounded(value: Any, limit: int = 500) -> str:
+              return str(value).replace("\r", " ").replace("\n", " ")[:limit]
+
+          def selected_headers(headers: Mapping[str, str]) -> dict[str, str]:
+              result: dict[str, str] = {}
+              lower = {str(key).lower(): str(value) for key, value in headers.items()}
+              for key in (
+                  "content-type",
+                  "content-length",
+                  "content-disposition",
+                  "last-modified",
+                  "etag",
+                  "cache-control",
+              ):
+                  if key in lower:
+                      result[key] = bounded(lower[key], 1000)
+              return result
+
+          def sanitize_url(raw: str) -> dict[str, Any]:
+              parsed = urlsplit(raw)
+              return {
+                  "scheme": parsed.scheme,
+                  "host": (parsed.hostname or "").lower(),
+                  "path": parsed.path,
+                  "query_parameter_names": sorted(
+                      {key for key, _ in parse_qsl(parsed.query, keep_blank_values=True)}
+                  ),
+                  "has_query": bool(parsed.query),
+                  "full_url_sha256": sha256(raw.encode("utf-8")),
+              }
+
+          class OfficialHostRedirectHandler(urllib.request.HTTPRedirectHandler):
+              def redirect_request(
+                  self,
+                  req: urllib.request.Request,
+                  fp: Any,
+                  code: int,
+                  msg: str,
+                  headers: Any,
+                  newurl: str,
+              ) -> urllib.request.Request | None:
+                  parsed = urlsplit(newurl)
+                  host = (parsed.hostname or "").lower()
+                  if parsed.scheme != "https" or (
+                      host != "okx.com"
+                      and host != "www.okx.com"
+                      and not host.endswith(".okx.com")
+                  ):
+                      raise RuntimeError(
+                          f"Redirect left the official OKX domain: {bounded(newurl)}"
+                      )
+                  return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+          opener = urllib.request.build_opener(OfficialHostRedirectHandler())
+          payload: dict[str, Any] = {
+              "module": "3",
+              "instType": "SWAP",
+              "instQueryParam": {"instFamilyList": ["BTC-USDT"]},
+              "dateQuery": {
+                  "dateAggrType": "monthly",
+                  "begin": BEGIN_MS,
+                  "end": END_MS,
+              },
+          }
+          payload_bytes = json.dumps(
+              payload,
+              separators=(",", ":"),
+              sort_keys=True,
+          ).encode("utf-8")
+
+          evidence: dict[str, Any] = {
+              "schema_version": "1.0",
+              "purpose": "OKX_2022_FUNDING_EPHEMERAL_FILE_VALIDATION",
+              "scope": {
+                  "instrument_family": "BTC-USDT",
+                  "contract_identity": "BTC-USDT-SWAP",
+                  "calendar_month": "2022-03",
+                  "aggregation": "monthly",
+                  "module": "3",
+              },
+              "metadata_request": {
+                  "method": "POST",
+                  "endpoint": METADATA_ENDPOINT,
+                  "payload": payload,
+                  "payload_sha256": sha256(payload_bytes),
+                  "authentication_headers_sent": False,
+                  "cookies_sent": False,
+              },
+              "metadata_response": {},
+              "file_delivery": {},
+              "zip_validation": {},
+              "member_profiles": [],
+              "deletion_receipt": {},
+              "errors": [],
+              "raw_file_persisted_after_validation": False,
+              "raw_file_uploaded": False,
+              "raw_rows_retained": False,
+              "funding_rate_values_retained": False,
+              "returns_computed": False,
+              "basis_computed": False,
+              "funding_pnl_computed": False,
+              "secure_erase_claimed": False,
+              "license_verdict": "NOT_DECIDED_BY_FILE_VALIDATION",
+              "gate_verdict": "UNRESOLVED_EPHEMERAL_FILE_VALIDATION_ONLY",
+          }
+
+          private_dir: Path | None = None
+          raw_path: Path | None = None
+          raw_zip_bytes: bytes | None = None
+          deletion_target_sha256 = ""
+          deletion_target_byte_count = 0
+          validation_succeeded = False
+
+          try:
+              metadata_request = urllib.request.Request(
+                  METADATA_ENDPOINT,
+                  data=payload_bytes,
+                  method="POST",
+                  headers={
+                      "Accept": "application/json",
+                      "Content-Type": "application/json",
+                      "Origin": "https://www.okx.com",
+                      "Referer": REFERER,
+                      "User-Agent": (
+                          "Emad211-Trade-bot-replication/1.0 "
+                          "(+https://github.com/Emad211/Trade-bot)"
+                      ),
+                  },
+              )
+              with opener.open(metadata_request, timeout=60) as response:
+                  metadata_status = int(response.status)
+                  metadata_final_url = response.geturl()
+                  metadata_headers = dict(response.headers.items())
+                  metadata_raw = response.read(MAX_METADATA_BYTES + 1)
+              if metadata_status != 200:
+                  raise RuntimeError(
+                      f"Metadata endpoint returned HTTP {metadata_status}"
+                  )
+              if len(metadata_raw) > MAX_METADATA_BYTES:
+                  raise RuntimeError("Metadata response exceeded byte-size guard")
+              metadata_final = urlsplit(metadata_final_url)
+              if (
+                  metadata_final.scheme != "https"
+                  or metadata_final.hostname not in {"okx.com", "www.okx.com"}
+              ):
+                  raise RuntimeError("Metadata endpoint left the official host")
+              metadata_payload: Any = json.loads(metadata_raw)
+              if not isinstance(metadata_payload, Mapping):
+                  raise RuntimeError("Metadata response is not a JSON object")
+              if str(metadata_payload.get("code", "")) != "0":
+                  raise RuntimeError(
+                      "Metadata application response rejected the request: "
+                      + bounded(metadata_payload.get("msg", ""), 1000)
+                  )
+              data = metadata_payload.get("data")
+              if not isinstance(data, Mapping):
+                  raise RuntimeError("Metadata response lacks a data object")
+              details = data.get("details")
+              if not isinstance(details, list) or len(details) != 1:
+                  raise RuntimeError(
+                      f"Expected one metadata detail, found {type(details).__name__}"
+                  )
+              detail = details[0]
+              if not isinstance(detail, Mapping):
+                  raise RuntimeError("Metadata detail is not an object")
+              if str(detail.get("instFamily", "")) != "BTC-USDT":
+                  raise RuntimeError("Metadata detail changed instrument family")
+              group_details = detail.get("groupDetails")
+              if not isinstance(group_details, list) or len(group_details) != 1:
+                  raise RuntimeError(
+                      f"Expected one monthly file detail, found {type(group_details).__name__}"
+                  )
+              file_detail = group_details[0]
+              if not isinstance(file_detail, Mapping):
+                  raise RuntimeError("Monthly file detail is not an object")
+              filename = str(file_detail.get("filename", ""))
+              download_url = str(file_detail.get("url", ""))
+              if filename != EXPECTED_FILENAME:
+                  raise RuntimeError(f"Unexpected official filename: {filename!r}")
+              download_meta = sanitize_url(download_url)
+              if (
+                  download_meta["scheme"] != "https"
+                  or download_meta["host"] != EXPECTED_HOST
+                  or download_meta["path"] != EXPECTED_PATH
+              ):
+                  raise RuntimeError(
+                      "Official file identity changed: "
+                      + json.dumps(download_meta, sort_keys=True)
+                  )
+              if set(download_meta["query_parameter_names"]) - {"v"}:
+                  raise RuntimeError("Unexpected signed-link query parameters")
+
+              evidence["metadata_response"] = {
+                  "http_status": metadata_status,
+                  "content_type": metadata_headers.get(
+                      "Content-Type",
+                      metadata_headers.get("content-type", ""),
+                  ),
+                  "byte_count": len(metadata_raw),
+                  "sha256": sha256(metadata_raw),
+                  "top_level_fields": sorted(str(key) for key in metadata_payload),
+                  "details_count": len(details),
+                  "file_count": len(group_details),
+                  "safe_file_identity": {
+                      "filename": filename,
+                      "instrument_family": str(detail.get("instFamily", "")),
+                      "instrument_id": str(detail.get("instId", "")),
+                      "reported_size_mb": bounded(file_detail.get("sizeMB", "")),
+                      "download_url": download_meta,
+                  },
+              }
+
+              private_dir = Path(
+                  tempfile.mkdtemp(
+                      prefix="okx-private-revocable-",
+                      dir=RUNNER_TEMP,
+                  )
+              ).resolve()
+              if private_dir.parent != RUNNER_TEMP:
+                  raise RuntimeError("Private temp directory escaped RUNNER_TEMP")
+              os.chmod(private_dir, stat.S_IRWXU)
+              raw_path = private_dir / EXPECTED_FILENAME
+
+              file_request = urllib.request.Request(
+                  download_url,
+                  headers={
+                      "Accept": "application/zip,application/octet-stream",
+                      "Referer": REFERER,
+                      "User-Agent": (
+                          "Emad211-Trade-bot-replication/1.0 "
+                          "(+https://github.com/Emad211/Trade-bot)"
+                      ),
+                  },
+              )
+              with opener.open(file_request, timeout=90) as response:
+                  file_status = int(response.status)
+                  file_final_url = response.geturl()
+                  file_headers = dict(response.headers.items())
+                  raw_zip_bytes = response.read(MAX_ZIP_BYTES + 1)
+              if file_status != 200:
+                  raise RuntimeError(f"Official file returned HTTP {file_status}")
+              if len(raw_zip_bytes) > MAX_ZIP_BYTES:
+                  raise RuntimeError("Official file exceeded the 20 MB guard")
+              if not raw_zip_bytes.startswith(b"PK"):
+                  raise RuntimeError("Official file lacks a ZIP signature")
+              final_meta = sanitize_url(file_final_url)
+              final_host = str(final_meta["host"])
+              if final_meta["scheme"] != "https" or (
+                  final_host != "okx.com"
+                  and final_host != "www.okx.com"
+                  and not final_host.endswith(".okx.com")
+              ):
+                  raise RuntimeError("Official file delivery left the OKX domain")
+
+              deletion_target_sha256 = sha256(raw_zip_bytes)
+              deletion_target_byte_count = len(raw_zip_bytes)
+              descriptor = os.open(
+                  raw_path,
+                  os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                  stat.S_IRUSR | stat.S_IWUSR,
+              )
+              try:
+                  with os.fdopen(descriptor, "wb") as handle:
+                      handle.write(raw_zip_bytes)
+                      handle.flush()
+                      os.fsync(handle.fileno())
+              except BaseException:
+                  raw_path.unlink(missing_ok=True)
+                  raise
+              if stat.S_IMODE(raw_path.stat().st_mode) != 0o600:
+                  raise RuntimeError("Ephemeral raw file permissions are not 0600")
+
+              evidence["file_delivery"] = {
+                  "http_status": file_status,
+                  "final_url": final_meta,
+                  "response_headers": selected_headers(file_headers),
+                  "byte_count": len(raw_zip_bytes),
+                  "sha256": deletion_target_sha256,
+                  "stored_under_runner_temp": True,
+                  "directory_mode": "0700",
+                  "file_mode": "0600",
+              }
+
+              with zipfile.ZipFile(io.BytesIO(raw_zip_bytes)) as archive:
+                  members = archive.infolist()
+                  if not members or len(members) > MAX_MEMBER_COUNT:
+                      raise RuntimeError(
+                          f"Unexpected ZIP member count: {len(members)}"
+                      )
+                  if archive.testzip() is not None:
+                      raise RuntimeError("ZIP CRC validation failed")
+                  total_uncompressed = 0
+                  member_inventory: list[dict[str, Any]] = []
+                  for info in members:
+                      if info.flag_bits & 0x1:
+                          raise RuntimeError("Encrypted ZIP members are prohibited")
+                      normalized = PurePosixPath(info.filename)
+                      if (
+                          normalized.is_absolute()
+                          or ".." in normalized.parts
+                          or "\\" in info.filename
+                      ):
+                          raise RuntimeError(
+                              f"Unsafe ZIP member path: {info.filename!r}"
+                          )
+                      if info.is_dir():
+                          continue
+                      total_uncompressed += info.file_size
+                      if total_uncompressed > MAX_TOTAL_UNCOMPRESSED_BYTES:
+                          raise RuntimeError("ZIP uncompressed-size guard triggered")
+                      ratio = (
+                          info.file_size / max(info.compress_size, 1)
+                          if info.file_size
+                          else 0.0
+                      )
+                      if ratio > MAX_COMPRESSION_RATIO:
+                          raise RuntimeError("ZIP compression-ratio guard triggered")
+                      member_bytes = archive.read(info)
+                      member_inventory.append(
+                          {
+                              "filename": info.filename,
+                              "compressed_byte_count": info.compress_size,
+                              "uncompressed_byte_count": info.file_size,
+                              "crc32": f"{info.CRC:08x}",
+                              "sha256": sha256(member_bytes),
+                              "compression_ratio": round(ratio, 6),
+                          }
+                      )
+
+                      try:
+                          text = member_bytes.decode("utf-8-sig", errors="strict")
+                      except UnicodeDecodeError as exc:
+                          raise RuntimeError(
+                              f"ZIP member is not UTF-8 text: {info.filename}"
+                          ) from exc
+                      reader = csv.reader(io.StringIO(text, newline=""))
+                      rows = list(reader)
+                      if len(rows) < 2:
+                          raise RuntimeError("Funding CSV contains no data rows")
+                      header = [value.strip() for value in rows[0]]
+                      if len(header) != len(set(header)):
+                          raise RuntimeError("Funding CSV header contains duplicates")
+                      normalized_header = {
+                          value.lower().replace("_", "").replace("-", ""): index
+                          for index, value in enumerate(header)
+                      }
+                      timestamp_candidates = (
+                          "fundingtime",
+                          "timestamp",
+                          "ts",
+                          "time",
+                      )
+                      timestamp_index = next(
+                          (
+                              normalized_header[name]
+                              for name in timestamp_candidates
+                              if name in normalized_header
+                          ),
+                          None,
+                      )
+                      if timestamp_index is None:
+                          raise RuntimeError(
+                              f"No funding timestamp field in header: {header!r}"
+                          )
+                      rate_field_indexes = [
+                          index
+                          for index, value in enumerate(header)
+                          if "rate" in value.lower()
+                      ]
+                      if not rate_field_indexes:
+                          raise RuntimeError("Funding CSV lacks a rate field")
+
+                      timestamps: list[int] = []
+                      numeric_rate_rows = 0
+                      malformed_rows = 0
+                      for row_number, row in enumerate(rows[1:], start=2):
+                          if not row or all(not value.strip() for value in row):
+                              continue
+                          if len(row) != len(header):
+                              malformed_rows += 1
+                              continue
+                          try:
+                              timestamp = int(row[timestamp_index].strip())
+                          except ValueError:
+                              malformed_rows += 1
+                              continue
+                          if timestamp < 1_000_000_000_000:
+                              timestamp *= 1000
+                          timestamps.append(timestamp)
+                          try:
+                              for index in rate_field_indexes:
+                                  float(row[index].strip())
+                              numeric_rate_rows += 1
+                          except ValueError:
+                              malformed_rows += 1
+                      if malformed_rows:
+                          raise RuntimeError(
+                              f"Funding CSV malformed-row count: {malformed_rows}"
+                          )
+                      if not timestamps:
+                          raise RuntimeError("Funding CSV has no valid timestamps")
+                      if len(timestamps) != len(set(timestamps)):
+                          raise RuntimeError("Funding CSV has duplicate timestamps")
+                      ordered = sorted(timestamps)
+                      intervals = Counter(
+                          later - earlier
+                          for earlier, later in zip(
+                              ordered,
+                              ordered[1:],
+                              strict=False,
+                          )
+                      )
+                      evidence["member_profiles"].append(
+                          {
+                              "filename": info.filename,
+                              "header_fields": header,
+                              "header_sha256": sha256(
+                                  (",".join(header) + "\n").encode("utf-8")
+                              ),
+                              "column_count": len(header),
+                              "data_row_count": len(timestamps),
+                              "unique_timestamp_count": len(set(timestamps)),
+                              "minimum_timestamp_ms": min(timestamps),
+                              "maximum_timestamp_ms": max(timestamps),
+                              "minimum_timestamp_utc": datetime.fromtimestamp(
+                                  min(timestamps) / 1000,
+                                  tz=UTC,
+                              ).isoformat(),
+                              "maximum_timestamp_utc": datetime.fromtimestamp(
+                                  max(timestamps) / 1000,
+                                  tz=UTC,
+                              ).isoformat(),
+                              "interval_counts_ms": {
+                                  str(key): value
+                                  for key, value in sorted(intervals.items())
+                              },
+                              "rate_field_names": [
+                                  header[index] for index in rate_field_indexes
+                              ],
+                              "numeric_rate_row_count": numeric_rate_rows,
+                              "rate_values_retained": False,
+                          }
+                      )
+
+                  evidence["zip_validation"] = {
+                      "zip_signature_valid": True,
+                      "crc_validation_passed": True,
+                      "encrypted_member_count": 0,
+                      "path_traversal_detected": False,
+                      "member_count": len(member_inventory),
+                      "total_uncompressed_byte_count": total_uncompressed,
+                      "member_inventory": member_inventory,
+                  }
+
+              validation_succeeded = True
+          except BaseException as exc:
+              evidence["errors"].append(
+                  {
+                      "type": type(exc).__name__,
+                      "message": bounded(exc, 2000),
+                  }
+              )
+          finally:
+              raw_zip_bytes = None
+              deleted_at = datetime.now(UTC).isoformat()
+              if raw_path is not None:
+                  raw_path.unlink(missing_ok=True)
+              if private_dir is not None and private_dir.exists():
+                  shutil.rmtree(private_dir)
+              raw_exists_after = bool(raw_path and raw_path.exists())
+              directory_exists_after = bool(private_dir and private_dir.exists())
+              evidence["deletion_receipt"] = {
+                  "artifact_sha256": deletion_target_sha256,
+                  "artifact_byte_count": deletion_target_byte_count,
+                  "deleted_at_utc": deleted_at,
+                  "delete_method": "unlink_then_remove_ephemeral_directory",
+                  "secure_erase_claimed": False,
+                  "raw_file_exists_after_delete": raw_exists_after,
+                  "private_directory_exists_after_delete": directory_exists_after,
+                  "runner_temp_teardown_expected": True,
+              }
+              evidence["raw_file_persisted_after_validation"] = (
+                  raw_exists_after or directory_exists_after
+              )
+              evidence["validation_succeeded"] = validation_succeeded
+              OUTPUT.write_text(
+                  json.dumps(evidence, indent=2, sort_keys=True) + "\n",
+                  encoding="utf-8",
+              )
+
+          if not validation_succeeded:
+              raise SystemExit("Ephemeral validation failed; inspect safe evidence")
+          if evidence["raw_file_persisted_after_validation"]:
+              raise SystemExit("Ephemeral raw deletion failed")
+          print(
+              json.dumps(
+                  {
+                      "file_delivery": evidence["file_delivery"],
+                      "zip_validation": evidence["zip_validation"],
+                      "member_profiles": evidence["member_profiles"],
+                      "deletion_receipt": evidence["deletion_receipt"],
+                  },
+                  indent=2,
+                  sort_keys=True,
+              )
+          )
+          PY
+
+      - name: Verify no raw provider file exists in the repository workspace
+        if: always()
+        shell: bash
+        run: |
+          forbidden=$(find . -type f \( \
+            -iname 'BTC-USDT-SWAP-fundingrates-2022-03.zip' -o \
+            -iname '*.csv' -o \
+            -iname '*.parquet' -o \
+            -iname '*.gz' \
+          \) -not -path './.git/*' -print)
+          if [[ -n "$forbidden" ]]; then
+            echo "$forbidden"
+            exit 1
+          fi
+
+      - name: Verify safe evidence and deletion receipt
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          evidence = json.loads(
+              Path("build/okx-2022-funding-ephemeral/evidence.json")
+              .read_text(encoding="utf-8")
+          )
+          assert evidence["raw_file_uploaded"] is False
+          assert evidence["raw_rows_retained"] is False
+          assert evidence["funding_rate_values_retained"] is False
+          assert evidence["returns_computed"] is False
+          assert evidence["basis_computed"] is False
+          assert evidence["funding_pnl_computed"] is False
+          assert evidence["secure_erase_claimed"] is False
+          assert evidence["raw_file_persisted_after_validation"] is False
+          receipt = evidence["deletion_receipt"]
+          assert receipt["raw_file_exists_after_delete"] is False
+          assert receipt["private_directory_exists_after_delete"] is False
+          serialized = json.dumps(evidence, sort_keys=True)
+          forbidden_value_keys = {
+              "fundingRate",
+              "realizedRate",
+              "markPx",
+              "indexPx",
+          }
+          for key in forbidden_value_keys:
+              assert f'"{key}"' not in serialized
+          for profile in evidence.get("member_profiles", []):
+              assert profile["rate_values_retained"] is False
+          print(
+              json.dumps(
+                  {
+                      "validation_succeeded": evidence.get(
+                          "validation_succeeded", False
+                      ),
+                      "file_sha256": evidence.get("file_delivery", {}).get(
+                          "sha256", ""
+                      ),
+                      "member_profiles": evidence.get("member_profiles", []),
+                      "deletion_receipt": receipt,
+                      "errors": evidence["errors"],
+                  },
+                  indent=2,
+                  sort_keys=True,
+              )
+          )
+          PY
+
+      - name: Upload evidence and deletion receipt only
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: okx-2022-funding-ephemeral-validation-${{ github.sha }}
+          path: build/okx-2022-funding-ephemeral/evidence.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Record non-promotional summary
+        if: always()
+        run: |
+          {
+            echo "## OKX 2022 funding ephemeral file validation"
+            echo
+            echo "- Scope: one official monthly file, BTC-USDT-SWAP, 2022-03"
+            echo "- Raw storage location: RUNNER_TEMP only"
+            echo "- Raw/public artifact upload: no"
+            echo "- Raw deleted before evidence upload: required"
+            echo "- Funding rates, returns, basis, or PnL retained/computed: no"
+            echo "- Gate verdict: unresolved pending retention-contract synthesis"
+          } >> "$GITHUB_STEP_SUMMARY"
