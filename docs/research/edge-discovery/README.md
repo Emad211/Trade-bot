@@ -37,7 +37,7 @@ Admission authorizes research replication only. It does not authorize fitting, p
 |---|---|---|
 | [2.1 — Anchor Papers, Opposing Evidence, Modern Updates, Data, and Replication-Code Selection](02-replication/02-01-anchor-opposition-code-selection.md) | Binding paper roles, exactness classes, official data routes, code-admission rules, table-level targets, and kill criteria | Complete |
 | [2.2 — Data, Timing, and Information-Contract Reconstruction](02-replication/02-02-data-timing-information-contract-reconstruction.md) | Availability clocks, immutable raw artifacts, source licenses, point-in-time instruments, futures rolls, regulator releases, crypto contract versions, lineage, costs, and acquisition decisions | Complete |
-| [2.3 — Current Controlling Status](02-replication/02-03-current-controlling-status.md) | Verified CFTC foundation, traditional-provider blockers, safe OKX/Binance public-source profiles, and remaining empirical gates | Partially complete |
+| [2.3 — Current Controlling Status](02-replication/02-03-current-controlling-status.md) | Verified CFTC foundation, traditional-provider blockers, bounded crypto-source profiles, and remaining empirical gates | Partially complete |
 | 2.4 — Sensitivity, Cost, Failure, and Disagreement Analysis | Conditional analysis after exact artifact, timing, instrument, price, and return gates pass | Blocked |
 | 2.5 — Replication dossier and continue/stop decisions | Final Section 2 synthesis | Planned |
 
@@ -51,7 +51,9 @@ The current verified foundation includes:
 - fail-closed 52-row scheduled-release ledger with zero claimed actual historical release times;
 - versioned 54-row reporting-to-product registry with zero provider contract IDs and zero price-linkage-authorized rows;
 - a bounded Cboe VX contract-engineering pilot whose raw retention and canonical historical timing remain blocked;
-- a bounded OKX public funding metadata profile whose artifact contains no funding-rate values or reconstructable market series;
+- a bounded OKX current public funding metadata profile whose artifact contains no funding-rate values or reconstructable market series;
+- verified OKX March 2022 historical funding delivery, archive checksum/schema/timestamp evidence, and raw deletion proof;
+- an owner-controlled revocable-retention implementation verified by Ruff, strict mypy, eight lifecycle tests, and synthetic retain/delete evidence;
 - a bounded Binance BTCUSDT January 2024 checksum/schema/timing pilot whose artifact contains hashes and profiles only, with no raw or derived market rows.
 
 Current hard blockers include:
@@ -62,7 +64,8 @@ Databento owner accessibility: REJECTED
 Cboe raw retention / canonical historical timing: BLOCKED
 CME historical route: BLOCKED_LOGIN_ORDER_FEE_AND_LICENSE
 ICE complete history: BLOCKED_PAID_ARCHIVE
-OKX 2022 historical delivery and revocable retention: OPEN GATE
+OKX one-month private revocable raw pilot: AUTHORIZED_ONLY_WITH_OWNER ATTESTATIONS
+OKX point-in-time 2022 instrument identity / archive available_at / vintage history: INCOMPLETE
 Binance persistent raw retention and historical available_at: OPEN GATES
 Basis / funding PnL / returns: NOT AUTHORIZED
 Paper-level numerical replication: NOT COMPLETE
@@ -109,12 +112,15 @@ All six hypothesis verdicts remain `INCONCLUSIVE`.
 - [CME public access and license gate](02-replication/02-03-cme-public-access-and-license-gate.md)
 - [Machine-readable CME gate](02-replication/02-03-cme-public-access-and-license-gate.yaml)
 
-### Crypto public-source gates
+### Crypto public-source and retention gates
 
 - [Official crypto source, license, and access selection](02-replication/02-03-crypto-official-source-license-and-access-selection.md)
 - [Machine-readable crypto source selection](02-replication/02-03-crypto-official-source-license-and-access-selection.yaml)
 - [Verified OKX public funding metadata pilot](02-replication/02-03-okx-public-funding-metadata-pilot-evidence.md)
-- [Machine-readable OKX pilot evidence](02-replication/02-03-okx-public-funding-metadata-pilot-evidence.yaml)
+- [Machine-readable OKX public pilot evidence](02-replication/02-03-okx-public-funding-metadata-pilot-evidence.yaml)
+- [OKX 2022 historical funding delivery and retention gate](02-replication/02-03-okx-2022-funding-delivery-and-retention-gate.md)
+- [Machine-readable OKX 2022 delivery-gate evidence](02-replication/02-03-okx-2022-funding-delivery-and-retention-gate.yaml)
+- [OKX private revocable retention contract](02-replication/02-03-okx-private-revocable-retention-contract.yaml)
 - [Verified Binance BTCUSDT ephemeral pilot](02-replication/02-03-binance-btcusdt-public-ephemeral-pilot-evidence.md)
 - [Machine-readable Binance pilot evidence](02-replication/02-03-binance-btcusdt-public-ephemeral-pilot-evidence.yaml)
 
@@ -126,6 +132,7 @@ All six hypothesis verdicts remain `INCONCLUSIVE`.
 - `.github/workflows/cftc-tff-2022-instrument-registry.yml`
 - `.github/workflows/cboe-vx-public-contract-pilot.yml`
 - `.github/workflows/okx-public-funding-metadata-pilot.yml`
+- `.github/workflows/okx-private-revocable-retention-contract.yml`
 - `.github/workflows/binance-btcusdt-public-ephemeral-pilot.yml`
 
 ### 3. Dataset and Experiment System
@@ -191,6 +198,9 @@ Five leaf reports form one section-level synthesis. The five section syntheses f
 - Current product metadata may not be projected backward into historical observations.
 - Provider credentials belong only in approved secret storage and must never be committed or pasted into chat.
 - False identity, borrowed payment instruments, third-party accounts, credential sharing, and payment or jurisdiction circumvention are prohibited.
+- A revocable provider license cannot be represented as permanent immutable ownership.
+- Private raw retention requires explicit owner attestations, bounded leases, no public upload, and deletion on expiry or revocation.
+- Logical deletion and runner teardown are not represented as cryptographic secure erase.
 - A green engineering workflow may establish a blocker or safe metadata profile rather than an empirical pass.
 - A derived-data pass is not an artifact-audit pass.
 - An artifact-audit pass is not a paper-replication pass.
