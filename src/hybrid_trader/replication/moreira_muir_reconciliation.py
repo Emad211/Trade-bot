@@ -234,9 +234,7 @@ def write_safe_reconciliation_evidence(
                 "factor": item["factor"],
                 "overlap_count": item["overlap_count"],
                 "exact_mismatch_count": item["exact_mismatch_count"],
-                "maximum_absolute_difference_percent": item[
-                    "maximum_absolute_difference_percent"
-                ],
+                "maximum_absolute_difference_percent": item["maximum_absolute_difference_percent"],
                 "difference_vector_sha256": item["difference_vector_sha256"],
             }
             for item in evidence["factor_results"]
