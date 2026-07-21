@@ -34,11 +34,7 @@ class RetentionAttestation:
     public_artifact_upload_disabled: bool
 
     def validate(self) -> None:
-        missing = [
-            name
-            for name, value in asdict(self).items()
-            if value is not True
-        ]
+        missing = [name for name, value in asdict(self).items() if value is not True]
         if missing:
             raise RevocableRetentionError(
                 "Private retention attestations are incomplete: " + ", ".join(missing)
@@ -58,13 +54,9 @@ class RetentionPolicy:
         if not self.license_snapshot_id.strip():
             raise RevocableRetentionError("license_snapshot_id cannot be empty")
         if self.allowed_purpose != ALLOWED_PURPOSE:
-            raise RevocableRetentionError(
-                f"Unsupported raw-data purpose: {self.allowed_purpose!r}"
-            )
+            raise RevocableRetentionError(f"Unsupported raw-data purpose: {self.allowed_purpose!r}")
         if not 1 <= self.maximum_retention_days <= MAX_RETENTION_DAYS:
-            raise RevocableRetentionError(
-                "maximum_retention_days must be between 1 and 30"
-            )
+            raise RevocableRetentionError("maximum_retention_days must be between 1 and 30")
 
 
 @dataclass(frozen=True)
@@ -155,9 +147,7 @@ def _validate_artifact_id(value: str) -> str:
 
 def _validate_source_object_hash(value: str) -> str:
     if HEX_SHA256_PATTERN.fullmatch(value) is None:
-        raise RevocableRetentionError(
-            "source_object_key_sha256 must be a lowercase SHA-256 digest"
-        )
+        raise RevocableRetentionError("source_object_key_sha256 must be a lowercase SHA-256 digest")
     return value
 
 
@@ -220,9 +210,7 @@ class PrivateRevocableArtifactStore:
         resolved_root = Path(root).expanduser().resolve(strict=False)
         resolved_repository = Path(repository_root).expanduser().resolve(strict=False)
         if _is_within(resolved_root, resolved_repository):
-            raise RevocableRetentionError(
-                "Private raw storage must be outside the repository tree"
-            )
+            raise RevocableRetentionError("Private raw storage must be outside the repository tree")
         if resolved_root.exists() and resolved_root.is_symlink():
             raise RevocableRetentionError("Private raw storage root cannot be a symlink")
 
@@ -391,9 +379,7 @@ class PrivateRevocableArtifactStore:
             expected_byte_count = int(lease_record.get("byte_count", 0))
             source_id = str(lease_record.get("source_id", "UNKNOWN"))
             policy_id = str(lease_record.get("policy_id", policy_id))
-            license_snapshot_id = str(
-                lease_record.get("license_snapshot_id", license_snapshot_id)
-            )
+            license_snapshot_id = str(lease_record.get("license_snapshot_id", license_snapshot_id))
 
         observed_sha256 = ""
         observed_byte_count = 0
@@ -439,7 +425,9 @@ class PrivateRevocableArtifactStore:
         _atomic_write(tombstone_path, _json_bytes(asdict(receipt)), mode=0o600)
         return receipt
 
-    def purge_due(self, *, now: datetime, reason: str = "LEASE_EXPIRED") -> tuple[DeletionReceipt, ...]:
+    def purge_due(
+        self, *, now: datetime, reason: str = "LEASE_EXPIRED"
+    ) -> tuple[DeletionReceipt, ...]:
         """Delete every lease whose expiry is at or before the supplied clock."""
 
         current = _require_aware_utc(now, field="now")
@@ -451,9 +439,7 @@ class PrivateRevocableArtifactStore:
             try:
                 expires_at = datetime.fromisoformat(expires_text).astimezone(UTC)
             except (ValueError, TypeError) as exc:
-                raise RevocableRetentionError(
-                    f"Invalid lease expiry for {artifact_id!r}"
-                ) from exc
+                raise RevocableRetentionError(f"Invalid lease expiry for {artifact_id!r}") from exc
             if expires_at <= current:
                 receipts.append(
                     self.delete(

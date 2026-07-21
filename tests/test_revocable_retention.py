@@ -164,11 +164,14 @@ def test_delete_removes_raw_and_lease_and_keeps_safe_tombstone(tmp_path: Path) -
     tombstone = store.tombstone_dir / f"{lease.artifact_id}.json"
     assert tombstone.is_file()
     assert stat.S_IMODE(tombstone.stat().st_mode) == 0o600
-    assert store.delete(
-        lease.artifact_id,
-        reason="DUPLICATE_DELETE_REQUEST",
-        now=NOW + timedelta(hours=2),
-    ) == receipt
+    assert (
+        store.delete(
+            lease.artifact_id,
+            reason="DUPLICATE_DELETE_REQUEST",
+            now=NOW + timedelta(hours=2),
+        )
+        == receipt
+    )
 
 
 def test_integrity_mismatch_never_blocks_required_deletion(tmp_path: Path) -> None:

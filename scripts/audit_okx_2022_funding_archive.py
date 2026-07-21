@@ -18,16 +18,11 @@ from hybrid_trader.replication.okx_historical_export import (
     inspect_funding_archive_bytes,
 )
 
-EXPORT_ENDPOINT = (
-    "https://www.okx.com/priapi/v5/broker/public/trade-data/download-link"
-)
+EXPORT_ENDPOINT = "https://www.okx.com/priapi/v5/broker/public/trade-data/download-link"
 HISTORICAL_DATA_PAGE = "https://www.okx.com/en-gb/historical-data"
-HISTORICAL_DATA_TERMS = (
-    "https://www.okx.com/en-gb/help/historicaldata-terms-and-conditions"
-)
+HISTORICAL_DATA_TERMS = "https://www.okx.com/en-gb/help/historicaldata-terms-and-conditions"
 EXPECTED_ARCHIVE_PATH = (
-    "/cdn/okex/traderecords/swaprates/monthly/202203/"
-    "BTC-USDT-SWAP-fundingrates-2022-03.zip"
+    "/cdn/okex/traderecords/swaprates/monthly/202203/BTC-USDT-SWAP-fundingrates-2022-03.zip"
 )
 EXPORT_REQUEST: dict[str, Any] = {
     "module": "3",
@@ -97,8 +92,7 @@ def _request_export_link() -> tuple[str, dict[str, Any]]:
             "Origin": "https://www.okx.com",
             "Referer": HISTORICAL_DATA_PAGE,
             "User-Agent": (
-                "Emad211-Trade-bot-replication/1.0 "
-                "(+https://github.com/Emad211/Trade-bot)"
+                "Emad211-Trade-bot-replication/1.0 (+https://github.com/Emad211/Trade-bot)"
             ),
         },
     )
@@ -172,8 +166,7 @@ def _download_ephemeral(link: str, destination: Path) -> dict[str, Any]:
             "Accept": "application/zip,application/octet-stream,*/*;q=0.1",
             "Referer": HISTORICAL_DATA_PAGE,
             "User-Agent": (
-                "Emad211-Trade-bot-replication/1.0 "
-                "(+https://github.com/Emad211/Trade-bot)"
+                "Emad211-Trade-bot-replication/1.0 (+https://github.com/Emad211/Trade-bot)"
             ),
         },
     )
@@ -273,9 +266,7 @@ def run(output_dir: Path) -> dict[str, Any]:
     evidence["raw_archive_deleted_verified"] = not temporary_root.exists()
     if evidence["raw_archive_deleted_verified"] is not True:
         raise RuntimeError("Ephemeral OKX archive deletion could not be verified")
-    evidence_bytes = (json.dumps(evidence, indent=2, sort_keys=True) + "\n").encode(
-        "utf-8"
-    )
+    evidence_bytes = (json.dumps(evidence, indent=2, sort_keys=True) + "\n").encode("utf-8")
     evidence["evidence_sha256_without_self_hash"] = _sha256(evidence_bytes)
     output = output_dir / "evidence.json"
     output.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -295,9 +286,7 @@ def main() -> None:
                 "archive_sha256": profile["archive_sha256"],
                 "archive_byte_count": profile["archive_byte_count"],
                 "member": profile["member"],
-                "raw_archive_deleted_verified": evidence[
-                    "raw_archive_deleted_verified"
-                ],
+                "raw_archive_deleted_verified": evidence["raw_archive_deleted_verified"],
                 "gate_verdict": evidence["gate_verdict"],
             },
             indent=2,

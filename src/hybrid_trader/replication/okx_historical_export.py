@@ -96,8 +96,7 @@ def _timestamp_field(fieldnames: tuple[str, ...]) -> str:
         if resolved is not None:
             return resolved
     raise OKXHistoricalExportError(
-        "Funding archive lacks a recognized timestamp field: "
-        f"{list(fieldnames)!r}"
+        f"Funding archive lacks a recognized timestamp field: {list(fieldnames)!r}"
     )
 
 
@@ -112,9 +111,7 @@ def _parse_timestamp(value: str) -> datetime:
         try:
             parsed = datetime.fromisoformat(normalized)
         except ValueError as exc:
-            raise OKXHistoricalExportError(
-                f"Invalid funding timestamp: {value!r}"
-            ) from exc
+            raise OKXHistoricalExportError(f"Invalid funding timestamp: {value!r}") from exc
         if parsed.tzinfo is None:
             parsed = parsed.replace(tzinfo=UTC)
         return parsed.astimezone(UTC)
@@ -191,9 +188,7 @@ def inspect_funding_archive_bytes(
         info = members[0]
         filename = _safe_member_name(info.filename)
         if not filename.lower().endswith(".csv"):
-            raise OKXHistoricalExportError(
-                f"Funding archive member is not a CSV: {filename!r}"
-            )
+            raise OKXHistoricalExportError(f"Funding archive member is not a CSV: {filename!r}")
         if info.file_size <= 0 or info.file_size > max_member_bytes:
             raise OKXHistoricalExportError(
                 f"Funding CSV size violates the bounded contract: {info.file_size}"
@@ -217,18 +212,12 @@ def inspect_funding_archive_bytes(
     row_count = 0
     for row_number, raw_row in enumerate(reader, start=2):
         if None in raw_row:
-            raise OKXHistoricalExportError(
-                f"Row {row_number}: unexpected extra CSV fields"
-            )
+            raise OKXHistoricalExportError(f"Row {row_number}: unexpected extra CSV fields")
         if any(value is None for value in raw_row.values()):
-            raise OKXHistoricalExportError(
-                f"Row {row_number}: missing trailing CSV fields"
-            )
+            raise OKXHistoricalExportError(f"Row {row_number}: missing trailing CSV fields")
         timestamp_value = raw_row.get(timestamp_field)
         if timestamp_value is None:
-            raise OKXHistoricalExportError(
-                f"Row {row_number}: missing {timestamp_field!r}"
-            )
+            raise OKXHistoricalExportError(f"Row {row_number}: missing {timestamp_field!r}")
         timestamps.append(_parse_timestamp(timestamp_value))
         row_count += 1
 

@@ -54,10 +54,7 @@ def test_profiles_archive_without_retaining_rate_values() -> None:
 
 def test_records_descending_and_duplicate_timestamps() -> None:
     raw = _archive(
-        "fundingTime,fundingRate\n"
-        "1646150400000,0.1\n"
-        "1646121600000,0.2\n"
-        "1646121600000,0.3\n"
+        "fundingTime,fundingRate\n1646150400000,0.1\n1646121600000,0.2\n1646121600000,0.3\n"
     )
 
     profile = inspect_funding_archive_bytes(raw)
@@ -69,9 +66,7 @@ def test_records_descending_and_duplicate_timestamps() -> None:
 
 def test_accepts_iso_timestamp_field_case_insensitively() -> None:
     raw = _archive(
-        "Timestamp,Funding Rate\n"
-        "2022-03-01T00:00:00Z,0.1\n"
-        "2022-03-01T08:00:00+00:00,0.2\n"
+        "Timestamp,Funding Rate\n2022-03-01T00:00:00Z,0.1\n2022-03-01T08:00:00+00:00,0.2\n"
     )
 
     profile = inspect_funding_archive_bytes(raw)
