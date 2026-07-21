@@ -1,0 +1,270 @@
+name: OKX Historical Confirm Contract Probe V4
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/okx-historical-confirm-contract-probe-v4.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: okx-confirm-contract-v4-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  intercept-confirm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Install isolated browser runtime
+        run: |
+          mkdir -p build/okx-confirm-v4/runtime build/okx-confirm-v4/output
+          cd build/okx-confirm-v4/runtime
+          npm init -y >/dev/null
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Select verified family and intercept Confirm before transmission
+        shell: bash
+        run: |
+          cat > build/okx-confirm-v4/runtime/probe.mjs <<'NODE'
+          import crypto from 'node:crypto';
+          import fs from 'node:fs';
+          import path from 'node:path';
+          import { chromium } from 'playwright';
+
+          const root = process.env.GITHUB_WORKSPACE;
+          if (!root) throw new Error('GITHUB_WORKSPACE unavailable');
+          const output = path.join(root, 'build/okx-confirm-v4/output/evidence.json');
+          const evidence = {
+            schema_version: '4.0',
+            purpose: 'OKX_FUNDING_EXPORT_CONFIRM_REQUEST_CONTRACT_ONLY',
+            landing_url: 'https://www.okx.com/en-gb/historical-data',
+            official_instrument_endpoint: 'https://www.okx.com/priapi/v5/broker/public/trade-data/instruments?instType=SWAP',
+            official_target_value: 'BTC-USDT',
+            official_target_index: 77,
+            contract_identity: 'BTC-USDT-SWAP',
+            modal_opened: false,
+            selection_attempts: [],
+            selected_option_text: '',
+            selected_option_verified: false,
+            form_state: {},
+            intercepted_requests: [],
+            errors: [],
+            confirm_clicked: false,
+            request_transmitted: false,
+            export_job_created: false,
+            raw_market_data_retained: false,
+            response_bodies_retained: false,
+            gate_verdict: 'UNRESOLVED_REQUEST_CONTRACT_ONLY'
+          };
+
+          const digest = value => crypto.createHash('sha256').update(value).digest('hex');
+          const safeUrl = raw => {
+            const url = new URL(raw);
+            for (const key of [...url.searchParams.keys()]) {
+              if (/token|signature|sig|credential|key|expires?|timestamp|^t$/i.test(key)) {
+                const value = url.searchParams.get(key) || '';
+                url.searchParams.set(key, value ? `sha256:${digest(value).slice(0, 16)}` : '');
+              }
+            }
+            url.hash = '';
+            return url.toString();
+          };
+          const cleanse = value => {
+            if (Array.isArray(value)) return value.map(cleanse);
+            if (value && typeof value === 'object') {
+              return Object.fromEntries(Object.entries(value).map(([key, item]) => [
+                key,
+                /token|signature|secret|password|cookie|authorization|credential/i.test(key)
+                  ? '[REDACTED]'
+                  : cleanse(item)
+              ]));
+            }
+            return value;
+          };
+          const safePost = raw => {
+            if (!raw) return { kind: 'empty' };
+            try { return { kind: 'json', value: cleanse(JSON.parse(raw)) }; }
+            catch { return { kind: 'opaque', byte_count: Buffer.byteLength(raw), sha256: digest(raw) }; }
+          };
+
+          let browser;
+          let armed = false;
+          try {
+            browser = await chromium.launch({ headless: true });
+            const context = await browser.newContext({
+              acceptDownloads: false,
+              locale: 'en-GB',
+              timezoneId: 'UTC'
+            });
+            const page = await context.newPage();
+
+            page.on('download', async download => {
+              evidence.errors.push({
+                stage: 'unexpected_download',
+                suggested_filename: download.suggestedFilename()
+              });
+              await download.cancel().catch(() => {});
+            });
+
+            await page.route('**/*', async route => {
+              const request = route.request();
+              const url = request.url();
+              let host = '';
+              try { host = new URL(url).hostname.toLowerCase(); } catch {}
+              if (host && host !== 'okx.com' && host !== 'www.okx.com' && !host.endsWith('.okx.com')) {
+                await route.abort('blockedbyclient');
+                return;
+              }
+              if (/\.(zip|csv|gz|gzip|parquet|tar|7z|bz2|xz)(?:$|[?#])/i.test(url)) {
+                evidence.errors.push({ stage: 'market_file_request_blocked', url: safeUrl(url) });
+                await route.abort('blockedbyclient');
+                return;
+              }
+              if (
+                armed &&
+                ['fetch', 'xhr'].includes(request.resourceType()) &&
+                !url.includes('/apmfe/') &&
+                !url.includes('/et/priapi/')
+              ) {
+                evidence.intercepted_requests.push({
+                  method: request.method(),
+                  resource_type: request.resourceType(),
+                  url: safeUrl(url),
+                  post_data: safePost(request.postData()),
+                  content_type: request.headers()['content-type'] || ''
+                });
+                await route.abort('blockedbyclient');
+                return;
+              }
+              await route.continue();
+            });
+
+            await page.goto(evidence.landing_url, { waitUntil: 'domcontentloaded', timeout: 90000 });
+            await page.waitForTimeout(7000);
+            evidence.modal_opened = await page.evaluate(() => {
+              const norm = value => (value || '').replace(/\s+/g, ' ').trim();
+              const heading = [...document.querySelectorAll('*')]
+                .find(node => norm(node.textContent) === 'Funding rate');
+              if (!heading) return false;
+              let container = heading;
+              for (let depth = 0; depth < 10 && container; depth += 1, container = container.parentElement) {
+                const button = [...container.querySelectorAll('button,a,[role="button"]')]
+                  .find(node => /download/i.test(norm(node.textContent) || node.getAttribute('aria-label') || ''));
+                if (button) { button.click(); return true; }
+              }
+              return false;
+            });
+            if (!evidence.modal_opened) throw new Error('Funding dialog did not open');
+            await page.waitForTimeout(5000);
+
+            const dialog = page.getByRole('dialog');
+            if (await dialog.count() !== 1) throw new Error('Funding dialog was not unique');
+            const symbol = dialog.getByRole('combobox').nth(1);
+
+            const selectedText = async () =>
+              (await symbol.innerText()).replace(/\s+/g, ' ').trim();
+
+            await symbol.click();
+            await page.keyboard.type('BTC-USDT', { delay: 60 });
+            await page.waitForTimeout(1200);
+            const activeDescendant = await symbol.getAttribute('aria-activedescendant');
+            await page.keyboard.press('Enter');
+            await page.waitForTimeout(1000);
+            let text = await selectedText();
+            evidence.selection_attempts.push({
+              method: 'typeahead_enter',
+              active_descendant: activeDescendant || '',
+              resulting_text: text
+            });
+
+            if (text !== evidence.official_target_value) {
+              await symbol.click();
+              await page.keyboard.press('Home');
+              for (let index = 0; index < evidence.official_target_index; index += 1) {
+                await page.keyboard.press('ArrowDown');
+              }
+              await page.keyboard.press('Enter');
+              await page.waitForTimeout(1000);
+              text = await selectedText();
+              evidence.selection_attempts.push({
+                method: 'verified_official_index_navigation',
+                official_index: evidence.official_target_index,
+                resulting_text: text
+              });
+            }
+
+            evidence.selected_option_text = text;
+            evidence.selected_option_verified = text === evidence.official_target_value;
+            if (!evidence.selected_option_verified) {
+              throw new Error(`Selected value did not equal BTC-USDT: ${JSON.stringify(text)}`);
+            }
+
+            const confirm = dialog.getByRole('button', { name: 'Confirm', exact: true });
+            evidence.form_state = {
+              instrument_type: await dialog.locator('input[value="Perpetual"]').inputValue(),
+              selected_symbol_text: text,
+              date_grouping: await dialog.locator('input[value="Daily"]').inputValue(),
+              start_date: await dialog.locator('input[placeholder="Start date"]').inputValue(),
+              end_date: await dialog.locator('input[placeholder="End date"]').inputValue(),
+              confirm_disabled: await confirm.isDisabled()
+            };
+            if (evidence.form_state.confirm_disabled) throw new Error('Confirm remained disabled');
+
+            armed = true;
+            evidence.confirm_clicked = true;
+            await confirm.click();
+            await page.waitForTimeout(5000);
+            armed = false;
+          } catch (error) {
+            evidence.errors.push({ stage: 'probe_v4', message: String(error?.stack || error) });
+          } finally {
+            if (browser) await browser.close().catch(() => {});
+            fs.writeFileSync(output, JSON.stringify(evidence, null, 2) + '\n');
+          }
+          NODE
+          cd build/okx-confirm-v4/runtime
+          node probe.mjs
+          cd "$GITHUB_WORKSPACE"
+
+      - name: Verify meaningful fail-closed contract evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          evidence = json.loads(Path('build/okx-confirm-v4/output/evidence.json').read_text())
+          assert evidence['modal_opened'] is True
+          assert evidence['selected_option_verified'] is True
+          assert evidence['selected_option_text'] == 'BTC-USDT'
+          assert evidence['confirm_clicked'] is True
+          assert evidence['intercepted_requests'], 'No Confirm request was intercepted'
+          assert evidence['request_transmitted'] is False
+          assert evidence['export_job_created'] is False
+          assert evidence['raw_market_data_retained'] is False
+          assert evidence['response_bodies_retained'] is False
+          assert not evidence['errors'], evidence['errors']
+          assert evidence['gate_verdict'] == 'UNRESOLVED_REQUEST_CONTRACT_ONLY'
+          print(json.dumps({
+              'selection_attempts': evidence['selection_attempts'],
+              'form_state': evidence['form_state'],
+              'intercepted_requests': evidence['intercepted_requests'],
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload safe request contract
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: okx-historical-confirm-contract-v4-${{ github.sha }}
+          path: build/okx-confirm-v4/output/evidence.json
+          if-no-files-found: error
+          retention-days: 30
