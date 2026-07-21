@@ -1,0 +1,157 @@
+schema_version: "1.0"
+gate_id: OKX_OWNER_CONTROLLED_PRIVATE_SYNCHRONIZED_SAMPLING_CONTRACT_V1
+issue_number: 54
+status: OPEN
+status_date: "2026-07-21"
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+current_outcome: null
+
+predecessor_gate:
+  issue_number: 53
+  outcome: GO_PROSPECTIVE_OKX_PRICE_LINKAGE_METADATA_PILOT
+  real_market_values_retained: false
+  historical_backfill_permitted: false
+
+objective: >-
+  Admit and test an owner-controlled private retention contract for exactly one
+  synchronized prospective batch of spot, swap, mark, and index responses without
+  executing a real OKX raw-value batch inside GitHub Actions and without
+  authorizing any economic calculation.
+
+terms_snapshot:
+  api_agreement_url: https://www.okx.com/en-gb/help/okx-api-agreement
+  api_guide_url: https://www.okx.com/docs-v5/en/
+  historical_terms_url: https://www.okx.com/en-us/help/historicaldata-terms-and-conditions
+  api_agreement_publication_date: "2026-03-26"
+  review_date: "2026-07-21"
+  public_market_data_subject_to_api_agreement: true
+  personal_noncommercial_internal_use_only: true
+  redistribution_allowed: false
+  public_access_expands_license_rights: false
+  unreasonable_or_large_scale_extraction_allowed: false
+  continued_use_accepts_current_agreement: true
+  live_market_data_deletion_clause_explicitly_observed: false
+  conservative_internal_revocable_lease_used: true
+  internal_deletion_policy_claimed_as_legal_requirement: false
+
+admitted_sources:
+  - OKX_SPOT_BTC_USDT_TICKER
+  - OKX_SWAP_BTC_USDT_SWAP_TICKER
+  - OKX_SWAP_BTC_USDT_SWAP_MARK_PRICE
+  - OKX_BTC_USDT_INDEX_TICKER
+
+storage_contract:
+  reuse_existing_store: src/hybrid_trader/replication/revocable_retention.py
+  private_storage_outside_repository: true
+  encryption_at_rest_attestation_required: true
+  owner_only_access_attestation_required: true
+  backup_and_sync_exclusion_required: true
+  public_artifact_upload_disabled_required: true
+  raw_file_mode: "0600"
+  lease_file_mode: "0600"
+  storage_directory_mode: "0700"
+  content_addressed_artifacts: true
+  maximum_per_source_bytes: 1000000
+  maximum_batch_bytes: 4000000
+  maximum_retention_days: 7
+  secure_erase_guaranteed: false
+  deletion_receipts_required: true
+
+batch_contract:
+  exact_source_count: 4
+  missing_source: REJECT
+  unknown_source: REJECT
+  empty_source: REJECT
+  oversized_source: REJECT
+  duplicate_content_identity: FAIL_CLOSED
+  source_clocks_preserved: true
+  provider_timestamps_may_be_nonmonotonic: true
+  provider_timestamp_future_skew_guard_ms: 5000
+  registry_commit_after_all_research_available_times: true
+  partial_retention_rollback_required: true
+  continuity_across_missing_batches_inferred: false
+  deterministic_content_addressed_batch_id: true
+
+safe_public_manifest:
+  allowed_fields:
+    - source_id
+    - artifact_id
+    - raw_sha256
+    - byte_count
+    - source_object_key_sha256
+    - request_started_at
+    - response_received_at
+    - provider_timestamp_ms
+    - provider_timestamp_utc
+    - provider_timestamp_age_ms_at_response
+    - research_available_at
+    - created_at_utc
+    - expires_at_utc
+    - batch_id
+    - policy_id
+    - license_snapshot_id
+    - execution_mode
+  prohibited_content:
+    - raw_response_body
+    - spot_price
+    - swap_price
+    - bid
+    - ask
+    - mark_price
+    - index_price
+    - volume
+    - ordered_reconstructable_price_series
+
+execution_modes:
+  synthetic_validation:
+    github_actions_allowed: true
+    real_okx_request_allowed: false
+    real_raw_sampling_executed: false
+  owner_controlled_real:
+    github_actions_allowed: false
+    explicit_owner_confirmation_required: true
+    owner_controlled_private_storage_required: true
+    owner_controlled_encryption_keys_required: true
+    real_execution_currently_performed: false
+
+synthetic_validation_requirements:
+  - four_source_retention
+  - owner_only_modes
+  - deterministic_batch_identity
+  - exact_source_set_rejection
+  - empty_and_oversize_rejection
+  - future_timestamp_guard
+  - mid_batch_failure_rollback
+  - active_compliance_snapshot
+  - full_batch_deletion
+  - safe_deletion_receipts
+  - post_delete_zero_active_artifacts
+  - no_synthetic_values_in_public_evidence
+
+hard_prohibitions:
+  real_raw_sampling_in_github_actions: false
+  public_raw_artifact: false
+  raw_values_in_logs: false
+  historical_backfill: false
+  basis_computation: false
+  funding_pnl_computation: false
+  returns_computation: false
+  transaction_cost_estimation: false
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_testing: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  report_2_4_authorized: false
+
+allowed_outcomes:
+  - GO_OWNER_CONTROLLED_PRIVATE_OKX_SAMPLING_CONTRACT
+  - BLOCKED_PRIVATE_STORAGE_OR_KEY_CONTROL
+  - BLOCKED_TERMS_OR_RETENTION
+
+real_execution_status: NOT_EXECUTED_REQUIRES_OWNER_PRIVATE_STORAGE_AND_KEYS
+paper_replication_pass: false
+economic_edge_verdict: INCONCLUSIVE
