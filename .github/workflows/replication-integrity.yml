@@ -24,7 +24,7 @@ permissions:
 jobs:
   replication-integrity:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Check out repository
@@ -48,7 +48,9 @@ jobs:
         run: python -m mypy src/hybrid_trader/replication
 
       - name: Complete non-optional test suite and replication coverage
+        shell: bash
         run: |
+          set -o pipefail
           # The old test_replication_*.py glob covered only the original framework
           # tests and excluded the source-specific CFTC, OKX, Binance, Cboe,
           # Kenneth-French and Moreira-Muir suites. Run the complete non-optional
@@ -57,13 +59,18 @@ jobs:
             --cov=hybrid_trader.replication \
             --cov-report=term-missing \
             --cov-report=xml:replication-coverage.xml \
-            --cov-fail-under=70
+            --cov-report=json:replication-coverage.json \
+            --cov-fail-under=70 \
+            2>&1 | tee replication-pytest.log
 
       - name: Upload replication coverage evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: replication-coverage-${{ github.sha }}
-          path: replication-coverage.xml
+          path: |
+            replication-coverage.xml
+            replication-coverage.json
+            replication-pytest.log
           if-no-files-found: warn
           retention-days: 30
