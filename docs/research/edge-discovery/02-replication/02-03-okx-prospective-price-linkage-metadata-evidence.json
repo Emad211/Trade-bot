@@ -1,0 +1,289 @@
+{
+  "authorization": {
+    "basis_computation": false,
+    "capital_deployment": false,
+    "empirical_fitting": false,
+    "funding_pnl_computation": false,
+    "historical_backfill": false,
+    "leverage": false,
+    "live_trading": false,
+    "paper_trading": false,
+    "parameter_tuning": false,
+    "report_2_4_full_authorization": false,
+    "returns_computation": false,
+    "strategy_testing": false,
+    "transaction_cost_estimation": false
+  },
+  "collection_mode": "PROSPECTIVE_ONLY",
+  "economic_edge_verdict": "INCONCLUSIVE",
+  "identity_linkage": {
+    "calculation_authorized": "false",
+    "index_identity": "BTC-USDT",
+    "mark_price_instrument": "BTC-USDT-SWAP",
+    "name_similarity_is_sufficient_linkage": "false",
+    "spot_traded_instrument": "BTC-USDT",
+    "swap_traded_instrument": "BTC-USDT-SWAP"
+  },
+  "issue_53_outcome": null,
+  "pilot_id": "OKX_BTC_USDT_PROSPECTIVE_PRICE_LINKAGE_METADATA_V1",
+  "pilot_verdict": "PROSPECTIVE_PRICE_LINKAGE_METADATA_PROFILE",
+  "provider_cache_contract": {
+    "cross_source_timestamp_monotonicity_required": false,
+    "later_request_may_return_earlier_provider_timestamp": true,
+    "multiple_independent_cache_services": true,
+    "request_order_is_provider_time_order": false
+  },
+  "provider_timestamp_order_source_ids": [
+    "OKX_SWAP_BTC_USDT_SWAP_TICKER",
+    "OKX_SPOT_BTC_USDT_TICKER",
+    "OKX_BTC_USDT_INDEX_TICKER",
+    "OKX_SWAP_BTC_USDT_SWAP_MARK_PRICE"
+  ],
+  "provider_timestamp_spread_ms": 1116,
+  "provider_timestamps_monotonic_in_request_order": false,
+  "request_order_source_ids": [
+    "OKX_SPOT_BTC_USDT_TICKER",
+    "OKX_SWAP_BTC_USDT_SWAP_TICKER",
+    "OKX_SWAP_BTC_USDT_SWAP_MARK_PRICE",
+    "OKX_BTC_USDT_INDEX_TICKER"
+  ],
+  "retention_state": {
+    "bid_ask_values_retained": false,
+    "index_values_retained": false,
+    "mark_values_retained": false,
+    "ordered_price_series_retained": false,
+    "price_values_retained": false,
+    "public_market_rows_retained": false,
+    "raw_responses_retained": false,
+    "volume_values_retained": false
+  },
+  "schema_version": "1.0",
+  "source_count": 4,
+  "sources": [
+    {
+      "application_code": "0",
+      "content_type": "application/json",
+      "endpoint_path": "/api/v5/market/ticker",
+      "historical_backfill": false,
+      "http_status": 200,
+      "identity_fields": {
+        "instId": "BTC-USDT",
+        "instType": "SPOT"
+      },
+      "market_value_fields_validated": [
+        "askPx",
+        "askSz",
+        "bidPx",
+        "bidSz",
+        "high24h",
+        "last",
+        "lastSz",
+        "low24h",
+        "open24h",
+        "sodUtc0",
+        "sodUtc8",
+        "vol24h",
+        "volCcy24h"
+      ],
+      "market_values_retained": false,
+      "official_host": "www.okx.com",
+      "ordered_price_series_retained": false,
+      "provider_timestamp_after_response": false,
+      "provider_timestamp_age_ms_at_response": 392,
+      "provider_timestamp_ms": 1784635823460,
+      "provider_timestamp_utc": "2026-07-21T12:10:23.460000Z",
+      "query_parameter_names": [
+        "instId"
+      ],
+      "raw_response_retained": false,
+      "request_fingerprint_sha256": "7c65a922447410f505547b4736de724b4d2e9dfb82b83a64f730e63f4b472dfd",
+      "request_started_at": "2026-07-21T12:10:23.512438Z",
+      "research_available_at": "2026-07-21T12:10:23.852176Z",
+      "response_byte_count": 360,
+      "response_received_at": "2026-07-21T12:10:23.852145Z",
+      "response_sha256": "60e83d8d191927291f352b658d5b8254f5acb1f76348abf25036c142ac5e5678",
+      "row_count": 1,
+      "schema_fields": [
+        "askPx",
+        "askSz",
+        "bidPx",
+        "bidSz",
+        "high24h",
+        "instId",
+        "instType",
+        "last",
+        "lastSz",
+        "low24h",
+        "open24h",
+        "sodUtc0",
+        "sodUtc8",
+        "ts",
+        "vol24h",
+        "volCcy24h"
+      ],
+      "schema_sha256": "a0efda49b5a0800771ceb73e426c7ea32649d12ec43296cc9a08f4864dbd2c78",
+      "source_health": "SUCCESS",
+      "source_id": "OKX_SPOT_BTC_USDT_TICKER",
+      "source_kind": "SPOT_TICKER"
+    },
+    {
+      "application_code": "0",
+      "content_type": "application/json",
+      "endpoint_path": "/api/v5/market/ticker",
+      "historical_backfill": false,
+      "http_status": 200,
+      "identity_fields": {
+        "instId": "BTC-USDT-SWAP",
+        "instType": "SWAP"
+      },
+      "market_value_fields_validated": [
+        "askPx",
+        "askSz",
+        "bidPx",
+        "bidSz",
+        "high24h",
+        "last",
+        "lastSz",
+        "low24h",
+        "open24h",
+        "sodUtc0",
+        "sodUtc8",
+        "vol24h",
+        "volCcy24h"
+      ],
+      "market_values_retained": false,
+      "official_host": "www.okx.com",
+      "ordered_price_series_retained": false,
+      "provider_timestamp_after_response": false,
+      "provider_timestamp_age_ms_at_response": 949,
+      "provider_timestamp_ms": 1784635823175,
+      "provider_timestamp_utc": "2026-07-21T12:10:23.175000Z",
+      "query_parameter_names": [
+        "instId"
+      ],
+      "raw_response_retained": false,
+      "request_fingerprint_sha256": "e351ffe14aef2327569d870c0bb56da7fd6eeba08cbf5d76d6a003de70b956c2",
+      "request_started_at": "2026-07-21T12:10:23.852593Z",
+      "research_available_at": "2026-07-21T12:10:24.124033Z",
+      "response_byte_count": 341,
+      "response_received_at": "2026-07-21T12:10:24.124001Z",
+      "response_sha256": "01e611901615ff878756b7be940a8b005accb453926200b422d4ec34742952b0",
+      "row_count": 1,
+      "schema_fields": [
+        "askPx",
+        "askSz",
+        "bidPx",
+        "bidSz",
+        "high24h",
+        "instId",
+        "instType",
+        "last",
+        "lastSz",
+        "low24h",
+        "open24h",
+        "sodUtc0",
+        "sodUtc8",
+        "ts",
+        "vol24h",
+        "volCcy24h"
+      ],
+      "schema_sha256": "a0efda49b5a0800771ceb73e426c7ea32649d12ec43296cc9a08f4864dbd2c78",
+      "source_health": "SUCCESS",
+      "source_id": "OKX_SWAP_BTC_USDT_SWAP_TICKER",
+      "source_kind": "SWAP_TICKER"
+    },
+    {
+      "application_code": "0",
+      "content_type": "application/json;charset=UTF-8",
+      "endpoint_path": "/api/v5/public/mark-price",
+      "historical_backfill": false,
+      "http_status": 200,
+      "identity_fields": {
+        "instId": "BTC-USDT-SWAP",
+        "instType": "SWAP"
+      },
+      "market_value_fields_validated": [
+        "markPx"
+      ],
+      "market_values_retained": false,
+      "official_host": "www.okx.com",
+      "ordered_price_series_retained": false,
+      "provider_timestamp_after_response": false,
+      "provider_timestamp_age_ms_at_response": 111,
+      "provider_timestamp_ms": 1784635824291,
+      "provider_timestamp_utc": "2026-07-21T12:10:24.291000Z",
+      "query_parameter_names": [
+        "instId",
+        "instType"
+      ],
+      "raw_response_retained": false,
+      "request_fingerprint_sha256": "a2097718b78ebe9f8aeffa4bcfd03f1f168a138e6c1255e9b9bf7d37007011d3",
+      "request_started_at": "2026-07-21T12:10:24.124431Z",
+      "research_available_at": "2026-07-21T12:10:24.402835Z",
+      "response_byte_count": 115,
+      "response_received_at": "2026-07-21T12:10:24.402802Z",
+      "response_sha256": "44edba40fd50ab739a7d07f439214642990eb4936408dad6bfa4a1e6c07b69e8",
+      "row_count": 1,
+      "schema_fields": [
+        "instId",
+        "instType",
+        "markPx",
+        "ts"
+      ],
+      "schema_sha256": "6bf8819de4ac4a636c639c06322c30591d1834517402895b9b830916d0bbbe3f",
+      "source_health": "SUCCESS",
+      "source_id": "OKX_SWAP_BTC_USDT_SWAP_MARK_PRICE",
+      "source_kind": "MARK_PRICE"
+    },
+    {
+      "application_code": "0",
+      "content_type": "application/json",
+      "endpoint_path": "/api/v5/market/index-tickers",
+      "historical_backfill": false,
+      "http_status": 200,
+      "identity_fields": {
+        "instId": "BTC-USDT"
+      },
+      "market_value_fields_validated": [
+        "high24h",
+        "idxPx",
+        "low24h",
+        "open24h",
+        "sodUtc0",
+        "sodUtc8"
+      ],
+      "market_values_retained": false,
+      "official_host": "www.okx.com",
+      "ordered_price_series_retained": false,
+      "provider_timestamp_after_response": false,
+      "provider_timestamp_age_ms_at_response": 645,
+      "provider_timestamp_ms": 1784635824045,
+      "provider_timestamp_utc": "2026-07-21T12:10:24.045000Z",
+      "query_parameter_names": [
+        "instId"
+      ],
+      "raw_response_retained": false,
+      "request_fingerprint_sha256": "d7a5a37e8ff02a89ddca34a81178aa907b8776a3699e08fb2bed60471e416d9b",
+      "request_started_at": "2026-07-21T12:10:24.403193Z",
+      "research_available_at": "2026-07-21T12:10:24.690780Z",
+      "response_byte_count": 186,
+      "response_received_at": "2026-07-21T12:10:24.690746Z",
+      "response_sha256": "86078b19200e30c1d87d3339c2079eb874fa72f666c2404e8738bc9598115af2",
+      "row_count": 1,
+      "schema_fields": [
+        "high24h",
+        "idxPx",
+        "instId",
+        "low24h",
+        "open24h",
+        "sodUtc0",
+        "sodUtc8",
+        "ts"
+      ],
+      "schema_sha256": "9aa78fdea927d6e3737b088b7a504f68be1b444aec4fe63acee5222d3ee7ef12",
+      "source_health": "SUCCESS",
+      "source_id": "OKX_BTC_USDT_INDEX_TICKER",
+      "source_kind": "INDEX_TICKER"
+    }
+  ]
+}
