@@ -196,9 +196,7 @@ def test_instrument_content_rejects_unsorted_or_empty_schema_and_raw_retention()
     base = _instrument_content().model_dump()
 
     with pytest.raises(ValidationError, match="sorted unique"):
-        ProspectiveInstrumentContent(
-            **{**base, "schema_fields": ("tickSz", "instId")}
-        )
+        ProspectiveInstrumentContent(**{**base, "schema_fields": ("tickSz", "instId")})
 
     with pytest.raises(ValidationError, match="raw instrument responses"):
         ProspectiveInstrumentContent(**{**base, "raw_response_retained": True})
@@ -334,6 +332,4 @@ def test_observation_rejects_backfill_and_any_economic_authorization() -> None:
         ProspectiveRegistryObservation(**{**base, "historical_backfill": True})
 
     with pytest.raises(ValidationError, match="cannot authorize economic testing"):
-        ProspectiveRegistryObservation(
-            **{**base, "returns_computation_authorized": True}
-        )
+        ProspectiveRegistryObservation(**{**base, "returns_computation_authorized": True})
