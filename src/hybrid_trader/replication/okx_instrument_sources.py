@@ -187,8 +187,7 @@ SOURCE_CONTRACTS = (
 )
 
 CURRENT_INSTRUMENT_URL = (
-    "https://www.okx.com/api/v5/public/instruments?"
-    "instType=SWAP&instId=BTC-USDT-SWAP"
+    "https://www.okx.com/api/v5/public/instruments?instType=SWAP&instId=BTC-USDT-SWAP"
 )
 CURRENT_INSTRUMENT_FIELDS = (
     "instId",
@@ -224,9 +223,7 @@ def safe_url_metadata(value: str) -> tuple[str, str, str, tuple[str, ...]]:
         raise OKXInstrumentSourceError(
             f"Official source resolved outside the OKX HTTPS allow-list: {value!r}"
         )
-    query_names = tuple(
-        sorted({key for key, _ in parse_qsl(parsed.query, keep_blank_values=True)})
-    )
+    query_names = tuple(sorted({key for key, _ in parse_qsl(parsed.query, keep_blank_values=True)}))
     return parsed.scheme, host, parsed.path, query_names
 
 
@@ -252,9 +249,7 @@ def audit_official_page_bytes(
     max_bytes: int = MAX_PAGE_BYTES,
 ) -> OfficialPageAudit:
     if http_status != 200:
-        raise OKXInstrumentSourceError(
-            f"{contract.source_id} returned HTTP {http_status}"
-        )
+        raise OKXInstrumentSourceError(f"{contract.source_id} returned HTTP {http_status}")
     if not raw or len(raw) > max_bytes:
         raise OKXInstrumentSourceError(
             f"{contract.source_id} violated the {max_bytes}-byte source guard"
@@ -262,14 +257,11 @@ def audit_official_page_bytes(
     scheme, host, path, query_names = safe_url_metadata(final_url)
     normalized = normalize_document_text(raw).casefold()
     marker_counts = {
-        marker: normalized.count(marker.casefold())
-        for marker in contract.expected_markers
+        marker: normalized.count(marker.casefold()) for marker in contract.expected_markers
     }
     if not all(count > 0 for count in marker_counts.values()):
         missing = sorted(marker for marker, count in marker_counts.items() if count == 0)
-        raise OKXInstrumentSourceError(
-            f"{contract.source_id} lacks expected markers: {missing}"
-        )
+        raise OKXInstrumentSourceError(f"{contract.source_id} lacks expected markers: {missing}")
     return OfficialPageAudit(
         source_id=contract.source_id,
         official_locator=contract.url,
@@ -302,9 +294,7 @@ def parse_current_instrument_response(
     """Profile the current instrument response strictly as a negative control."""
 
     if http_status != 200:
-        raise OKXInstrumentSourceError(
-            f"Current instrument endpoint returned HTTP {http_status}"
-        )
+        raise OKXInstrumentSourceError(f"Current instrument endpoint returned HTTP {http_status}")
     if not raw or len(raw) > max_bytes:
         raise OKXInstrumentSourceError(
             f"Current instrument response violated the {max_bytes}-byte guard"
@@ -328,9 +318,7 @@ def parse_current_instrument_response(
     instrument = data[0]
     if instrument.get("instId") != "BTC-USDT-SWAP":
         raise OKXInstrumentSourceError("Current instrument identity changed")
-    selected_fields = {
-        field: str(instrument.get(field, "")) for field in CURRENT_INSTRUMENT_FIELDS
-    }
+    selected_fields = {field: str(instrument.get(field, "")) for field in CURRENT_INSTRUMENT_FIELDS}
     if any(value == "" for value in selected_fields.values()):
         missing = sorted(field for field, value in selected_fields.items() if value == "")
         raise OKXInstrumentSourceError(
