@@ -78,3 +78,5 @@ jobs:
             .github/workflows/format-okx-prospective-registry.yml
           git commit -m 'Normalize prospective OKX registry implementation'
           git push origin HEAD:agent/edge-research-reports
+
+# Re-triggered after the initial prospective registry implementation was added.
