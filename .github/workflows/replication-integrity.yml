@@ -75,7 +75,7 @@ jobs:
           "$COVERAGE" erase
           "$COVERAGE" run \
             --branch \
-            --source=hybrid_trader.replication \
+            --source=src/hybrid_trader/replication \
             -m pytest \
             -q -m "not optional_ml" \
             2>&1 | tee replication-pytest.log
