@@ -54,8 +54,7 @@ def _fetch_current_instrument() -> tuple[bytes, int, str, str, datetime, datetim
         headers={
             "Accept": "application/json",
             "User-Agent": (
-                "Emad211-Trade-bot-replication/1.0 "
-                "(+https://github.com/Emad211/Trade-bot)"
+                "Emad211-Trade-bot-replication/1.0 (+https://github.com/Emad211/Trade-bot)"
             ),
         },
     )
@@ -75,9 +74,7 @@ def _fetch_current_instrument() -> tuple[bytes, int, str, str, datetime, datetim
         except urllib.error.HTTPError as exc:
             last_error = exc
             if exc.code not in TRANSIENT_HTTP_CODES or attempt == MAX_ATTEMPTS:
-                raise RuntimeError(
-                    f"Current instrument endpoint returned HTTP {exc.code}"
-                ) from exc
+                raise RuntimeError(f"Current instrument endpoint returned HTTP {exc.code}") from exc
         except (TimeoutError, urllib.error.URLError) as exc:
             last_error = exc
             if attempt == MAX_ATTEMPTS:
@@ -188,10 +185,7 @@ def run(output_dir: Path) -> dict[str, Any]:
             application_code="0",
             latency_milliseconds=max(
                 0,
-                round(
-                    (instrument_received_at - instrument_started_at).total_seconds()
-                    * 1000
-                ),
+                round((instrument_received_at - instrument_started_at).total_seconds() * 1000),
             ),
             response_sha256=instrument_content.response_sha256,
         ),
@@ -206,9 +200,7 @@ def run(output_dir: Path) -> dict[str, Any]:
             application_code=funding_evidence.api_code,
             latency_milliseconds=max(
                 0,
-                round(
-                    (funding_received_at - funding_started_at).total_seconds() * 1000
-                ),
+                round((funding_received_at - funding_started_at).total_seconds() * 1000),
             ),
             response_sha256=funding_content.response_sha256,
         ),
