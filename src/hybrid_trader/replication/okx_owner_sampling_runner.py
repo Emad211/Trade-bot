@@ -99,9 +99,7 @@ class OwnerSamplingRunnerConfig:
             "encryption_at_rest": self.attestations.encryption_at_rest,
             "owner_only_access": self.attestations.owner_only_access,
             "backup_and_sync_excluded": self.attestations.backup_and_sync_excluded,
-            "public_artifact_upload_disabled": (
-                self.attestations.public_artifact_upload_disabled
-            ),
+            "public_artifact_upload_disabled": (self.attestations.public_artifact_upload_disabled),
         }
         missing = [name for name, value in common.items() if value is not True]
         if missing:
@@ -137,9 +135,7 @@ class OwnerSamplingRunnerConfig:
                     "Exact synthetic-execution confirmation is required"
                 )
             if self.enable_real_network_fetch:
-                raise OKXOwnerSamplingRunnerError(
-                    "Synthetic mode cannot enable real network fetch"
-                )
+                raise OKXOwnerSamplingRunnerError("Synthetic mode cannot enable real network fetch")
             if self.attestations.real_execution_owner_confirmed:
                 raise OKXOwnerSamplingRunnerError(
                     "Synthetic mode cannot claim real owner execution"
@@ -189,18 +185,12 @@ class OwnerSamplingDeletionConfig:
         if not self.safe_manifest_path.is_file():
             raise OKXOwnerSamplingRunnerError("Safe manifest does not exist")
         if self.safe_deletion_receipt_output.suffix.casefold() != ".json":
-            raise OKXOwnerSamplingRunnerError(
-                "safe_deletion_receipt_output must be a JSON file"
-            )
+            raise OKXOwnerSamplingRunnerError("safe_deletion_receipt_output must be a JSON file")
         if self.safe_deletion_receipt_output.exists():
-            raise OKXOwnerSamplingRunnerError(
-                "safe_deletion_receipt_output already exists"
-            )
+            raise OKXOwnerSamplingRunnerError("safe_deletion_receipt_output already exists")
         required = {
             "owner_only_access": self.attestations.owner_only_access,
-            "public_artifact_upload_disabled": (
-                self.attestations.public_artifact_upload_disabled
-            ),
+            "public_artifact_upload_disabled": (self.attestations.public_artifact_upload_disabled),
         }
         missing = [name for name, value in required.items() if value is not True]
         if missing:
@@ -240,9 +230,7 @@ def _store_from_config(config: OwnerSamplingRunnerConfig) -> PrivateRevocableArt
             encryption_at_rest=config.attestations.encryption_at_rest,
             owner_only_access=config.attestations.owner_only_access,
             backup_and_sync_excluded=config.attestations.backup_and_sync_excluded,
-            public_artifact_upload_disabled=(
-                config.attestations.public_artifact_upload_disabled
-            ),
+            public_artifact_upload_disabled=(config.attestations.public_artifact_upload_disabled),
         ),
     )
 
@@ -281,7 +269,7 @@ def _run_sampling_batch(
     for contract in SOURCE_CONTRACTS:
         url = build_url(contract)
         timed = fetcher(url)
-        research_available_at = datetime.now(UTC)
+        research_available_at = max(datetime.now(UTC), timed.response_received_at)
         observation = validate_source_response(
             contract=contract,
             response=timed.response,
@@ -364,9 +352,7 @@ def execute_synthetic_owner_sampling_for_validation(
     """Run injected synthetic responses; never call this as evidence of real execution."""
 
     if config.mode != OwnerRunnerMode.SYNTHETIC_INJECTED:
-        raise OKXOwnerSamplingRunnerError(
-            "Synthetic validator requires SYNTHETIC_INJECTED mode"
-        )
+        raise OKXOwnerSamplingRunnerError("Synthetic validator requires SYNTHETIC_INJECTED mode")
     if fetcher is fetch_public_response:
         raise OKXOwnerSamplingRunnerError(
             "Synthetic validation cannot use the official network fetcher"
@@ -406,9 +392,7 @@ def delete_owner_sampling_batch(
             encryption_at_rest=config.attestations.encryption_at_rest,
             owner_only_access=config.attestations.owner_only_access,
             backup_and_sync_excluded=config.attestations.backup_and_sync_excluded,
-            public_artifact_upload_disabled=(
-                config.attestations.public_artifact_upload_disabled
-            ),
+            public_artifact_upload_disabled=(config.attestations.public_artifact_upload_disabled),
         ),
     )
     receipt = delete_sampling_batch(

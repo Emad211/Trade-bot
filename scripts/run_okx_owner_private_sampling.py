@@ -36,20 +36,12 @@ def _add_common_attestations(parser: argparse.ArgumentParser) -> None:
 def _attestations(args: argparse.Namespace) -> OwnerRunnerAttestations:
     return OwnerRunnerAttestations(
         terms_reviewed=bool(getattr(args, "attest_terms_reviewed", False)),
-        personal_noncommercial_use=bool(
-            getattr(args, "attest_personal_noncommercial_use", False)
-        ),
-        reasonable_rate_and_scale=bool(
-            getattr(args, "attest_reasonable_rate_and_scale", False)
-        ),
-        redistribution_disabled=bool(
-            getattr(args, "attest_redistribution_disabled", False)
-        ),
+        personal_noncommercial_use=bool(getattr(args, "attest_personal_noncommercial_use", False)),
+        reasonable_rate_and_scale=bool(getattr(args, "attest_reasonable_rate_and_scale", False)),
+        redistribution_disabled=bool(getattr(args, "attest_redistribution_disabled", False)),
         encryption_at_rest=bool(getattr(args, "attest_encryption_at_rest", False)),
         owner_only_access=bool(getattr(args, "attest_owner_only_access", False)),
-        backup_and_sync_excluded=bool(
-            getattr(args, "attest_backup_and_sync_excluded", False)
-        ),
+        backup_and_sync_excluded=bool(getattr(args, "attest_backup_and_sync_excluded", False)),
         public_artifact_upload_disabled=bool(
             getattr(args, "attest_public_artifact_upload_disabled", False)
         ),

@@ -23,8 +23,8 @@ from hybrid_trader.replication.okx_owner_sampling_runner import (
     load_safe_sampling_manifest,
 )
 from hybrid_trader.replication.okx_price_linkage_probe import (
-    HTTPResponse,
     SOURCE_CONTRACTS,
+    HTTPResponse,
     TimedHTTPResponse,
     build_url,
     fetch_public_response,
@@ -188,9 +188,7 @@ def test_successful_synthetic_runner_requests_exact_sources_and_retains_privatel
 ) -> None:
     calls: list[str] = []
     config = _config(tmp_path)
-    result = execute_synthetic_owner_sampling_for_validation(
-        config, fetcher=_fake_fetcher(calls)
-    )
+    result = execute_synthetic_owner_sampling_for_validation(config, fetcher=_fake_fetcher(calls))
 
     assert calls == [build_url(contract) for contract in SOURCE_CONTRACTS]
     assert result.mode == "SYNTHETIC_INJECTED"
@@ -227,9 +225,7 @@ def test_safe_manifest_write_failure_rolls_back_private_batch(tmp_path: Path) ->
     blocked_parent.write_text("not a directory", encoding="utf-8")
     config = _config(tmp_path, safe_output=blocked_parent / "manifest.json")
     with pytest.raises(OKXOwnerSamplingRunnerError, match="rolled back"):
-        execute_synthetic_owner_sampling_for_validation(
-            config, fetcher=_fake_fetcher([])
-        )
+        execute_synthetic_owner_sampling_for_validation(config, fetcher=_fake_fetcher([]))
     assert not list((config.private_root / "raw").glob("*.bin"))
     assert not list((config.private_root / "leases").glob("*.json"))
     assert len(list((config.private_root / "tombstones").glob("*.json"))) == 4
@@ -251,9 +247,7 @@ def test_manifest_inside_private_tree_and_existing_output_are_rejected(
 
 def test_owner_delete_command_removes_batch_and_writes_safe_receipt(tmp_path: Path) -> None:
     config = _config(tmp_path)
-    execute_synthetic_owner_sampling_for_validation(
-        config, fetcher=_fake_fetcher([])
-    )
+    execute_synthetic_owner_sampling_for_validation(config, fetcher=_fake_fetcher([]))
     receipt_output = tmp_path / "safe-deletion.json"
     deletion = OwnerSamplingDeletionConfig(
         private_root=config.private_root,
@@ -277,9 +271,7 @@ def test_owner_delete_command_removes_batch_and_writes_safe_receipt(tmp_path: Pa
 
 def test_delete_requires_confirmation_and_valid_manifest(tmp_path: Path) -> None:
     config = _config(tmp_path)
-    execute_synthetic_owner_sampling_for_validation(
-        config, fetcher=_fake_fetcher([])
-    )
+    execute_synthetic_owner_sampling_for_validation(config, fetcher=_fake_fetcher([]))
     deletion = OwnerSamplingDeletionConfig(
         private_root=config.private_root,
         repository_root=config.repository_root,

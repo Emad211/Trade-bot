@@ -19,8 +19,8 @@ from hybrid_trader.replication.okx_owner_sampling_runner import (
     load_safe_sampling_manifest,
 )
 from hybrid_trader.replication.okx_price_linkage_probe import (
-    HTTPResponse,
     SOURCE_CONTRACTS,
+    HTTPResponse,
     TimedHTTPResponse,
     build_url,
 )
@@ -136,9 +136,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             enable_real_network_fetch=False,
             attestations=_attestations(),
         )
-        result = execute_synthetic_owner_sampling_for_validation(
-            config, fetcher=fake_fetcher
-        )
+        result = execute_synthetic_owner_sampling_for_validation(config, fetcher=fake_fetcher)
         manifest = load_safe_sampling_manifest(safe_manifest_path)
         raw_count_before_delete = len(list((private_root / "raw").glob("*.bin")))
         lease_count_before_delete = len(list((private_root / "leases").glob("*.json")))
