@@ -1,0 +1,70 @@
+schema_version: '1.0'
+gate_id: OKX_OWNER_CONTROLLED_NO_TRADE_OBSERVATION_V1
+issue_number: 61
+status_date: '2026-07-22'
+outcome: GO_OWNER_CONTROLLED_OKX_NO_TRADE_OBSERVATION_PACKAGE_READY
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+package_commit_sha: 44cc2a9fb751144b18172c9748eb481682ec1977
+workflow_commit_sha: f21387d9ec7768adf9808808315eaaaf681761a6
+clean_package_head_before_evidence: 26a4cd2f1f586db01d0604e5b0375971d00fc6b7
+workflow:
+  name: OKX Owner-Controlled No-Trade Observation Contract
+  run_id: 29871524716
+  conclusion: success
+  permissions:
+    contents: read
+  scoped_test_count: 17
+  ruff: pass
+  mypy_strict: pass
+  credential_absence_check: pass
+  credential_cli_argument_check: pass
+  authenticated_redirect_rejection: pass
+  safe_output_audit: pass
+artifact:
+  artifact_id: 8511339139
+  name: okx-no-trade-observation-safe-evidence-eb5a38a71119c20a00701fca6fc4afdd9fe99553
+  archive_digest: sha256:945a5ce891d2b812f583d958793668ff9f8d433c0a28cd94f4a2e4c7ea13a9f4
+  member_name: okx-no-trade-observation-contract-safe-evidence.json
+  member_bytes: 2269
+  member_sha256: 66e4021c1ae0407d8c8c477340e0f69993dc904e02bddf53986e296f9676a04a
+  member_count: 1
+  credentials_present: false
+  fee_values_present: false
+  market_values_present: false
+verified_contract:
+  public_source_count: 4
+  private_fee_query_count: 2
+  private_method_allowlist:
+  - GET
+  private_endpoint_allowlist:
+  - /api/v5/account/trade-fee
+  private_redirect_following_allowed: false
+  exact_source_health_before_retention: true
+  exact_batch_admission_before_retention: true
+  partial_duplicate_skew_drift_rejected_before_write: true
+  rollback_verified: true
+  deletion_receipt_verified: true
+  batch_deleted: true
+  private_fee_snapshot_deleted: true
+real_execution:
+  owner_credentials_supplied: false
+  real_private_fee_request_performed: false
+  real_public_request_performed: false
+  real_fee_snapshot_retained: false
+  real_public_raw_batch_retained: false
+  orders_sent: false
+  trade_permission_used: false
+  withdraw_permission_used: false
+hard_non_authorizations:
+  basis_computation: false
+  funding_pnl_computation: false
+  returns_computation: false
+  transaction_cost_estimation: false
+  empirical_fitting: false
+  strategy_testing: false
+  report_2_4: false
+  paper_or_live_trading: false
+  leverage_or_capital_deployment: false
+paper_replication_pass: false
+economic_edge_verdict: INCONCLUSIVE

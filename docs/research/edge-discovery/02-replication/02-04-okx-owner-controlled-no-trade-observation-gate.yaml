@@ -1,29 +1,26 @@
-schema_version: "1.0"
+schema_version: '1.0'
 gate_id: OKX_OWNER_CONTROLLED_NO_TRADE_OBSERVATION_V1
 issue_number: 61
-status: OPEN
-status_date: "2026-07-21"
+status: GO_VERIFIED
+status_date: '2026-07-22'
 repository: Emad211/Trade-bot
 branch: agent/edge-research-reports
-current_outcome: null
-
-objective: >-
-  Prepare a disabled-by-default, owner-local package that binds two exact read-only
-  OKX fee snapshots to one four-source public observation, applies source-health
-  admission before retention, and emits safe hash-only receipts without sending an order.
-
+current_outcome: GO_OWNER_CONTROLLED_OKX_NO_TRADE_OBSERVATION_PACKAGE_READY
+objective: Prepare a disabled-by-default, owner-local package that binds two exact
+  read-only OKX fee snapshots to one four-source public observation, applies source-health
+  admission before retention, and emits safe hash-only receipts without sending an
+  order.
 predecessor_gates:
-  - issue_number: 54
-    outcome: GO_OWNER_CONTROLLED_PRIVATE_OKX_SAMPLING_CONTRACT
-  - issue_number: 55
-    outcome: GO_OWNER_SIDE_OKX_ONE_BATCH_RUNNER_READY
-  - issue_number: 56
-    outcome: GO_OKX_FEE_AND_FUNDING_ACCOUNTING_CONTRACT
-  - issue_number: 57
-    outcome: GO_OKX_EXECUTABLE_PRICE_AND_COST_SEMANTICS_CONTRACT
-  - issue_number: 58
-    outcome: GO_OKX_SOURCE_HEALTH_AND_SAMPLING_ABORT_CONTRACT
-
+- issue_number: 54
+  outcome: GO_OWNER_CONTROLLED_PRIVATE_OKX_SAMPLING_CONTRACT
+- issue_number: 55
+  outcome: GO_OWNER_SIDE_OKX_ONE_BATCH_RUNNER_READY
+- issue_number: 56
+  outcome: GO_OKX_FEE_AND_FUNDING_ACCOUNTING_CONTRACT
+- issue_number: 57
+  outcome: GO_OKX_EXECUTABLE_PRICE_AND_COST_SEMANTICS_CONTRACT
+- issue_number: 58
+  outcome: GO_OKX_SOURCE_HEALTH_AND_SAMPLING_ABORT_CONTRACT
 implemented_files:
   module: src/hybrid_trader/replication/okx_no_trade_observation.py
   owner_cli: scripts/run_okx_no_trade_observation.py
@@ -31,12 +28,11 @@ implemented_files:
   tests: tests/test_okx_no_trade_observation.py
   policy: configs/okx_no_trade_observation_policy_v1.yaml
   workflow: .github/workflows/okx-no-trade-observation-contract.yml
-
 credential_contract:
   environment_variables:
-    - OKX_API_KEY
-    - OKX_SECRET_KEY
-    - OKX_PASSPHRASE
+  - OKX_API_KEY
+  - OKX_SECRET_KEY
+  - OKX_PASSPHRASE
   command_line_credential_values_allowed: false
   repository_credentials_allowed: false
   ci_credentials_allowed: false
@@ -47,20 +43,19 @@ credential_contract:
     withdraw_permission_disabled: true
     ip_allowlist_enabled: true
   allowed_private_methods:
-    - GET
+  - GET
   private_redirect_following_allowed: false
   allowed_private_endpoints:
-    - /api/v5/account/trade-fee
+  - /api/v5/account/trade-fee
   allowed_fee_queries:
-    - instType=SPOT&instId=BTC-USDT
-    - instType=SWAP&instFamily=BTC-USDT
-
+  - instType=SPOT&instId=BTC-USDT
+  - instType=SWAP&instFamily=BTC-USDT
 public_observation_contract:
   required_sources:
-    - OKX_BTC_USDT_INDEX_TICKER
-    - OKX_SPOT_BTC_USDT_TICKER
-    - OKX_SWAP_BTC_USDT_SWAP_MARK_PRICE
-    - OKX_SWAP_BTC_USDT_SWAP_TICKER
+  - OKX_BTC_USDT_INDEX_TICKER
+  - OKX_SPOT_BTC_USDT_TICKER
+  - OKX_SWAP_BTC_USDT_SWAP_MARK_PRICE
+  - OKX_SWAP_BTC_USDT_SWAP_TICKER
   exact_source_set_required: true
   health_evaluation_before_retention: true
   batch_admission_before_retention: true
@@ -72,17 +67,15 @@ public_observation_contract:
   cross_source_skew_exceeded: REJECT
   carry_forward: false
   interpolation: false
-
 private_retention_contract:
   private_root_outside_repository: true
-  private_fee_snapshot_mode: "0600"
-  public_raw_artifact_mode: "0600"
-  private_directory_mode: "0700"
+  private_fee_snapshot_mode: '0600'
+  public_raw_artifact_mode: '0600'
+  private_directory_mode: '0700'
   maximum_retention_days: 7
   rollback_on_fee_or_receipt_failure: true
   deletion_receipt_required: true
   secure_erase_claimed: false
-
 safe_receipt_contract:
   retain_hashes_and_states_only: true
   fee_values: false
@@ -95,7 +88,6 @@ safe_receipt_contract:
     orders_sent: false
     trade_permission_used: false
     withdraw_permission_used: false
-
 synthetic_ci_contract:
   real_public_request_allowed: false
   real_private_fee_request_allowed: false
@@ -104,7 +96,6 @@ synthetic_ci_contract:
   authenticated_redirect_rejection_tested: true
   synthetic_fee_and_market_values_allowed_only_in_memory_and_private_temp_storage: true
   safe_artifact_only: true
-
 hard_prohibitions:
   orders_or_cancels: false
   transfers_or_withdrawals: false
@@ -119,20 +110,39 @@ hard_prohibitions:
   report_2_4_authorized: false
   paper_or_live_trading: false
   leverage_or_capital_deployment: false
-
 allowed_outcomes:
-  - GO_OWNER_CONTROLLED_OKX_NO_TRADE_OBSERVATION_PACKAGE_READY
-  - BLOCKED_READ_ONLY_CREDENTIAL_CONTRACT
-  - BLOCKED_HEALTH_AND_ADMISSION_INTEGRATION
-  - BLOCKED_SAFE_RECEIPT_OR_ROLLBACK_CONTRACT
-  - BLOCKED_TERMS_OR_OPERATIONAL_BOUNDARY
-
+- GO_OWNER_CONTROLLED_OKX_NO_TRADE_OBSERVATION_PACKAGE_READY
+- BLOCKED_READ_ONLY_CREDENTIAL_CONTRACT
+- BLOCKED_HEALTH_AND_ADMISSION_INTEGRATION
+- BLOCKED_SAFE_RECEIPT_OR_ROLLBACK_CONTRACT
+- BLOCKED_TERMS_OR_OPERATIONAL_BOUNDARY
 real_execution_status:
   owner_credentials_supplied: false
   real_fee_snapshot_executed: false
   real_public_batch_executed: false
   order_sent: false
-
 paper_replication_pass: false
 economic_edge_verdict: INCONCLUSIVE
 report_2_4_authorized: false
+evidence_files:
+  json: docs/research/edge-discovery/02-replication/02-04-okx-owner-controlled-no-trade-observation-evidence.json
+  yaml: docs/research/edge-discovery/02-replication/02-04-okx-owner-controlled-no-trade-observation-evidence.yaml
+  report: docs/research/edge-discovery/02-replication/02-04-okx-owner-controlled-no-trade-observation-evidence.md
+verification:
+  workflow: OKX Owner-Controlled No-Trade Observation Contract
+  run_id: 29871524716
+  conclusion: SUCCESS
+  triggering_head: f21387d9ec7768adf9808808315eaaaf681761a6
+  package_commit: 44cc2a9fb751144b18172c9748eb481682ec1977
+  clean_package_head_before_evidence: 26a4cd2f1f586db01d0604e5b0375971d00fc6b7
+  artifact_id: 8511339139
+  artifact_digest: sha256:945a5ce891d2b812f583d958793668ff9f8d433c0a28cd94f4a2e4c7ea13a9f4
+  safe_evidence_bytes: 2269
+  safe_evidence_sha256: 66e4021c1ae0407d8c8c477340e0f69993dc904e02bddf53986e296f9676a04a
+  scoped_tests_passed: 17
+  ruff: PASS
+  mypy_strict: PASS
+  private_redirect_rejection: PASS
+  credentials_in_ci: false
+  real_requests_performed: false
+  orders_sent: false
