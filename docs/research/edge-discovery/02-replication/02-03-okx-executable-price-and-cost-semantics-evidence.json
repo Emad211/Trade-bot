@@ -1,0 +1,126 @@
+{
+  "authorizations": {
+    "basis_computation": false,
+    "capital_deployment": false,
+    "empirical_fitting": false,
+    "funding_pnl_computation": false,
+    "live_trading": false,
+    "owner_fee_snapshot": false,
+    "paper_trading": false,
+    "real_execution_input": false,
+    "report_2_4": false,
+    "returns_computation": false,
+    "strategy_testing": false,
+    "transaction_cost_estimation": false
+  },
+  "book_contract": {
+    "aggregation_mode_required": true,
+    "buy_uses_ask": true,
+    "depth_required": true,
+    "elp_eligibility_explicit": true,
+    "provider_timestamp_required": true,
+    "research_available_at_required": true,
+    "sell_uses_bid": true,
+    "source_version_required": true,
+    "speed_bump_flag_explicit": true,
+    "stale_threshold_hidden_constant_allowed": false,
+    "tick_size_explicit": true
+  },
+  "cost_component_contract": {
+    "components": [
+      "QUOTED_HALF_SPREAD",
+      "QUOTED_FULL_SPREAD",
+      "ARRIVAL_SLIPPAGE",
+      "IMPLEMENTATION_SHORTFALL",
+      "MARKET_IMPACT",
+      "ADVERSE_SELECTION",
+      "LATENCY_DELAY",
+      "OPPORTUNITY_COST",
+      "TRADING_FEE",
+      "FUNDING_CASHFLOW",
+      "LIQUIDATION_CASHFLOW",
+      "SETTLEMENT_CASHFLOW",
+      "POSITION_REALIZED_PNL"
+    ],
+    "duplicate_reconciliation_keys": "REJECT",
+    "full_and_half_spread_both_counted": false,
+    "funding_requires_formula_version": true,
+    "implementation_shortfall_and_decomposition_both_counted": false,
+    "mixed_currency_without_conversion": "REJECT",
+    "mixed_level_without_transform": "REJECT",
+    "position_aggregate_readds_fill_fee_or_funding": false,
+    "trading_fee_requires_owner_snapshot": true
+  },
+  "economic_edge_verdict": "INCONCLUSIVE",
+  "gate_id": "OKX_EXECUTABLE_PRICE_AND_COST_SEMANTICS_CONTRACT_V1",
+  "issue_number": 57,
+  "order_contract": {
+    "acknowledgement_is_execution": false,
+    "cancel_ack_is_final_cancellation": false,
+    "maker_taker_from_actual_fill": true,
+    "order_type_hardcodes_liquidity_role": false,
+    "partial_fill_weighted_by_quantity": true,
+    "residual_quantity_preserved": true,
+    "supported_types": [
+      "market",
+      "limit",
+      "post_only",
+      "ioc",
+      "fok",
+      "optimal_limit_ioc"
+    ]
+  },
+  "owner_fee_snapshot_status": "BLOCKED_OWNER_READ_ONLY_CREDENTIALS",
+  "price_identity_rules": {
+    "buy_executable_quote": "BEST_ASK",
+    "index_is_executable": false,
+    "last_is_executable": false,
+    "limit_price_is_fill_price": false,
+    "mark_is_executable": false,
+    "midpoint_is_executable": false,
+    "sell_executable_quote": "BEST_BID",
+    "unfilled_quantity_receives_price": false
+  },
+  "provider_cache_contract": {
+    "later_response_may_have_earlier_provider_time": true,
+    "monotonic_in_request_order": false,
+    "request_order_rewritten": false,
+    "spread_ms": 70
+  },
+  "public_evidence_contains_account_values": false,
+  "public_evidence_contains_credentials": false,
+  "public_evidence_contains_real_costs": false,
+  "public_evidence_contains_real_fills": false,
+  "public_evidence_contains_real_prices": false,
+  "public_evidence_contains_real_sizes": false,
+  "real_execution_inputs_status": "NOT_ADMITTED",
+  "real_order_request_performed": false,
+  "real_private_endpoint_called": false,
+  "schema_version": "1.0",
+  "slippage_contract": {
+    "buy_adverse_direction": "EXECUTION_MINUS_REFERENCE",
+    "buy_adverse_synthetic_check": true,
+    "reference_identity_required": true,
+    "reference_time_required": true,
+    "sell_adverse_direction": "REFERENCE_MINUS_EXECUTION",
+    "sell_adverse_synthetic_check": true
+  },
+  "synthetic_rejections": {
+    "fee_without_owner_snapshot": true,
+    "funding_without_formula_version": true,
+    "implementation_shortfall_double_count": true,
+    "midpoint_as_executable": true
+  },
+  "timing_contract": {
+    "acknowledgement_time_used_as_fill_time": false,
+    "all_synthetic_components_non_negative": true,
+    "client_gateway_unit": "MICROSECONDS",
+    "fill_matching_field": "fillTime",
+    "gateway_in_field": "inTime",
+    "gateway_out_field": "outTime",
+    "order_creation_field": "cTime",
+    "order_update_field": "uTime",
+    "provider_order_fill_unit": "MILLISECONDS"
+  },
+  "validation_mode": "SYNTHETIC_EXECUTION_RESPONSES_ONLY"
+}
