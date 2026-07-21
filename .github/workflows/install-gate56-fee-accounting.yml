@@ -97,21 +97,16 @@ jobs:
           assert all(value not in text for value in forbidden)
           PY
 
-      - name: Retire installer and publish verified contract
+      - name: Retire installer and publish verified contract code
         run: |
           set -euo pipefail
+          rm -rf build/okx-fee-accounting
+          rm .github/workflows/okx-fee-accounting-contract.yml
           rm .gate56-payload.tar.gz
           rm .github/workflows/install-gate56-fee-accounting.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add \
-            src/hybrid_trader/replication/okx_fee_accounting.py \
-            scripts/validate_okx_fee_accounting_contract.py \
-            tests/test_okx_fee_accounting.py \
-            docs/research/edge-discovery/02-replication/02-03-okx-fee-and-funding-accounting-contract-gate.yaml \
-            .github/workflows/okx-fee-accounting-contract.yml
-          git add -u \
-            .gate56-payload.tar.gz \
-            .github/workflows/install-gate56-fee-accounting.yml
+          git add -A
+          git status --short
           git commit -m 'Add OKX fee and funding accounting contract'
           git push origin HEAD:agent/edge-research-reports
