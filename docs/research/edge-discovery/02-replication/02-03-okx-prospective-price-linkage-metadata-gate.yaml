@@ -1,0 +1,193 @@
+schema_version: "1.0"
+gate_id: OKX_BTC_USDT_PROSPECTIVE_PRICE_LINKAGE_METADATA_V1
+issue_number: 53
+status: OPEN
+status_date: "2026-07-21"
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+
+predecessor_gate:
+  issue_number: 52
+  outcome: GO_PROSPECTIVE_OKX_POINT_IN_TIME_REGISTRY
+  collection_start: "2026-07-21T10:30:16.294785Z"
+  historical_backfill_permitted: false
+
+objective: >-
+  Freeze exact prospective public source identities, schemas, timestamp semantics,
+  and safe-retention boundaries for the BTC-USDT spot ticker, BTC-USDT-SWAP
+  ticker, BTC-USDT-SWAP mark price, and BTC-USDT index ticker without retaining
+  market values or computing basis, PnL, costs, or returns.
+
+official_documentation:
+  api_guide: https://www.okx.com/docs-v5/en/
+  api_agreement: https://www.okx.com/en-us/help/okx-api-agreement
+  market_data_authentication_required: false
+  public_rest_rate_limit_rule: IP
+  regional_domain_requirement_present: true
+  continued_use_accepts_current_api_agreement: true
+  service_schema_and_endpoint_changes_permitted: true
+
+market_data_cache_contract:
+  multiple_independent_cache_services_documented: true
+  random_service_per_request_documented: true
+  later_request_may_return_earlier_provider_timestamp: true
+  cross_source_timestamp_monotonicity_required: false
+  request_order_is_not_provider_time_order: true
+  provider_timestamps_preserved_per_source: true
+  provider_timestamp_rewriting: false
+
+candidate_sources:
+  - source_id: OKX_SPOT_BTC_USDT_TICKER
+    source_kind: SPOT_TICKER
+    method: GET
+    endpoint_path: /api/v5/market/ticker
+    query:
+      instId: BTC-USDT
+    expected_identity:
+      instType: SPOT
+      instId: BTC-USDT
+    values_validated_but_not_retained:
+      - last
+      - lastSz
+      - askPx
+      - askSz
+      - bidPx
+      - bidSz
+      - open24h
+      - high24h
+      - low24h
+      - volCcy24h
+      - vol24h
+    provider_timestamp_field: ts
+
+  - source_id: OKX_SWAP_BTC_USDT_SWAP_TICKER
+    source_kind: SWAP_TICKER
+    method: GET
+    endpoint_path: /api/v5/market/ticker
+    query:
+      instId: BTC-USDT-SWAP
+    expected_identity:
+      instType: SWAP
+      instId: BTC-USDT-SWAP
+    values_validated_but_not_retained:
+      - last
+      - lastSz
+      - askPx
+      - askSz
+      - bidPx
+      - bidSz
+      - open24h
+      - high24h
+      - low24h
+      - volCcy24h
+      - vol24h
+    provider_timestamp_field: ts
+
+  - source_id: OKX_SWAP_BTC_USDT_SWAP_MARK_PRICE
+    source_kind: MARK_PRICE
+    method: GET
+    endpoint_path: /api/v5/public/mark-price
+    query:
+      instType: SWAP
+      instId: BTC-USDT-SWAP
+    expected_identity:
+      instType: SWAP
+      instId: BTC-USDT-SWAP
+    values_validated_but_not_retained:
+      - markPx
+    provider_timestamp_field: ts
+
+  - source_id: OKX_BTC_USDT_INDEX_TICKER
+    source_kind: INDEX_TICKER
+    method: GET
+    endpoint_path: /api/v5/market/index-tickers
+    query:
+      instId: BTC-USDT
+    expected_identity:
+      instId: BTC-USDT
+    values_validated_but_not_retained:
+      - idxPx
+      - high24h
+      - open24h
+      - low24h
+    provider_timestamp_field: ts
+
+required_clocks:
+  - request_started_at
+  - response_received_at
+  - provider_timestamp
+  - research_available_at
+  - registry_committed_at
+clock_rules:
+  request_response_order_required: true
+  provider_timestamp_source_specific: true
+  provider_timestamp_may_be_nonmonotonic_across_requests: true
+  provider_timestamp_inference: false
+  source_unavailability_is_market_null: false
+
+safe_evidence_contract:
+  retain:
+    - source_id
+    - source_kind
+    - official_host
+    - endpoint_path
+    - query_parameter_names
+    - request_fingerprint_sha256
+    - http_status
+    - application_code
+    - content_type
+    - response_byte_count
+    - response_sha256
+    - exact_schema_fields
+    - schema_sha256
+    - row_count
+    - identity_fields
+    - provider_timestamp_ms
+    - provider_timestamp_utc
+    - request_response_research_clocks
+    - timestamp_age_diagnostics
+    - source_health
+  prohibit:
+    - raw_response_body
+    - last_price_value
+    - bid_value
+    - ask_value
+    - mark_price_value
+    - index_price_value
+    - volume_value
+    - ordered_reconstructable_price_series
+    - public_raw_market_rows
+
+identity_linkage_contract:
+  spot_traded_instrument: BTC-USDT
+  swap_traded_instrument: BTC-USDT-SWAP
+  mark_price_instrument: BTC-USDT-SWAP
+  index_identity: BTC-USDT
+  exact_name_similarity_is_sufficient_linkage: false
+  current_instrument_registry_required: true
+  linkage_authorizes_calculation: false
+
+hard_prohibitions:
+  historical_backfill: false
+  persistent_raw_market_values: false
+  raw_redistribution: false
+  basis_computation: false
+  funding_pnl_computation: false
+  returns_computation: false
+  transaction_cost_estimation: false
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_testing: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  report_2_4_authorized: false
+
+allowed_outcomes:
+  - GO_PROSPECTIVE_OKX_PRICE_LINKAGE_METADATA_PILOT
+  - BLOCKED_SOURCE_IDENTITY_OR_TIMESTAMP_CONTRACT
+  - BLOCKED_TERMS_OR_RETENTION
+current_outcome: null
+paper_replication_pass: false
+economic_edge_verdict: INCONCLUSIVE
