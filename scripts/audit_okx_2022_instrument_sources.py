@@ -39,9 +39,7 @@ class _OfficialRedirectHandler(urllib.request.HTTPRedirectHandler):
         if parsed.scheme != "https" or not (
             host == "okx.com" or host == "www.okx.com" or host.endswith(".okx.com")
         ):
-            raise OKXInstrumentSourceError(
-                f"Official source redirected outside OKX: {newurl!r}"
-            )
+            raise OKXInstrumentSourceError(f"Official source redirected outside OKX: {newurl!r}")
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
@@ -59,8 +57,7 @@ def _fetch_bounded(
             "Accept": accept,
             "Accept-Language": "en-US,en;q=0.9",
             "User-Agent": (
-                "Emad211-Trade-bot-replication/1.0 "
-                "(+https://github.com/Emad211/Trade-bot)"
+                "Emad211-Trade-bot-replication/1.0 (+https://github.com/Emad211/Trade-bot)"
             ),
         },
     )
@@ -73,16 +70,12 @@ def _fetch_bounded(
                 content_type = response.headers.get("Content-Type", "")
                 raw = response.read(max_bytes + 1)
             if len(raw) > max_bytes:
-                raise OKXInstrumentSourceError(
-                    f"{url} exceeded the {max_bytes}-byte guard"
-                )
+                raise OKXInstrumentSourceError(f"{url} exceeded the {max_bytes}-byte guard")
             return raw, status, final_url, content_type
         except urllib.error.HTTPError as exc:
             last_error = exc
             if exc.code not in TRANSIENT_HTTP_CODES or attempt == attempts:
-                raise OKXInstrumentSourceError(
-                    f"{url} returned HTTP {exc.code}"
-                ) from exc
+                raise OKXInstrumentSourceError(f"{url} returned HTTP {exc.code}") from exc
         except (TimeoutError, urllib.error.URLError) as exc:
             last_error = exc
             if attempt == attempts:
