@@ -1,0 +1,213 @@
+schema_version: "1.0"
+gate_id: OKX_EXECUTABLE_PRICE_AND_COST_SEMANTICS_CONTRACT_V1
+issue_number: 57
+status: OPEN
+status_date: "2026-07-21"
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+current_outcome: null
+secondary_blocker: BLOCKED_OWNER_FEE_OR_EXECUTION_INPUTS
+
+objective: >-
+  Freeze executable-price identities, order and fill lifecycle semantics, latency
+  decomposition, spread and slippage identities, and non-overlapping cost aggregation
+  before any numerical cost, PnL, return, or strategy calculation.
+
+predecessor_gates:
+  - issue_number: 53
+    outcome: GO_PROSPECTIVE_OKX_PRICE_LINKAGE_METADATA_PILOT
+  - issue_number: 56
+    outcome: GO_OKX_FEE_AND_FUNDING_ACCOUNTING_CONTRACT
+    account_specific_fee_snapshot: BLOCKED_OWNER_READ_ONLY_CREDENTIALS
+
+implemented_files:
+  module: src/hybrid_trader/replication/okx_execution_cost_semantics.py
+  validator: scripts/validate_okx_execution_cost_semantics.py
+  tests: tests/test_okx_execution_cost_semantics.py
+  workflow: .github/workflows/okx-execution-cost-semantics-contract.yml
+
+official_sources:
+  api_guide: https://www.okx.com/docs-v5/en/
+  api_best_practices: https://www.okx.com/docs-v5/trick_en/
+  order_timestamp_changelog: https://www.okx.com/docs-v5/log_en/
+  limit_order_guide: https://www.okx.com/en-gb/help/what-a-limit-order
+  fee_role_faq: https://www.okx.com/en-gb/help/trading-fee-rules-faq
+
+price_identity_contract:
+  identities:
+    - DECISION_REFERENCE
+    - BEST_BID
+    - BEST_ASK
+    - MIDPOINT
+    - LAST_TRADED
+    - ORDER_LIMIT
+    - MARK
+    - INDEX
+    - INDIVIDUAL_FILL
+    - WEIGHTED_AVERAGE_FILL
+    - POSITION_ACCOUNTING
+  buy_executable_quote: BEST_ASK
+  sell_executable_quote: BEST_BID
+  midpoint_is_executable: false
+  last_is_executable: false
+  mark_is_executable: false
+  index_is_executable: false
+  order_limit_is_fill_price: false
+  acknowledgement_is_execution: false
+  cancellation_ack_is_final_cancellation: false
+  unfilled_quantity_gets_fabricated_price: false
+
+order_contract:
+  admitted_order_types:
+    - market
+    - limit
+    - post_only
+    - ioc
+    - fok
+    - optimal_limit_ioc
+  maker_taker_from_actual_fill: true
+  order_type_hardcodes_liquidity_role: false
+  partial_fills_quantity_weighted: true
+  residual_quantity_preserved: true
+  item_level_batch_result_required: true
+  successful_batch_ack_is_all_items_success: false
+
+clock_contract:
+  client_and_gateway_unit: MICROSECONDS
+  provider_order_and_fill_unit: MILLISECONDS
+  fields:
+    client_decision: client_decision_us
+    client_submit: client_submit_us
+    gateway_receive: inTime
+    gateway_send: outTime
+    provider_processing: ts
+    order_creation: cTime
+    order_update: uTime
+    fill_matching: fillTime
+    client_receive: client_receive_us
+  required_components:
+    - client_decision_to_submit
+    - client_submit_to_gateway_in
+    - gateway_processing
+    - gateway_out_to_client_receive
+    - client_decision_to_first_fill
+    - client_decision_to_last_fill
+    - order_live_duration
+  reordered_clocks: REJECT
+  negative_latency: REJECT
+  acknowledgement_time_as_fill_time: REJECT
+
+book_contract:
+  source_id_required: true
+  source_version_required: true
+  provider_timestamp_required: true
+  research_available_at_required: true
+  depth_required: true
+  aggregation_mode_required: true
+  checksum_or_sequence_preserved_when_available: true
+  tick_size_explicit: true
+  stale_threshold_hidden_constant_allowed: false
+  elp_eligibility_explicit: true
+  speed_bump_flag_explicit: true
+  source_failure_is_market_null: false
+  provider_cache_request_order_monotonicity_required: false
+  provider_timestamp_rewriting: false
+
+slippage_contract:
+  reference_identity_required: true
+  reference_time_required: true
+  buy_adverse_sign: execution_minus_reference
+  sell_adverse_sign: reference_minus_execution
+  maker_implies_zero_spread_cost: false
+  partial_fill_aggregation: QUANTITY_WEIGHTED
+  unfilled_quantity_price: null
+
+cost_component_contract:
+  identities:
+    - QUOTED_HALF_SPREAD
+    - QUOTED_FULL_SPREAD
+    - ARRIVAL_SLIPPAGE
+    - IMPLEMENTATION_SHORTFALL
+    - MARKET_IMPACT
+    - ADVERSE_SELECTION
+    - LATENCY_DELAY
+    - OPPORTUNITY_COST
+    - TRADING_FEE
+    - FUNDING_CASHFLOW
+    - LIQUIDATION_CASHFLOW
+    - SETTLEMENT_CASHFLOW
+    - POSITION_REALIZED_PNL
+  full_and_half_spread_both_counted: REJECT
+  implementation_shortfall_and_decomposition_both_counted: REJECT
+  position_aggregate_with_fee_or_funding_readded: REJECT
+  duplicate_component_id: REJECT
+  duplicate_reconciliation_key: REJECT
+  mixed_currency_without_conversion: REJECT
+  mixed_aggregation_level_without_transform: REJECT
+  mixed_horizon_without_transform: REJECT
+  trading_fee_requires_owner_snapshot: true
+  funding_requires_formula_version: true
+  instrument_version_required: true
+
+synthetic_validation:
+  real_order_request_allowed: false
+  private_trading_endpoint_allowed: false
+  credentials_allowed_in_ci: false
+  real_prices_allowed_in_public_evidence: false
+  real_sizes_allowed_in_public_evidence: false
+  real_fills_allowed_in_public_evidence: false
+  real_costs_allowed_in_public_evidence: false
+  required_checks:
+    - buy_uses_ask_sell_uses_bid
+    - non_executable_identity_rejection
+    - limit_price_not_fill_price
+    - acknowledgement_not_execution
+    - cancellation_ack_not_final_state
+    - quantity_weighted_partial_fills
+    - residual_quantity_preservation
+    - actual_fill_liquidity_role
+    - timestamp_unit_and_order_validation
+    - direction_aware_slippage
+    - unfilled_quantity_no_price
+    - cost_double_count_rejection
+    - mixed_currency_and_level_rejection
+    - owner_fee_snapshot_requirement
+    - funding_formula_requirement
+    - provider_cache_nonmonotonic_diagnostic
+
+owner_input_boundary:
+  owner_fee_snapshot_required_for_numerical_fees: true
+  real_order_and_fill_inputs_required_for_numerical_execution_costs: true
+  current_owner_fee_snapshot_available: false
+  current_real_execution_inputs_available: false
+  numerical_cost_estimation_allowed: false
+
+hard_prohibitions:
+  real_order_placement_in_ci: false
+  real_order_amendment_in_ci: false
+  real_order_cancellation_in_ci: false
+  private_trading_endpoint_in_ci: false
+  owner_credentials_in_repository: false
+  real_order_book_or_fill_in_public_artifact: false
+  assumed_fee_rates: false
+  basis_computation: false
+  funding_pnl_computation: false
+  returns_computation: false
+  transaction_cost_estimation: false
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_testing: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  report_2_4_authorized: false
+
+allowed_outcomes:
+  - GO_OKX_EXECUTABLE_PRICE_AND_COST_SEMANTICS_CONTRACT
+  - BLOCKED_EXECUTION_SEMANTICS
+  - BLOCKED_OWNER_FEE_OR_EXECUTION_INPUTS
+  - BLOCKED_TERMS_OR_RETENTION
+
+paper_replication_pass: false
+economic_edge_verdict: INCONCLUSIVE
