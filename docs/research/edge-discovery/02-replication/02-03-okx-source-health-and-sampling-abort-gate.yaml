@@ -1,11 +1,28 @@
 schema_version: "1.0"
 gate_id: OKX_SOURCE_HEALTH_AND_SAMPLING_ABORT_CONTRACT_V1
 issue_number: 58
-status: OPEN
+status: GO_VERIFIED
 status_date: "2026-07-21"
 repository: Emad211/Trade-bot
 branch: agent/edge-research-reports
-current_outcome: null
+current_outcome: GO_OKX_SOURCE_HEALTH_AND_SAMPLING_ABORT_CONTRACT
+workflow_evidence:
+  workflow: OKX Source Health and Sampling Abort Contract
+  run_id: 29845596573
+  triggering_head: bfcf8ca98e44c2b05ea79f00dbaf28d4a53fda28
+  permissions: contents_read_only
+  conclusion: SUCCESS
+  artifact_id: 8501219123
+  artifact_digest: "sha256:0abe10d937837032e3ca1a03506bd724e6bb17c10bfa7c24c46e54c335c603f8"
+  evidence_bytes: 3981
+  evidence_sha256: cbb91b6d4dd02704495f477a0cae1a8d0694836a4aff3a085d03b3facb8bf0a3
+  ruff: PASS
+  mypy: PASS
+  scoped_tests_passed: 16
+  independent_verifier: PASS
+  real_market_request_performed: false
+  real_order_request_performed: false
+  private_trading_endpoint_called: false
 
 objective: >-
   Freeze fail-closed REST and WebSocket health states, explicit staleness/skew
