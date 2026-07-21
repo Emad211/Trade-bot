@@ -5,12 +5,11 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import pandas as pd
 
 from .kenneth_french_monthly import (
@@ -126,9 +125,7 @@ def reconcile_unmanaged_factors(
                 exact_equal_count=int((~exact_mismatch).sum()),
                 exact_mismatch_count=int(exact_mismatch.sum()),
                 numerical_tolerance_mismatch_count=int(tolerance_mismatch.sum()),
-                maximum_absolute_difference_percent=round(
-                    maximum, SAFE_DECIMAL_PLACES
-                ),
+                maximum_absolute_difference_percent=round(maximum, SAFE_DECIMAL_PLACES),
                 mean_absolute_difference_percent=round(mean, SAFE_DECIMAL_PLACES),
                 first_exact_mismatch_month=(
                     pd.Timestamp(mismatch_months[0]).strftime("%Y-%m")
@@ -218,16 +215,12 @@ def write_safe_reconciliation_evidence(
         author_csv=Path(author_csv_path).read_bytes(),
         author_page=Path(author_page_path).read_bytes(),
         data_library_page=Path(data_library_path).read_bytes(),
-        monthly_zips={
-            key: Path(value).read_bytes() for key, value in monthly_zip_paths.items()
-        },
+        monthly_zips={key: Path(value).read_bytes() for key, value in monthly_zip_paths.items()},
     )
     output_root = Path(output_dir)
     output_root.mkdir(parents=True, exist_ok=True)
     evidence_bytes = (json.dumps(evidence, indent=2, sort_keys=True) + "\n").encode()
-    (output_root / "safe-source-reconciliation-evidence.json").write_bytes(
-        evidence_bytes
-    )
+    (output_root / "safe-source-reconciliation-evidence.json").write_bytes(evidence_bytes)
     summary = {
         "reconciliation_id": RECONCILIATION_ID,
         "gate": evidence["gate"],
@@ -239,9 +232,7 @@ def write_safe_reconciliation_evidence(
                 "factor": item["factor"],
                 "overlap_count": item["overlap_count"],
                 "exact_mismatch_count": item["exact_mismatch_count"],
-                "maximum_absolute_difference_percent": item[
-                    "maximum_absolute_difference_percent"
-                ],
+                "maximum_absolute_difference_percent": item["maximum_absolute_difference_percent"],
                 "difference_vector_sha256": item["difference_vector_sha256"],
             }
             for item in evidence["factor_results"]

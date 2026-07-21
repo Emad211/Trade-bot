@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 import pytest
+
 from hybrid_trader.replication.futures import build_roll_ledger, same_contract_returns
 
 
@@ -26,9 +27,7 @@ def test_roll_ledger_records_contract_transition() -> None:
     selections = pd.DataFrame(
         {
             "product_id": ["CL", "CL", "CL"],
-            "decision_time": pd.to_datetime(
-                ["2024-01-31", "2024-02-29", "2024-03-31"], utc=True
-            ),
+            "decision_time": pd.to_datetime(["2024-01-31", "2024-02-29", "2024-03-31"], utc=True),
             "contract_id": ["CLH24", "CLJ24", "CLJ24"],
         }
     )

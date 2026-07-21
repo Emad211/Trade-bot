@@ -188,9 +188,7 @@ def validate_data_library_page(
     }
 
 
-def _read_single_safe_member(
-    zip_bytes: bytes, contract: DailySourceContract
-) -> tuple[bytes, str]:
+def _read_single_safe_member(zip_bytes: bytes, contract: DailySourceContract) -> tuple[bytes, str]:
     if not zip_bytes:
         raise ValueError(f"Empty ZIP for {contract.source_key}")
     if len(zip_bytes) > 100_000_000:
@@ -203,18 +201,12 @@ def _read_single_safe_member(
             raise ValueError(f"Expected one regular member for {contract.source_key}")
         member = members[0]
         posix_path = PurePosixPath(member.filename)
-        if (
-            posix_path.is_absolute()
-            or ".." in posix_path.parts
-            or len(posix_path.parts) != 1
-        ):
+        if posix_path.is_absolute() or ".." in posix_path.parts or len(posix_path.parts) != 1:
             raise ValueError(f"Unsafe ZIP member path: {member.filename}")
         if member.flag_bits & 1:
             raise ValueError(f"Encrypted ZIP member: {member.filename}")
         if member.filename != contract.member_filename:
-            raise ValueError(
-                f"Unexpected member name for {contract.source_key}: {member.filename}"
-            )
+            raise ValueError(f"Unexpected member name for {contract.source_key}: {member.filename}")
         if member.file_size <= 0 or member.file_size > 100_000_000:
             raise ValueError(f"Unsafe member size for {contract.source_key}")
         payload = archive.read(member)
@@ -237,27 +229,19 @@ def parse_daily_zip(
 
     if require_exact_snapshot:
         if len(zip_bytes) != contract.zip_byte_count:
-            raise ValueError(
-                f"{contract.source_key} ZIP byte count changed: {len(zip_bytes)}"
-            )
+            raise ValueError(f"{contract.source_key} ZIP byte count changed: {len(zip_bytes)}")
         zip_digest = sha256_bytes(zip_bytes)
         if zip_digest != contract.zip_sha256:
             raise ValueError(f"{contract.source_key} ZIP SHA-256 changed: {zip_digest}")
     payload, member_crc32 = _read_single_safe_member(zip_bytes, contract)
     if require_exact_snapshot:
         if len(payload) != contract.member_byte_count:
-            raise ValueError(
-                f"{contract.source_key} member byte count changed: {len(payload)}"
-            )
+            raise ValueError(f"{contract.source_key} member byte count changed: {len(payload)}")
         member_digest = sha256_bytes(payload)
         if member_digest != contract.member_sha256:
-            raise ValueError(
-                f"{contract.source_key} member SHA-256 changed: {member_digest}"
-            )
+            raise ValueError(f"{contract.source_key} member SHA-256 changed: {member_digest}")
         if member_crc32 != contract.member_crc32:
-            raise ValueError(
-                f"{contract.source_key} member CRC changed: {member_crc32}"
-            )
+            raise ValueError(f"{contract.source_key} member CRC changed: {member_crc32}")
 
     try:
         text = payload.decode("utf-8-sig")
@@ -278,9 +262,7 @@ def parse_daily_zip(
     if header_index is None or header is None:
         raise ValueError(f"Expected header not found for {contract.source_key}")
     if require_exact_snapshot and header_index != contract.expected_header_index:
-        raise ValueError(
-            f"{contract.source_key} header position changed: {header_index}"
-        )
+        raise ValueError(f"{contract.source_key} header position changed: {header_index}")
 
     rows: list[list[str]] = []
     footer_lines: list[str] = []
@@ -295,8 +277,7 @@ def parse_daily_zip(
             started = True
             if len(normalized) != len(header):
                 raise ValueError(
-                    f"Normalized row-width mismatch for {contract.source_key} "
-                    f"on {normalized[0]}"
+                    f"Normalized row-width mismatch for {contract.source_key} on {normalized[0]}"
                 )
             if any(cell == "" for cell in normalized):
                 raise ValueError(
@@ -315,9 +296,7 @@ def parse_daily_zip(
         raise ValueError(f"Duplicate dates for {contract.source_key}")
 
     sentinel_counts = {sentinel: 0 for sentinel in sorted(MISSING_SENTINELS)}
-    data: dict[str, list[float]] = {
-        column: [] for column in contract.expected_columns
-    }
+    data: dict[str, list[float]] = {column: [] for column in contract.expected_columns}
     for row in rows:
         for index, column in enumerate(contract.expected_columns, start=1):
             cell = row[index]
@@ -328,40 +307,25 @@ def parse_daily_zip(
             try:
                 value = float(cell)
             except ValueError as exc:
-                raise ValueError(
-                    f"Non-numeric {contract.source_key}.{column} on {row[0]}"
-                ) from exc
+                raise ValueError(f"Non-numeric {contract.source_key}.{column} on {row[0]}") from exc
             if not math.isfinite(value):
-                raise ValueError(
-                    f"Non-finite {contract.source_key}.{column} on {row[0]}"
-                )
+                raise ValueError(f"Non-finite {contract.source_key}.{column} on {row[0]}")
             data[column].append(value)
 
     frame = pd.DataFrame({"Date": pd.DatetimeIndex(dates), **data})
     if require_exact_snapshot:
         if len(frame) != contract.expected_row_count:
-            raise ValueError(
-                f"{contract.source_key} row count changed: {len(frame)}"
-            )
-        if (
-            frame["Date"].iloc[0].strftime("%Y-%m-%d")
-            != contract.expected_first_date
-        ):
+            raise ValueError(f"{contract.source_key} row count changed: {len(frame)}")
+        if frame["Date"].iloc[0].strftime("%Y-%m-%d") != contract.expected_first_date:
             raise ValueError(f"{contract.source_key} first date changed")
-        if (
-            frame["Date"].iloc[-1].strftime("%Y-%m-%d")
-            != contract.expected_last_date
-        ):
+        if frame["Date"].iloc[-1].strftime("%Y-%m-%d") != contract.expected_last_date:
             raise ValueError(f"{contract.source_key} last date changed")
         if trailing_delimiter_rows != contract.expected_trailing_delimiter_rows:
             raise ValueError(
-                f"{contract.source_key} trailing-delimiter count changed: "
-                f"{trailing_delimiter_rows}"
+                f"{contract.source_key} trailing-delimiter count changed: {trailing_delimiter_rows}"
             )
         if sentinel_counts != dict(contract.expected_sentinel_counts):
-            raise ValueError(
-                f"{contract.source_key} sentinel counts changed: {sentinel_counts}"
-            )
+            raise ValueError(f"{contract.source_key} sentinel counts changed: {sentinel_counts}")
 
     frame.attrs.update(
         {
@@ -400,21 +364,13 @@ def build_selected_daily_panel(
     """Combine only predeclared definitions; never silently mix FF3 and FF5."""
 
     if set(parsed) != set(SOURCE_CONTRACTS):
-        raise ValueError(
-            f"Expected sources {sorted(SOURCE_CONTRACTS)}, found {sorted(parsed)}"
-        )
+        raise ValueError(f"Expected sources {sorted(SOURCE_CONTRACTS)}, found {sorted(parsed)}")
     parts: list[pd.DataFrame] = []
     for factor, (source_key, column) in SELECTED_FACTOR_SOURCE.items():
         source = parsed[source_key]
         if column not in source.contract.selected_columns:
-            raise ValueError(
-                f"Unapproved factor source mapping: {factor} <- {source_key}.{column}"
-            )
-        part = (
-            source.frame[["Date", column]]
-            .rename(columns={column: factor})
-            .set_index("Date")
-        )
+            raise ValueError(f"Unapproved factor source mapping: {factor} <- {source_key}.{column}")
+        part = source.frame[["Date", column]].rename(columns={column: factor}).set_index("Date")
         parts.append(part)
     panel = pd.concat(parts, axis=1, join="outer").sort_index()
     panel.index.name = "Date"
@@ -430,9 +386,7 @@ def build_selected_daily_panel(
     return panel
 
 
-def safe_contract_evidence(
-    *, page: bytes, source_zips: Mapping[str, bytes]
-) -> dict[str, Any]:
+def safe_contract_evidence(*, page: bytes, source_zips: Mapping[str, bytes]) -> dict[str, Any]:
     page_identity = validate_data_library_page(page)
     if set(source_zips) != set(SOURCE_CONTRACTS):
         raise ValueError("Daily source ZIP set is incomplete or contains extras")
@@ -485,9 +439,7 @@ def safe_contract_evidence(
         "selected_panel_last_date": panel.index.max().strftime("%Y-%m-%d"),
         "daily_historical_vintage_archive_verified": False,
         "historical_revisions_possible": True,
-        "legacy_to_flat_file_change": (
-            "FIZ_TO_CIZ_BEGINNING_JANUARY_2025_RELEASE"
-        ),
+        "legacy_to_flat_file_change": ("FIZ_TO_CIZ_BEGINNING_JANUARY_2025_RELEASE"),
         "raw_uploaded": False,
         "row_level_data_uploaded": False,
         "monthly_aggregation_calculated": False,
@@ -509,12 +461,8 @@ def write_safe_contract_evidence(
     evidence = safe_contract_evidence(page=page, source_zips=source_zips)
     output_root = Path(output_dir)
     output_root.mkdir(parents=True, exist_ok=True)
-    evidence_bytes = (
-        json.dumps(evidence, indent=2, sort_keys=True) + "\n"
-    ).encode("utf-8")
-    (output_root / "safe-daily-factor-contract-evidence.json").write_bytes(
-        evidence_bytes
-    )
+    evidence_bytes = (json.dumps(evidence, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    (output_root / "safe-daily-factor-contract-evidence.json").write_bytes(evidence_bytes)
     summary = {
         "snapshot_id": SNAPSHOT_ID,
         "data_state": DATA_STATE,

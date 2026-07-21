@@ -50,9 +50,8 @@ class ArtifactProvenance(BaseModel):
             missing = [name for name, value in required.items() if value is None]
             if missing:
                 raise ValueError(f"Acquired artifacts require {missing}")
-        if (
-            self.access_status == SourceAccessStatus.IMMUTABLE_INGESTED
-            and (not self.license_snapshot_id or not self.immutable_storage_key)
+        if self.access_status == SourceAccessStatus.IMMUTABLE_INGESTED and (
+            not self.license_snapshot_id or not self.immutable_storage_key
         ):
             raise ValueError(
                 "Immutable ingestion requires license_snapshot_id and immutable_storage_key"

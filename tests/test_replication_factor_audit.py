@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+
 from hybrid_trader.replication.factor_audit import (
     annualized_metrics,
     compare_factor_vintages,

@@ -267,16 +267,12 @@ def factor_pair_audits(frame: pd.DataFrame) -> tuple[FactorPairAudit, ...]:
                 overlap_count=len(selected),
                 first_overlap_month=first_month,
                 last_overlap_month=last_month,
-                managed_standard_deviation_percent=round(
-                    managed_std, SAFE_METRIC_DECIMAL_PLACES
-                ),
+                managed_standard_deviation_percent=round(managed_std, SAFE_METRIC_DECIMAL_PLACES),
                 unmanaged_standard_deviation_percent=round(
                     unmanaged_std, SAFE_METRIC_DECIMAL_PLACES
                 ),
                 standard_deviation_ratio=round(ratio, SAFE_METRIC_DECIMAL_PLACES),
-                relative_standard_deviation_error=round(
-                    relative_error, SAFE_METRIC_DECIMAL_PLACES
-                ),
+                relative_standard_deviation_error=round(relative_error, SAFE_METRIC_DECIMAL_PLACES),
                 correlation=round(correlation, SAFE_METRIC_DECIMAL_PLACES),
                 volatility_match_within_tolerance=(
                     relative_error <= VOLATILITY_MATCH_RELATIVE_TOLERANCE
@@ -296,9 +292,7 @@ def official_factor_profile(frame: pd.DataFrame) -> OfficialFactorProfile:
         last_month=pd.Timestamp(frame["Date"].iloc[-1]).strftime("%Y-%m"),
         declared_frequency=str(frame.attrs.get("frequency", "MONTHLY")),
         declared_return_unit=str(frame.attrs.get("return_unit", "PERCENT")),
-        missing_counts={
-            column: int(frame[column].isna().sum()) for column in EXPECTED_HEADER[1:]
-        },
+        missing_counts={column: int(frame[column].isna().sum()) for column in EXPECTED_HEADER[1:]},
         factor_pair_audits=audits,
         all_factor_pairs_match_volatility_tolerance=all(
             audit.volatility_match_within_tolerance for audit in audits

@@ -28,7 +28,9 @@ def _find_date_column(frame: pd.DataFrame) -> str:
     raise ValueError("No recognized date column")
 
 
-def _as_decimal_returns(values: pd.Series, return_scale: Literal["decimal", "percent"]) -> pd.Series:
+def _as_decimal_returns(
+    values: pd.Series, return_scale: Literal["decimal", "percent"]
+) -> pd.Series:
     numeric = pd.to_numeric(values, errors="coerce")
     return numeric / 100.0 if return_scale == "percent" else numeric
 

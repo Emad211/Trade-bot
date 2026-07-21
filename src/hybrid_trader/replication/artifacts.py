@@ -77,9 +77,6 @@ def parse_month_column(values: pd.Series) -> pd.Series:
         examples = text.loc[parsed.isna()].head(5).tolist()
         raise ValueError(f"Unparseable date values: {examples}")
     month_end = (
-        parsed.dt.tz_convert(None)
-        .dt.to_period("M")
-        .dt.to_timestamp("M")
-        .dt.tz_localize("UTC")
+        parsed.dt.tz_convert(None).dt.to_period("M").dt.to_timestamp("M").dt.tz_localize("UTC")
     )
     return cast(pd.Series, month_end)

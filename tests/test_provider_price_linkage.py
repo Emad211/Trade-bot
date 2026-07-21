@@ -20,8 +20,7 @@ from hybrid_trader.replication.provider_price_linkage import (
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = (
-    ROOT
-    / "docs/research/edge-discovery/02-replication/"
+    ROOT / "docs/research/edge-discovery/02-replication/"
     "02-03-cftc-tff-2022-instrument-registry.csv.gz.b64"
 )
 
@@ -50,9 +49,7 @@ def test_candidate_coverage_is_exact_and_fail_closed() -> None:
 
 def test_aggregates_have_no_provider_or_parent_symbol() -> None:
     aggregates = [
-        row
-        for row in _rows()
-        if row["mapping_class"] == "NON_TRADABLE_CONSOLIDATED_AGGREGATE"
+        row for row in _rows() if row["mapping_class"] == "NON_TRADABLE_CONSOLIDATED_AGGREGATE"
     ]
     assert {row["cftc_contract_market_code"] for row in aggregates} == {
         "12460+",

@@ -29,15 +29,9 @@ def make_zip(member_name: str, text: str) -> bytes:
 def make_text(columns: tuple[str, ...], *, trailing: bool = False) -> str:
     suffix = "," if trailing else ""
     header = "," + ",".join(columns) + suffix
-    monthly_1 = "200001," + ",".join(
-        str(index + 1) for index in range(len(columns))
-    ) + suffix
-    monthly_2 = "200002," + ",".join(
-        str(index + 2) for index in range(len(columns))
-    ) + suffix
-    annual = "2000," + ",".join(
-        str(index + 3) for index in range(len(columns))
-    ) + suffix
+    monthly_1 = "200001," + ",".join(str(index + 1) for index in range(len(columns))) + suffix
+    monthly_2 = "200002," + ",".join(str(index + 2) for index in range(len(columns))) + suffix
+    annual = "2000," + ",".join(str(index + 3) for index in range(len(columns))) + suffix
     return (
         "preamble\n"
         + header

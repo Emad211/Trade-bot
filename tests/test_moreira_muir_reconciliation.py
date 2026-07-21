@@ -44,9 +44,7 @@ def test_source_mismatch_is_retained_not_hidden() -> None:
 def test_small_numerical_difference_is_exact_mismatch_but_within_tolerance() -> None:
     author, current = frames()
     current.loc[pd.Timestamp("2000-02-01"), "HML"] += 1e-13
-    result = {
-        item.factor: item for item in reconcile_unmanaged_factors(author, current)
-    }["HML"]
+    result = {item.factor: item for item in reconcile_unmanaged_factors(author, current)}["HML"]
     assert result.exact_mismatch_count == 1
     assert result.numerical_tolerance_mismatch_count == 0
     assert result.maximum_absolute_difference_percent == 0.0
@@ -57,9 +55,7 @@ def test_missing_pair_values_use_common_nonmissing_interval() -> None:
     author, current = frames()
     author.loc[0, "RMW"] = float("nan")
     current.loc[pd.Timestamp("2000-04-01"), "RMW"] = float("nan")
-    result = {
-        item.factor: item for item in reconcile_unmanaged_factors(author, current)
-    }["RMW"]
+    result = {item.factor: item for item in reconcile_unmanaged_factors(author, current)}["RMW"]
     assert result.overlap_count == 2
     assert result.first_overlap_month == "2000-02"
     assert result.last_overlap_month == "2000-03"

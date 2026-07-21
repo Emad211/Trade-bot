@@ -126,25 +126,15 @@ def _as_nonnegative_int(row: Mapping[str, str], field: str, *, row_number: int) 
             f"Row {row_number}: invalid integer in {field}: {value!r}"
         ) from exc
     if result < 0:
-        raise CFTCHistoricalParseError(
-            f"Row {row_number}: negative integer in {field}: {result}"
-        )
+        raise CFTCHistoricalParseError(f"Row {row_number}: negative integer in {field}: {result}")
     return result
 
 
-def _accounting_differences(
-    row: Mapping[str, str], *, row_number: int
-) -> tuple[int, int, bool]:
+def _accounting_differences(row: Mapping[str, str], *, row_number: int) -> tuple[int, int, bool]:
     open_interest = _as_nonnegative_int(row, "Open_Interest_All", row_number=row_number)
-    reported_long = _as_nonnegative_int(
-        row, "Tot_Rept_Positions_Long_All", row_number=row_number
-    )
-    nonreported_long = _as_nonnegative_int(
-        row, "NonRept_Positions_Long_All", row_number=row_number
-    )
-    reported_short = _as_nonnegative_int(
-        row, "Tot_Rept_Positions_Short_All", row_number=row_number
-    )
+    reported_long = _as_nonnegative_int(row, "Tot_Rept_Positions_Long_All", row_number=row_number)
+    nonreported_long = _as_nonnegative_int(row, "NonRept_Positions_Long_All", row_number=row_number)
+    reported_short = _as_nonnegative_int(row, "Tot_Rept_Positions_Short_All", row_number=row_number)
     nonreported_short = _as_nonnegative_int(
         row, "NonRept_Positions_Short_All", row_number=row_number
     )
@@ -169,8 +159,7 @@ def extract_and_verify_member(archive_path: str | Path) -> bytes:
     actual_archive_hash = _sha256(raw_zip)
     if actual_archive_hash != SOURCE_ARCHIVE_SHA256:
         raise CFTCHistoricalParseError(
-            "Archive SHA-256 does not match the frozen acquired source: "
-            f"{actual_archive_hash}"
+            f"Archive SHA-256 does not match the frozen acquired source: {actual_archive_hash}"
         )
     try:
         archive = zipfile.ZipFile(io.BytesIO(raw_zip))
@@ -187,8 +176,7 @@ def extract_and_verify_member(archive_path: str | Path) -> bytes:
     actual_member_hash = _sha256(member_bytes)
     if actual_member_hash != SOURCE_MEMBER_SHA256:
         raise CFTCHistoricalParseError(
-            "Text member SHA-256 does not match the frozen acquired source: "
-            f"{actual_member_hash}"
+            f"Text member SHA-256 does not match the frozen acquired source: {actual_member_hash}"
         )
     return member_bytes
 
@@ -216,9 +204,7 @@ def parse_member_bytes(member_bytes: bytes) -> ParsedAnnualDataset:
         raise CFTCHistoricalParseError(f"Schema fingerprint changed: {fingerprint}")
     missing_required = REQUIRED_FIELDS - set(fieldnames)
     if missing_required:
-        raise CFTCHistoricalParseError(
-            f"Schema lacks required fields: {sorted(missing_required)}"
-        )
+        raise CFTCHistoricalParseError(f"Schema lacks required fields: {sorted(missing_required)}")
 
     rows: list[dict[str, str]] = []
     report_dates: set[date] = set()
@@ -231,13 +217,9 @@ def parse_member_bytes(member_bytes: bytes) -> ParsedAnnualDataset:
 
     for row_number, raw_row in enumerate(reader, start=2):
         if None in raw_row:
-            raise CFTCHistoricalParseError(
-                f"Row {row_number}: unexpected extra CSV fields"
-            )
+            raise CFTCHistoricalParseError(f"Row {row_number}: unexpected extra CSV fields")
         if any(value is None for value in raw_row.values()):
-            raise CFTCHistoricalParseError(
-                f"Row {row_number}: missing trailing CSV fields"
-            )
+            raise CFTCHistoricalParseError(f"Row {row_number}: missing trailing CSV fields")
         row = {str(key): cast(str, value) for key, value in raw_row.items()}
         report_date = _parse_iso_date(
             row["Report_Date_as_YYYY-MM-DD"],
@@ -249,9 +231,7 @@ def parse_member_bytes(member_bytes: bytes) -> ParsedAnnualDataset:
             raise CFTCHistoricalParseError(f"Row {row_number}: date encodings disagree")
         contract_code = row["CFTC_Contract_Market_Code"].strip()
         if not contract_code:
-            raise CFTCHistoricalParseError(
-                f"Row {row_number}: empty CFTC contract market code"
-            )
+            raise CFTCHistoricalParseError(f"Row {row_number}: empty CFTC contract market code")
         key = (report_date, contract_code)
         if key in keys:
             raise CFTCHistoricalParseError(
@@ -261,9 +241,7 @@ def parse_member_bytes(member_bytes: bytes) -> ParsedAnnualDataset:
         report_dates.add(report_date)
 
         if row["FutOnly_or_Combined"].strip() != "FutOnly":
-            raise CFTCHistoricalParseError(
-                f"Row {row_number}: row is not Futures Only"
-            )
+            raise CFTCHistoricalParseError(f"Row {row_number}: row is not Futures Only")
         futures_only_rows += 1
         long_difference, short_difference, material_failure = _accounting_differences(
             row, row_number=row_number
@@ -277,21 +255,15 @@ def parse_member_bytes(member_bytes: bytes) -> ParsedAnnualDataset:
         rows.append(row)
 
     if len(rows) != EXPECTED_ROW_COUNT:
-        raise CFTCHistoricalParseError(
-            f"Expected {EXPECTED_ROW_COUNT} rows, found {len(rows)}"
-        )
+        raise CFTCHistoricalParseError(f"Expected {EXPECTED_ROW_COUNT} rows, found {len(rows)}")
     if len(report_dates) != EXPECTED_REPORT_DATE_COUNT:
         raise CFTCHistoricalParseError(
             f"Expected {EXPECTED_REPORT_DATE_COUNT} report dates, found {len(report_dates)}"
         )
     if min(report_dates) != EXPECTED_MIN_REPORT_DATE:
-        raise CFTCHistoricalParseError(
-            f"Unexpected first report date: {min(report_dates)}"
-        )
+        raise CFTCHistoricalParseError(f"Unexpected first report date: {min(report_dates)}")
     if max(report_dates) != EXPECTED_MAX_REPORT_DATE:
-        raise CFTCHistoricalParseError(
-            f"Unexpected last report date: {max(report_dates)}"
-        )
+        raise CFTCHistoricalParseError(f"Unexpected last report date: {max(report_dates)}")
     if material_failures:
         raise CFTCHistoricalParseError(
             f"Material open-interest accounting failures: {material_failures}"
@@ -403,9 +375,7 @@ def write_pilot_derivation(
     pilot_bytes, row_count, long_failures, short_failures = canonical_pilot_csv(
         dataset, report_date=report_date
     )
-    pilot_rows = list(
-        csv.DictReader(io.StringIO(pilot_bytes.decode("utf-8"), newline=""))
-    )
+    pilot_rows = list(csv.DictReader(io.StringIO(pilot_bytes.decode("utf-8"), newline="")))
     codes = [row["CFTC_Contract_Market_Code"].strip() for row in pilot_rows]
     pilot_profile = PilotProfile(
         report_date=report_date.isoformat(),
@@ -424,15 +394,11 @@ def write_pilot_derivation(
     _atomic_write(output_dir / pilot_filename, pilot_bytes)
     _atomic_write(
         output_dir / "annual-profile.json",
-        (json.dumps(asdict(dataset.profile), indent=2, sort_keys=True) + "\n").encode(
-            "utf-8"
-        ),
+        (json.dumps(asdict(dataset.profile), indent=2, sort_keys=True) + "\n").encode("utf-8"),
     )
     _atomic_write(
         output_dir / "pilot-profile.json",
-        (json.dumps(asdict(pilot_profile), indent=2, sort_keys=True) + "\n").encode(
-            "utf-8"
-        ),
+        (json.dumps(asdict(pilot_profile), indent=2, sort_keys=True) + "\n").encode("utf-8"),
     )
     manifest: dict[str, Any] = {
         "schema_version": "1.0",
@@ -469,9 +435,7 @@ def derive_pilot(
 
     member_bytes = extract_and_verify_member(archive_path)
     dataset = parse_member_bytes(member_bytes)
-    return write_pilot_derivation(
-        Path(output_dir), dataset=dataset, report_date=report_date
-    )
+    return write_pilot_derivation(Path(output_dir), dataset=dataset, report_date=report_date)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -480,9 +444,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--report-date", type=date.fromisoformat, default=DEFAULT_PILOT_DATE)
     args = parser.parse_args(argv)
-    manifest = derive_pilot(
-        args.archive, args.output_dir, report_date=args.report_date
-    )
+    manifest = derive_pilot(args.archive, args.output_dir, report_date=args.report_date)
     print(json.dumps(manifest, indent=2, sort_keys=True))
     return 0
 

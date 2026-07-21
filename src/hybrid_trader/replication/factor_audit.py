@@ -131,11 +131,15 @@ def volatility_managed_returns(
         raise ValueError("max_leverage must be positive")
 
     clean = pd.to_numeric(returns, errors="coerce").astype(float)
-    lagged_variance = clean.rolling(variance_lookback, min_periods=variance_lookback).var(ddof=1).shift(1)
+    lagged_variance = (
+        clean.rolling(variance_lookback, min_periods=variance_lookback).var(ddof=1).shift(1)
+    )
     raw_weight = 1.0 / lagged_variance.replace(0.0, np.nan)
-    calibration = pd.DataFrame({"return": clean, "raw_weight": raw_weight}).iloc[
-        :calibration_observations
-    ].dropna()
+    calibration = (
+        pd.DataFrame({"return": clean, "raw_weight": raw_weight})
+        .iloc[:calibration_observations]
+        .dropna()
+    )
     if len(calibration) < 2:
         raise ValueError("Insufficient calibration observations")
 

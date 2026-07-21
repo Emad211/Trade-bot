@@ -18,20 +18,16 @@ from zoneinfo import ZoneInfo
 EASTERN = ZoneInfo("America/New_York")
 
 CFTC_RELEASE_RULE_SOURCE = (
-    "https://www.cftc.gov/MarketReports/CommitmentsofTraders/"
-    "AbouttheCOTReports/index.htm"
+    "https://www.cftc.gov/MarketReports/CommitmentsofTraders/AbouttheCOTReports/index.htm"
 )
 CFTC_HISTORICAL_SPECIAL_ANNOUNCEMENTS_SOURCE = (
     "https://www.cftc.gov/MarketReports/CommitmentsofTraders/"
     "HistoricalSpecialAnnouncements/index.htm"
 )
 CFTC_HISTORICAL_VIEWABLE_SOURCE = (
-    "https://www.cftc.gov/MarketReports/CommitmentsofTraders/"
-    "HistoricalViewable/index.htm"
+    "https://www.cftc.gov/MarketReports/CommitmentsofTraders/HistoricalViewable/index.htm"
 )
-OPM_2022_HOLIDAY_SOURCE = (
-    "https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/"
-)
+OPM_2022_HOLIDAY_SOURCE = "https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/"
 
 FEDERAL_HOLIDAYS_2022: dict[date, str] = {
     date(2021, 12, 31): "New Year's Day (observed)",
@@ -118,10 +114,7 @@ def next_federal_business_day(value: date) -> date:
 
 def _historical_viewable_url(report_date: date) -> str:
     suffix = report_date.strftime("%m%d%y")
-    return (
-        "https://www.cftc.gov/MarketReports/CommitmentsofTraders/"
-        f"HistoricalViewable/cot{suffix}"
-    )
+    return f"https://www.cftc.gov/MarketReports/CommitmentsofTraders/HistoricalViewable/cot{suffix}"
 
 
 def _iso_utc(value: datetime) -> str:
@@ -157,9 +150,7 @@ def build_release_ledger(
         scheduled_date = processing_days[-1]
         normal_friday = report_date + timedelta(days=3)
         window_holidays = sorted(
-            holiday
-            for holiday in FEDERAL_HOLIDAYS_2022
-            if report_date < holiday <= scheduled_date
+            holiday for holiday in FEDERAL_HOLIDAYS_2022 if report_date < holiday <= scheduled_date
         )
         release_eastern = datetime.combine(
             scheduled_date,
@@ -199,9 +190,7 @@ def build_release_ledger(
         )
 
     delayed = {
-        date.fromisoformat(row.report_as_of_date)
-        for row in rows
-        if row.federal_holiday_delay
+        date.fromisoformat(row.report_as_of_date) for row in rows if row.federal_holiday_delay
     }
     if delayed != EXPECTED_2022_DELAYED_REPORTS:
         raise CFTCReleaseLedgerError(
@@ -274,9 +263,7 @@ def write_release_ledger(
     ledger_bytes = release_ledger_csv(rows)
     ledger_filename = "cftc_tff_futures_only_2022_release_ledger.csv"
     ledger_sha256 = hashlib.sha256(ledger_bytes).hexdigest()
-    delayed_dates = tuple(
-        row.report_as_of_date for row in rows if row.federal_holiday_delay
-    )
+    delayed_dates = tuple(row.report_as_of_date for row in rows if row.federal_holiday_delay)
     standard_rows = sum("-05:00" in row.scheduled_release_time_eastern for row in rows)
     daylight_rows = sum("-04:00" in row.scheduled_release_time_eastern for row in rows)
     profile = ReleaseLedgerProfile(

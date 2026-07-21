@@ -20,8 +20,14 @@ from hybrid_trader.replication.cftc_instrument_mapping import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-MAP_CONTRACT_B64 = ROOT / "docs/research/edge-discovery/02-replication/02-03-cftc-tff-2022-instrument-map-contract.csv.gz.b64"
-SOURCE_REGISTRY = ROOT / "docs/research/edge-discovery/02-replication/02-03-cftc-tff-instrument-mapping-sources.json"
+MAP_CONTRACT_B64 = (
+    ROOT
+    / "docs/research/edge-discovery/02-replication/02-03-cftc-tff-2022-instrument-map-contract.csv.gz.b64"
+)
+SOURCE_REGISTRY = (
+    ROOT
+    / "docs/research/edge-discovery/02-replication/02-03-cftc-tff-instrument-mapping-sources.json"
+)
 
 
 def _mapping_contract_path() -> Path:
@@ -59,7 +65,9 @@ def test_complete_mapping_coverage() -> None:
 def test_aggregates_never_receive_price_roots() -> None:
     aggregates = [row for row in _rows() if row["cftc_contract_market_code"].endswith("+")]
     assert {row["cftc_contract_market_code"] for row in aggregates} == {
-        "12460+", "13874+", "20974+"
+        "12460+",
+        "13874+",
+        "20974+",
     }
     assert all(row["mapping_class"] == "NON_TRADABLE_CONSOLIDATED_AGGREGATE" for row in aggregates)
     assert all(not row["exchange_product_code"] for row in aggregates)

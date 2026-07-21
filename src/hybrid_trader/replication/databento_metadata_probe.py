@@ -38,7 +38,9 @@ def sha(data: bytes) -> str:
 
 
 def canonical(value: Any) -> bytes:
-    return (json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n").encode()
+    return (
+        json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n"
+    ).encode()
 
 
 def jsonable(value: Any) -> Any:
@@ -129,7 +131,9 @@ def build_request(rows: Sequence[Mapping[str, str]]) -> dict[str, Any]:
     }
 
 
-def operation(name: str, request: dict[str, Any], call: Callable[[], Any], secret: str) -> dict[str, Any]:
+def operation(
+    name: str, request: dict[str, Any], call: Callable[[], Any], secret: str
+) -> dict[str, Any]:
     request = cast(dict[str, Any], jsonable(request))
     try:
         response = jsonable(call())
@@ -264,7 +268,9 @@ def blocked(request: Mapping[str, Any], requested_at: datetime, status: str) -> 
     }
 
 
-def run_probe(client: Any, request: Mapping[str, Any], key: str, version: str, at: datetime) -> dict[str, Any]:
+def run_probe(
+    client: Any, request: Mapping[str, Any], key: str, version: str, at: datetime
+) -> dict[str, Any]:
     ops: list[dict[str, Any]] = []
     list_op = operation(
         "metadata.list_datasets",
@@ -275,7 +281,11 @@ def run_probe(client: Any, request: Mapping[str, Any], key: str, version: str, a
     ops.append(list_op)
     if not list_op["success"] or not isinstance(list_op["response"], list):
         evidence = blocked(request, at, "AUTHENTICATION_OR_LIST_DATASETS_FAILURE")
-        evidence["client"] = {"package": "databento", "version": version, "python": platform.python_version()}
+        evidence["client"] = {
+            "package": "databento",
+            "version": version,
+            "python": platform.python_version(),
+        }
         evidence["operations"] = ops
         return evidence
     entitled = {str(item) for item in list_op["response"]}
@@ -331,7 +341,8 @@ def run_probe(client: Any, request: Mapping[str, Any], key: str, version: str, a
         dataset_results[dataset] = {
             "entitled": True,
             "required_schemas_available": set(SCHEMAS).issubset(schemas),
-            "range_covers_probe": dataset_ops[1]["success"] and range_pass(dataset_ops[1]["response"]),
+            "range_covers_probe": dataset_ops[1]["success"]
+            and range_pass(dataset_ops[1]["response"]),
             "condition_gate_passed": dataset_ops[2]["success"] and condition_ok,
             "condition_counts": condition_counts,
             "definition_fields_available": fields["definition"]["success"],
@@ -380,14 +391,44 @@ def run_probe(client: Any, request: Mapping[str, Any], key: str, version: str, a
         )
         def_cost = operation(
             f"metadata.get_cost:definition:{parent}",
-            {"dataset": dataset, "symbols": [parent], "schema": "definition", "stype_in": "parent", "start": START, "end": END},
-            partial(client.metadata.get_cost, dataset=dataset, symbols=[parent], schema="definition", stype_in="parent", start=START, end=END),
+            {
+                "dataset": dataset,
+                "symbols": [parent],
+                "schema": "definition",
+                "stype_in": "parent",
+                "start": START,
+                "end": END,
+            },
+            partial(
+                client.metadata.get_cost,
+                dataset=dataset,
+                symbols=[parent],
+                schema="definition",
+                stype_in="parent",
+                start=START,
+                end=END,
+            ),
             key,
         )
         stat_cost = operation(
             f"metadata.get_cost:statistics:{parent}",
-            {"dataset": dataset, "symbols": [parent], "schema": "statistics", "stype_in": "parent", "start": STAT_START, "end": STAT_END},
-            partial(client.metadata.get_cost, dataset=dataset, symbols=[parent], schema="statistics", stype_in="parent", start=STAT_START, end=STAT_END),
+            {
+                "dataset": dataset,
+                "symbols": [parent],
+                "schema": "statistics",
+                "stype_in": "parent",
+                "start": STAT_START,
+                "end": STAT_END,
+            },
+            partial(
+                client.metadata.get_cost,
+                dataset=dataset,
+                symbols=[parent],
+                schema="statistics",
+                stype_in="parent",
+                start=STAT_START,
+                end=STAT_END,
+            ),
             key,
         )
         probe_ops = [resolve, def_cost, stat_cost]
@@ -448,8 +489,13 @@ def run_probe(client: Any, request: Mapping[str, Any], key: str, version: str, a
         "provider_accepted": False,
         "authenticated_metadata_probe_executed": True,
         "metadata_gate_all_representative_roots_passed": all_passed,
-        "next_gate": "EXPLICIT_MINIMAL_DEFINITION_AND_SETTLEMENT_COST_APPROVAL" if all_passed else "REJECT_OR_REMEDIATE_PROVIDER_CANDIDATE",
-        "cost_quote_acquired": all(item["definition_cost_usd"] is not None and item["statistics_cost_usd"] is not None for item in probe_results),
+        "next_gate": "EXPLICIT_MINIMAL_DEFINITION_AND_SETTLEMENT_COST_APPROVAL"
+        if all_passed
+        else "REJECT_OR_REMEDIATE_PROVIDER_CANDIDATE",
+        "cost_quote_acquired": all(
+            item["definition_cost_usd"] is not None and item["statistics_cost_usd"] is not None
+            for item in probe_results
+        ),
         "license_snapshot_acquired": False,
         "definition_records_acquired": False,
         "settlement_records_acquired": False,
@@ -461,7 +507,9 @@ def run_probe(client: Any, request: Mapping[str, Any], key: str, version: str, a
     }
 
 
-def write_bundle(output_dir: str | Path, request: Mapping[str, Any], evidence: Mapping[str, Any]) -> dict[str, Any]:
+def write_bundle(
+    output_dir: str | Path, request: Mapping[str, Any], evidence: Mapping[str, Any]
+) -> dict[str, Any]:
     root = Path(output_dir)
     files = {
         "probe-request.json": canonical(jsonable(request)),
@@ -487,7 +535,10 @@ def write_bundle(output_dir: str | Path, request: Mapping[str, Any], evidence: M
     manifest = {
         "schema_version": "1.0",
         "probe_id": PROBE_ID,
-        "files": {name: {"byte_count": len(content), "sha256": sha(content)} for name, content in sorted(files.items())},
+        "files": {
+            name: {"byte_count": len(content), "sha256": sha(content)}
+            for name, content in sorted(files.items())
+        },
         "provider_accepted": False,
         "purchase_authorized": False,
         "time_series_download_executed": False,

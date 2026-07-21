@@ -298,10 +298,7 @@ def validate_funding(
         raise PilotError("unexpected funding interval")
     if expected == FUNDINGS and (ts[0] != START or ts[-1] != END - 28_800_000):
         raise PilotError("funding span failure")
-    grid_jitters = [
-        timestamp - (START + index * 28_800_000)
-        for index, timestamp in enumerate(ts)
-    ]
+    grid_jitters = [timestamp - (START + index * 28_800_000) for index, timestamp in enumerate(ts)]
     material = [jitter for jitter in grid_jitters if abs(jitter) > 3]
     if material:
         raise PilotError(f"material funding grid jitter {material[:5]}")

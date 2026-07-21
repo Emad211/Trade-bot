@@ -21,9 +21,7 @@ REPORT_FAMILY = "TFF_FUTURES_ONLY"
 YEAR = 2022
 OFFICIAL_URL = "https://www.cftc.gov/files/dea/history/fut_fin_txt_2022.zip"
 RAW_FILENAME = "fut_fin_txt_2022.zip"
-DEFAULT_USER_AGENT = (
-    "Emad211-Trade-bot-replication/1.0 (+https://github.com/Emad211/Trade-bot)"
-)
+DEFAULT_USER_AGENT = "Emad211-Trade-bot-replication/1.0 (+https://github.com/Emad211/Trade-bot)"
 MAX_ARCHIVE_BYTES = 100 * 1024 * 1024
 MAX_UNCOMPRESSED_BYTES = 500 * 1024 * 1024
 

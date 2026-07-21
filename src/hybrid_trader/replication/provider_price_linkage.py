@@ -158,9 +158,7 @@ def build_provider_candidate_rows(
                 if dataset
                 else "NOT_APPLICABLE",
                 "definition_evidence_status": "NOT_ACQUIRED" if dataset else "NOT_APPLICABLE",
-                "settlement_statistics_status": "NOT_ACQUIRED"
-                if dataset
-                else "NOT_APPLICABLE",
+                "settlement_statistics_status": "NOT_ACQUIRED" if dataset else "NOT_APPLICABLE",
                 "cost_quote_status": "NOT_REQUESTED" if dataset else "NOT_APPLICABLE",
                 "license_snapshot_status": "NOT_CAPTURED" if dataset else "NOT_APPLICABLE",
                 "provider_contract_id": "",
@@ -177,9 +175,7 @@ def build_provider_candidate_rows(
 def provider_plan_profile(rows: Sequence[Mapping[str, str]]) -> ProviderPlanProfile:
     classes = Counter(row["mapping_class"] for row in rows)
     datasets = Counter(
-        row["dataset_id_candidate"]
-        for row in rows
-        if row["mapping_class"] == ORDINARY_CLASS
+        row["dataset_id_candidate"] for row in rows if row["mapping_class"] == ORDINARY_CLASS
     )
     return ProviderPlanProfile(
         plan_version=PROVIDER_PLAN_VERSION,
@@ -192,9 +188,7 @@ def provider_plan_profile(rows: Sequence[Mapping[str, str]]) -> ProviderPlanProf
         aggregate_rows=classes[AGGREGATE_CLASS],
         later_delisted_rows=classes["HISTORICAL_LATER_DELISTED_ROOT_VERIFIED"],
         nonstandard_rows=classes["NON_STANDARD_EXECUTION_PRODUCT"],
-        technical_symbol_pending_rows=classes[
-            "PRODUCT_IDENTITY_VERIFIED_TECHNICAL_SYMBOL_PENDING"
-        ],
+        technical_symbol_pending_rows=classes["PRODUCT_IDENTITY_VERIFIED_TECHNICAL_SYMBOL_PENDING"],
         price_linkage_authorized_rows=sum(
             row["price_linkage_authorized"] == "true" for row in rows
         ),

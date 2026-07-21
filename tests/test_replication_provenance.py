@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
+
 from hybrid_trader.replication.artifacts import sha256_file
 from hybrid_trader.replication.provenance import ArtifactProvenance, SourceAccessStatus
 from hybrid_trader.replication.runner import run_aqr_vintage_audit
@@ -12,9 +13,7 @@ from hybrid_trader.replication.verdicts import ReplicationStatus
 
 
 def _write_factor(path: Path, values: list[float]) -> None:
-    pd.DataFrame({"date": [202001, 202002, 202003], "tsmom": values}).to_csv(
-        path, index=False
-    )
+    pd.DataFrame({"date": [202001, 202002, 202003], "tsmom": values}).to_csv(path, index=False)
 
 
 def _immutable_provenance(path: Path, source_id: str) -> ArtifactProvenance:

@@ -187,13 +187,9 @@ def build_registry_rows(
             "mapping_class": mapping["mapping_class"].strip(),
             "tradability": mapping["tradability"].strip(),
             "aggregate_components": mapping["aggregate_components"].strip(),
-            "cftc_reporting_commodity_code": mapping[
-                "cftc_reporting_commodity_code"
-            ].strip(),
+            "cftc_reporting_commodity_code": mapping["cftc_reporting_commodity_code"].strip(),
             "exchange_product_code": mapping["exchange_product_code"].strip(),
-            "exchange_order_entry_symbol": mapping[
-                "exchange_order_entry_symbol"
-            ].strip(),
+            "exchange_order_entry_symbol": mapping["exchange_order_entry_symbol"].strip(),
             "exchange_security_group": mapping["exchange_security_group"].strip(),
             "price_quote_currency": mapping["price_quote_currency"].strip(),
             "valid_on_as_of_date": "true",
@@ -251,9 +247,9 @@ def write_registry_bundle(
     linkage_counts: dict[str, int] = {}
     for row in rows:
         class_counts[row["mapping_class"]] = class_counts.get(row["mapping_class"], 0) + 1
-        linkage_counts[row["price_linkage_status"]] = linkage_counts.get(
-            row["price_linkage_status"], 0
-        ) + 1
+        linkage_counts[row["price_linkage_status"]] = (
+            linkage_counts.get(row["price_linkage_status"], 0) + 1
+        )
     manifest: dict[str, Any] = {
         "schema_version": "1.0",
         "registry_version": REGISTRY_VERSION,
@@ -265,9 +261,7 @@ def write_registry_bundle(
         "registry_byte_count": len(registry_bytes),
         "registry_sha256": _sha256(registry_bytes),
         "row_count": len(rows),
-        "unique_contract_market_codes": len(
-            {row["cftc_contract_market_code"] for row in rows}
-        ),
+        "unique_contract_market_codes": len({row["cftc_contract_market_code"] for row in rows}),
         "mapping_class_counts": dict(sorted(class_counts.items())),
         "price_linkage_status_counts": dict(sorted(linkage_counts.items())),
         "source_registry": source_registry,

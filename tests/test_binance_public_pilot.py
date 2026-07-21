@@ -57,9 +57,7 @@ def fcsv(n: int = 2) -> bytes:
 
 
 def spec(kind: str, n: int, name: str = "x") -> bp.Spec:
-    return bp.Spec(
-        name, "TEST", kind, "1h" if kind == "KLINE" else None, f"{name}.zip", n, kind
-    )
+    return bp.Spec(name, "TEST", kind, "1h" if kind == "KLINE" else None, f"{name}.zip", n, kind)
 
 
 def test_checksum_filename_binding() -> None:

@@ -29,12 +29,8 @@ def make_zip(member_name: str, text: str) -> bytes:
 def make_text(columns: tuple[str, ...], *, trailing: bool = False) -> str:
     suffix = "," if trailing else ""
     header = "," + ",".join(columns) + suffix
-    row1 = "20000103," + ",".join(
-        str(index + 1) for index in range(len(columns))
-    ) + suffix
-    row2 = "20000104," + ",".join(
-        str(index + 2) for index in range(len(columns))
-    ) + suffix
+    row1 = "20000103," + ",".join(str(index + 1) for index in range(len(columns))) + suffix
+    row2 = "20000104," + ",".join(str(index + 2) for index in range(len(columns))) + suffix
     return "preamble\n" + header + "\n" + row1 + "\n" + row2 + "\nfooter\n"
 
 
@@ -116,9 +112,7 @@ def test_multiple_members_are_rejected() -> None:
     original = SOURCE_CONTRACTS["ff3"]
     output = io.BytesIO()
     with zipfile.ZipFile(output, "w") as archive:
-        archive.writestr(
-            original.member_filename, make_text(original.expected_columns)
-        )
+        archive.writestr(original.member_filename, make_text(original.expected_columns))
         archive.writestr("extra.csv", "x")
     with pytest.raises(ValueError, match="Expected one regular member"):
         parse_daily_zip(output.getvalue(), original, require_exact_snapshot=False)
@@ -126,9 +120,7 @@ def test_multiple_members_are_rejected() -> None:
 
 def test_changed_exact_snapshot_is_rejected() -> None:
     contract, zip_bytes = synthetic_contract("ff3")
-    with pytest.raises(
-        ValueError, match=r"ZIP byte count changed|ZIP SHA-256 changed"
-    ):
+    with pytest.raises(ValueError, match=r"ZIP byte count changed|ZIP SHA-256 changed"):
         parse_daily_zip(zip_bytes + b"x", contract)
 
 
@@ -171,9 +163,7 @@ def test_data_library_warning_contract() -> None:
     identity = validate_data_library_page(page, require_exact_snapshot=False)
     assert identity["byte_count"] == len(page)
     with pytest.raises(ValueError, match="revision warning changed"):
-        validate_data_library_page(
-            b"Legacy Format (FIZ)", require_exact_snapshot=False
-        )
+        validate_data_library_page(b"Legacy Format (FIZ)", require_exact_snapshot=False)
 
 
 def test_predeclared_factor_source_mapping() -> None:

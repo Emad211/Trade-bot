@@ -20,9 +20,7 @@ DATASET_ID = "gpe5-46if"
 RESOURCE_URL = f"https://publicreporting.cftc.gov/resource/{DATASET_ID}.json"
 DEFAULT_REPORT_DATE = date(2022, 9, 13)
 DEFAULT_LIMIT = 5000
-DEFAULT_USER_AGENT = (
-    "Emad211-Trade-bot-replication/1.0 (+https://github.com/Emad211/Trade-bot)"
-)
+DEFAULT_USER_AGENT = "Emad211-Trade-bot-replication/1.0 (+https://github.com/Emad211/Trade-bot)"
 RAW_FILENAME = "tff_futures_only_2022-09-13.raw.json"
 CANONICAL_FILENAME = "tff_futures_only_2022-09-13.canonical.json"
 
@@ -148,12 +146,13 @@ def canonicalize_rows(raw_bytes: bytes) -> bytes:
     rows = _decode_rows(raw_bytes)
     canonical_rows = sorted(rows, key=lambda row: str(row.get("id", "")))
     return (
-        json.dumps(canonical_rows, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
-        + "\n"
+        json.dumps(canonical_rows, ensure_ascii=False, separators=(",", ":"), sort_keys=True) + "\n"
     ).encode("utf-8")
 
 
-def parse_and_validate(raw_bytes: bytes, *, report_date: date = DEFAULT_REPORT_DATE) -> PilotValidation:
+def parse_and_validate(
+    raw_bytes: bytes, *, report_date: date = DEFAULT_REPORT_DATE
+) -> PilotValidation:
     """Parse and fail closed on identity, date, schema, and accounting defects."""
 
     rows = _decode_rows(raw_bytes)
@@ -174,8 +173,7 @@ def parse_and_validate(raw_bytes: bytes, *, report_date: date = DEFAULT_REPORT_D
 
         if row["report_date_as_yyyy_mm_dd"] != expected_timestamp:
             raise CFTCPilotError(
-                f"Row {identifier} has unexpected report date "
-                f"{row['report_date_as_yyyy_mm_dd']!r}"
+                f"Row {identifier} has unexpected report date {row['report_date_as_yyyy_mm_dd']!r}"
             )
         if row["futonly_or_combined"] != "FutOnly":
             raise CFTCPilotError(f"Row {identifier} is not Futures Only")

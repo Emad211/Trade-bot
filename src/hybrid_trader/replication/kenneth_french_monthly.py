@@ -238,9 +238,7 @@ def _read_single_safe_member(
         if member.flag_bits & 1:
             raise ValueError(f"Encrypted ZIP member: {member.filename}")
         if member.filename != contract.member_filename:
-            raise ValueError(
-                f"Unexpected member name for {contract.source_key}: {member.filename}"
-            )
+            raise ValueError(f"Unexpected member name for {contract.source_key}: {member.filename}")
         if member.file_size <= 0 or member.file_size > 100_000_000:
             raise ValueError(f"Unsafe member size for {contract.source_key}")
         payload = archive.read(member)
@@ -285,27 +283,19 @@ def parse_monthly_zip(
 
     if require_exact_snapshot:
         if len(zip_bytes) != contract.zip_byte_count:
-            raise ValueError(
-                f"{contract.source_key} ZIP byte count changed: {len(zip_bytes)}"
-            )
+            raise ValueError(f"{contract.source_key} ZIP byte count changed: {len(zip_bytes)}")
         zip_digest = sha256_bytes(zip_bytes)
         if zip_digest != contract.zip_sha256:
             raise ValueError(f"{contract.source_key} ZIP SHA-256 changed: {zip_digest}")
     payload, member_crc32 = _read_single_safe_member(zip_bytes, contract)
     if require_exact_snapshot:
         if len(payload) != contract.member_byte_count:
-            raise ValueError(
-                f"{contract.source_key} member byte count changed: {len(payload)}"
-            )
+            raise ValueError(f"{contract.source_key} member byte count changed: {len(payload)}")
         member_digest = sha256_bytes(payload)
         if member_digest != contract.member_sha256:
-            raise ValueError(
-                f"{contract.source_key} member SHA-256 changed: {member_digest}"
-            )
+            raise ValueError(f"{contract.source_key} member SHA-256 changed: {member_digest}")
         if member_crc32 != contract.member_crc32:
-            raise ValueError(
-                f"{contract.source_key} member CRC changed: {member_crc32}"
-            )
+            raise ValueError(f"{contract.source_key} member CRC changed: {member_crc32}")
 
     try:
         text = payload.decode("utf-8-sig")
@@ -326,9 +316,7 @@ def parse_monthly_zip(
     if header_index is None or header is None:
         raise ValueError(f"Expected monthly header not found for {contract.source_key}")
     if require_exact_snapshot and header_index != contract.expected_header_index:
-        raise ValueError(
-            f"{contract.source_key} header position changed: {header_index}"
-        )
+        raise ValueError(f"{contract.source_key} header position changed: {header_index}")
 
     monthly_rows: list[list[str]] = []
     annual_rows: list[list[str]] = []
@@ -344,13 +332,9 @@ def parse_monthly_zip(
             continue
         if MONTH_PATTERN.fullmatch(row[0]):
             if annual_started:
-                raise ValueError(
-                    f"Monthly row after annual block for {contract.source_key}"
-                )
+                raise ValueError(f"Monthly row after annual block for {contract.source_key}")
             if len(row) != len(header):
-                raise ValueError(
-                    f"Monthly width mismatch for {contract.source_key} on {row[0]}"
-                )
+                raise ValueError(f"Monthly width mismatch for {contract.source_key} on {row[0]}")
             if any(cell == "" for cell in row):
                 raise ValueError(
                     f"Internal blank monthly field for {contract.source_key} on {row[0]}"
@@ -360,9 +344,7 @@ def parse_monthly_zip(
         if YEAR_PATTERN.fullmatch(row[0]):
             annual_started = True
             if len(row) != len(header):
-                raise ValueError(
-                    f"Annual width mismatch for {contract.source_key} on {row[0]}"
-                )
+                raise ValueError(f"Annual width mismatch for {contract.source_key} on {row[0]}")
             if any(cell == "" for cell in row):
                 raise ValueError(
                     f"Internal blank annual field for {contract.source_key} on {row[0]}"
@@ -381,9 +363,7 @@ def parse_monthly_zip(
         raise ValueError(f"Months are not sorted for {contract.source_key}")
     if len(months) != len(set(months)):
         raise ValueError(f"Duplicate months for {contract.source_key}")
-    expected_months = list(
-        pd.date_range(months[0], months[-1], freq="MS").to_pydatetime()
-    )
+    expected_months = list(pd.date_range(months[0], months[-1], freq="MS").to_pydatetime())
     if months != expected_months:
         raise ValueError(f"Monthly calendar gap for {contract.source_key}")
 
@@ -403,9 +383,7 @@ def parse_monthly_zip(
         sentinel: monthly_sentinels[sentinel] + annual_sentinels[sentinel]
         for sentinel in monthly_sentinels
     }
-    monthly_frame = pd.DataFrame(
-        {"Date": pd.DatetimeIndex(months), **monthly_data}
-    )
+    monthly_frame = pd.DataFrame({"Date": pd.DatetimeIndex(months), **monthly_data})
     annual_frame = pd.DataFrame({"Year": years, **annual_data})
 
     preamble = "\n".join(lines[:header_index]) + "\n"
@@ -416,17 +394,14 @@ def parse_monthly_zip(
     if require_exact_snapshot:
         if len(monthly_frame) != contract.expected_monthly_row_count:
             raise ValueError(
-                f"{contract.source_key} monthly row count changed: "
-                f"{len(monthly_frame)}"
+                f"{contract.source_key} monthly row count changed: {len(monthly_frame)}"
             )
         if monthly_frame["Date"].iloc[0].strftime("%Y-%m") != contract.expected_first_month:
             raise ValueError(f"{contract.source_key} first month changed")
         if monthly_frame["Date"].iloc[-1].strftime("%Y-%m") != contract.expected_last_month:
             raise ValueError(f"{contract.source_key} last month changed")
         if len(annual_frame) != contract.expected_annual_row_count:
-            raise ValueError(
-                f"{contract.source_key} annual row count changed: {len(annual_frame)}"
-            )
+            raise ValueError(f"{contract.source_key} annual row count changed: {len(annual_frame)}")
         if years[0] != contract.expected_first_annual_year:
             raise ValueError(f"{contract.source_key} first annual year changed")
         if years[-1] != contract.expected_last_annual_year:
@@ -437,15 +412,12 @@ def parse_monthly_zip(
                 f"{trailing_delimiter_lines}"
             )
         if combined_sentinels != dict(contract.expected_sentinel_counts):
-            raise ValueError(
-                f"{contract.source_key} sentinel counts changed: {combined_sentinels}"
-            )
+            raise ValueError(f"{contract.source_key} sentinel counts changed: {combined_sentinels}")
         if preamble_sha256 != contract.expected_preamble_sha256:
             raise ValueError(f"{contract.source_key} preamble changed")
         if len(non_data_lines) != contract.expected_non_data_line_count:
             raise ValueError(
-                f"{contract.source_key} non-data line count changed: "
-                f"{len(non_data_lines)}"
+                f"{contract.source_key} non-data line count changed: {len(non_data_lines)}"
             )
         if non_data_sha256 != contract.expected_non_data_lines_sha256:
             raise ValueError(f"{contract.source_key} non-data lines changed")
@@ -487,9 +459,7 @@ def build_selected_monthly_panel(
     """Combine only the frozen monthly factor definitions."""
 
     if set(parsed) != set(SOURCE_CONTRACTS):
-        raise ValueError(
-            f"Expected sources {sorted(SOURCE_CONTRACTS)}, found {sorted(parsed)}"
-        )
+        raise ValueError(f"Expected sources {sorted(SOURCE_CONTRACTS)}, found {sorted(parsed)}")
     parts: list[pd.DataFrame] = []
     for factor, (source_key, column) in SELECTED_FACTOR_SOURCE.items():
         source = parsed[source_key]
@@ -518,9 +488,7 @@ def build_selected_monthly_panel(
     return panel
 
 
-def safe_contract_evidence(
-    *, page: bytes, source_zips: Mapping[str, bytes]
-) -> dict[str, Any]:
+def safe_contract_evidence(*, page: bytes, source_zips: Mapping[str, bytes]) -> dict[str, Any]:
     page_identity = validate_data_library_page(page)
     if set(source_zips) != set(SOURCE_CONTRACTS):
         raise ValueError("Monthly source ZIP set is incomplete or contains extras")
@@ -599,9 +567,7 @@ def write_safe_contract_evidence(
     output_root = Path(output_dir)
     output_root.mkdir(parents=True, exist_ok=True)
     evidence_bytes = (json.dumps(evidence, indent=2, sort_keys=True) + "\n").encode()
-    (output_root / "safe-monthly-factor-contract-evidence.json").write_bytes(
-        evidence_bytes
-    )
+    (output_root / "safe-monthly-factor-contract-evidence.json").write_bytes(evidence_bytes)
     summary = {
         "snapshot_id": SNAPSHOT_ID,
         "data_state": DATA_STATE,

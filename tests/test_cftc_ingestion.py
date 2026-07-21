@@ -118,6 +118,4 @@ def test_ingest_quarantines_downloaded_bytes_when_validation_fails(
     assert failure["raw_sha256"] == hashlib.sha256(raw).hexdigest()
     assert failure["validation_status"] == "FAILED_QUARANTINED"
     assert failure["artifact_audit_pass"] is False
-    assert failure["source_access_state"] == (
-        "RAW_ARTIFACT_ACQUIRED_VALIDATION_FAILED_QUARANTINED"
-    )
+    assert failure["source_access_state"] == ("RAW_ARTIFACT_ACQUIRED_VALIDATION_FAILED_QUARANTINED")

@@ -252,7 +252,9 @@ def render_pilot_csv(rows: Sequence[Mapping[str, str]]) -> bytes:
     return stream.getvalue().encode("utf-8")
 
 
-def build_profile(contracts: Sequence[ParsedContract], rows: Sequence[Mapping[str, str]]) -> PilotProfile:
+def build_profile(
+    contracts: Sequence[ParsedContract], rows: Sequence[Mapping[str, str]]
+) -> PilotProfile:
     dates = [row["trade_date"] for row in rows]
     return PilotProfile(
         pilot_version=PILOT_VERSION,
@@ -291,9 +293,7 @@ def build_manifest(
                 "first_trade_date": contract.first_trade_date,
                 "last_trade_date": contract.last_trade_date,
                 "row_count": len(contract.rows),
-                "settlement_close_difference_count": (
-                    contract.settlement_close_difference_count
-                ),
+                "settlement_close_difference_count": (contract.settlement_close_difference_count),
             }
             for contract in contracts
         ],

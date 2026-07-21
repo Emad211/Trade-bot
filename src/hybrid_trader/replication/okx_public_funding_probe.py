@@ -1,4 +1,5 @@
 """Safe, bounded probe of the official OKX public funding-rate-history endpoint."""
+
 from __future__ import annotations
 
 import argparse
@@ -135,9 +136,7 @@ def _timestamp(value: object, *, row_index: int) -> int:
     try:
         result = int(str(value))
     except ValueError as exc:
-        raise OKXFundingProbeError(
-            f"Row {row_index}: invalid fundingTime {value!r}"
-        ) from exc
+        raise OKXFundingProbeError(f"Row {row_index}: invalid fundingTime {value!r}") from exc
     if result <= 0 or result < 10**12 or result >= 10**14:
         raise OKXFundingProbeError(f"Row {row_index}: fundingTime is not milliseconds")
     return result

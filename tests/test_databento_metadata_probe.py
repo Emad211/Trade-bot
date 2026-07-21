@@ -15,12 +15,16 @@ from hybrid_trader.replication import databento_metadata_probe as probe
 
 
 class FakeMetadata:
-    def __init__(self, *, missing_dataset: str | None = None, fail_secret: str | None = None) -> None:
+    def __init__(
+        self, *, missing_dataset: str | None = None, fail_secret: str | None = None
+    ) -> None:
         self.missing_dataset = missing_dataset
         self.fail_secret = fail_secret
         self.calls: list[tuple[str, dict[str, Any]]] = []
 
-    def list_datasets(self, *, start_date: str | None = None, end_date: str | None = None) -> list[str]:
+    def list_datasets(
+        self, *, start_date: str | None = None, end_date: str | None = None
+    ) -> list[str]:
         self.calls.append(("list_datasets", {"start_date": start_date, "end_date": end_date}))
         if self.fail_secret:
             raise RuntimeError(f"authentication failed for {self.fail_secret}")
@@ -275,7 +279,9 @@ def test_authentication_failure_redacts_secret(plan_rows: list[dict[str, str]]) 
     assert evidence["profile"]["execution_status"] == "AUTHENTICATION_OR_LIST_DATASETS_FAILURE"
 
 
-def test_blocked_missing_secret_bundle_is_valid(tmp_path: Path, plan_rows: list[dict[str, str]]) -> None:
+def test_blocked_missing_secret_bundle_is_valid(
+    tmp_path: Path, plan_rows: list[dict[str, str]]
+) -> None:
     request = probe.build_request(plan_rows)
     evidence = probe.blocked(
         request,
@@ -292,7 +298,9 @@ def test_blocked_missing_secret_bundle_is_valid(tmp_path: Path, plan_rows: list[
         assert probe.sha(content) == identity["sha256"]
 
 
-def test_candidate_plan_loader_checks_hash_and_order(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_candidate_plan_loader_checks_hash_and_order(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     rows = [
         {
             "plan_version": "TEST_PLAN",
