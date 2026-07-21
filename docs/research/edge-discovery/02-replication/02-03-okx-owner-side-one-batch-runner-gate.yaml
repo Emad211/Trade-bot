@@ -1,12 +1,15 @@
-schema_version: "1.0"
+schema_version: "1.1"
 gate_id: OKX_OWNER_SIDE_ONE_BATCH_RUNNER_V1
 issue_number: 55
-status: OPEN
+issue_state: CLOSED_COMPLETED
+status: GO_VERIFIED
 status_date: "2026-07-21"
 repository: Emad211/Trade-bot
 branch: agent/edge-research-reports
-current_outcome: null
+current_outcome: GO_OWNER_SIDE_OKX_ONE_BATCH_RUNNER_READY
 real_execution_status: NOT_EXECUTED_REQUIRES_OWNER_PRIVATE_STORAGE_AND_KEYS
+real_okx_request_performed: false
+real_raw_sampling_executed: false
 
 predecessor_gate:
   issue_number: 54
@@ -14,16 +17,50 @@ predecessor_gate:
   real_raw_sampling_executed: false
 
 objective: >-
-  Build and synthetically validate a disabled-by-default owner-side command that
-  can fetch and privately retain one exact four-source OKX batch only after
-  explicit owner confirmation and storage, encryption, access, terms, scale,
-  and redistribution attestations.
+  Provide a disabled-by-default owner-side command that can fetch and privately
+  retain one exact four-source OKX batch only after explicit owner confirmation
+  and storage, encryption, access, terms, scale, and redistribution attestations.
+  The code is ready; no real batch was executed in GitHub Actions or the connected
+  environment.
 
 implementation:
   runner: src/hybrid_trader/replication/okx_owner_sampling_runner.py
   cli: scripts/run_okx_owner_private_sampling.py
   synthetic_validator: scripts/validate_okx_owner_sampling_runner.py
   tests: tests/test_okx_owner_sampling_runner.py
+  workflow: .github/workflows/okx-owner-side-one-batch-runner.yml
+
+verified_workflow:
+  name: OKX Owner-Side One-Batch Runner
+  run_id: 29832572073
+  conclusion: SUCCESS
+  triggering_head_sha: 16c245f05cb5f173185aaed0fb49ef4c0af0e14d
+  permissions: CONTENTS_READ_ONLY
+  official_network_fetcher_used: false
+  real_okx_request_performed: false
+  real_raw_sampling_executed: false
+  format: PASS
+  lint: PASS
+  mypy: PASS
+  combined_tests: 28_PASS
+  cli_help_only: PASS
+  synthetic_retain_delete_lifecycle: PASS
+  independent_safe_evidence_verifier: PASS
+  artifact_id: 8495921479
+  artifact_digest: sha256:e9179034da965c270ebfe5c40e966aceb5f6822c0a09c1888a4739c7f4b50670
+  artifact_expires_at: "2026-10-19"
+  evidence_filename: okx-owner-sampling-runner-evidence.json
+  evidence_byte_count: 8770
+  evidence_sha256: e5757753519bf0f8ff15311e1090095a5af24b4868c6ec788f0519211e4ccc30
+  durable_evidence: 02-03-okx-owner-side-one-batch-runner-evidence.json
+  evidence_manifest: 02-03-okx-owner-side-one-batch-runner-evidence.yaml
+  evidence_report: 02-03-okx-owner-side-one-batch-runner-evidence.md
+
+normalization:
+  exact_ruff_bot_commit: 43c82fe69cc05e910cd4a5a42a05740cc9e2ae28
+  one_shot_normalization_workflow_removed: true
+  clock_guard: research_available_at_is_max_of_now_and_response_received_at
+  compileall: PASS
 
 activation_contract:
   real_confirmation_phrase: I_CONFIRM_OWNER_CONTROLLED_PRIVATE_OKX_RAW_SAMPLING
@@ -58,6 +95,8 @@ runner_contract:
     - OKX_BTC_USDT_INDEX_TICKER
   official_network_fetcher_in_real_mode_only: true
   injected_fetcher_required_in_synthetic_mode: true
+  synthetic_mode_rejects_official_network_fetcher: true
+  real_executor_rejects_synthetic_configuration: true
   all_fetches_and_validations_complete_before_retention: true
   fetch_failure_retains_nothing: true
   safe_manifest_write_failure_rolls_back_batch: true
@@ -66,6 +105,30 @@ runner_contract:
   private_store_outside_repository: true
   retention_days_minimum: 1
   retention_days_maximum: 7
+
+verified_synthetic_runner:
+  execution_mode: SYNTHETIC_INJECTED
+  requested_urls_match_frozen_contract: true
+  requested_urls:
+    - https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT
+    - https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT-SWAP
+    - https://www.okx.com/api/v5/public/mark-price?instType=SWAP&instId=BTC-USDT-SWAP
+    - https://www.okx.com/api/v5/market/index-tickers?instId=BTC-USDT
+  batch_id: sha256-7f51997b9783ae1bbf6427550a45a8fd82c0ffda2c941b3485627da9f8c9f7a2
+  source_count: 4
+  private_artifacts_before_delete: 4
+  leases_before_delete: 4
+  safe_manifest_byte_count: 4909
+  safe_manifest_sha256: 4c201942468115f31591f77f7c561b03c04bfc575df82339ae70cba3a2dced2a
+  safe_manifest_mode: "0600"
+  safe_manifest_contains_fake_market_value: false
+  safe_deletion_contains_fake_market_value: false
+  all_raw_deleted: true
+  all_leases_deleted: true
+  private_artifacts_after_delete: 0
+  leases_after_delete: 0
+  deletion_integrity_matched_for_all_sources: true
+  secure_erase_claimed: false
 
 safe_output_contract:
   runner_stdout_contains_raw_values: false
@@ -82,16 +145,32 @@ safe_output_contract:
     - safe_manifest_sha256
     - private_artifact_count
 
-synthetic_validation_contract:
-  official_network_fetcher_used: false
-  real_okx_request_performed: false
-  real_raw_sampling_executed: false
-  fake_responses_injected: true
-  private_artifacts_expected_before_delete: 4
-  leases_expected_before_delete: 4
-  raw_artifacts_expected_after_delete: 0
-  leases_expected_after_delete: 0
-  fake_market_values_in_public_evidence: false
+real_execution_requirements:
+  - exact_real_confirmation_phrase
+  - enable_real_network_fetch_flag
+  - terms_reviewed
+  - personal_noncommercial_use
+  - reasonable_rate_and_scale
+  - redistribution_disabled
+  - encryption_at_rest
+  - owner_only_access
+  - backup_and_sync_excluded
+  - public_artifact_upload_disabled
+  - owner_controlled_private_storage
+  - owner_controlled_encryption_keys
+  - real_execution_owner_confirmed
+  - private_path_outside_repository
+  - safe_manifest_output_outside_private_raw_tree
+  - retention_days_between_1_and_7
+
+admitted_scope:
+  disabled_by_default_owner_side_runner: true
+  synthetic_injected_validation: true
+  exact_four_source_fetch_contract: true
+  fail_before_retain_on_fetch_or_validation_error: true
+  atomic_rollback_on_manifest_write_failure: true
+  separate_owner_delete_command: true
+  owner_side_real_execution_capability_after_inputs: true
 
 hard_prohibitions:
   real_okx_request_in_ci: false
@@ -113,11 +192,6 @@ hard_prohibitions:
   leverage: false
   capital_deployment: false
   report_2_4_authorized: false
-
-allowed_outcomes:
-  - GO_OWNER_SIDE_OKX_ONE_BATCH_RUNNER_READY
-  - BLOCKED_OWNER_EXECUTION_INPUTS
-  - BLOCKED_TERMS_OR_STORAGE
 
 paper_replication_pass: false
 economic_edge_verdict: INCONCLUSIVE
