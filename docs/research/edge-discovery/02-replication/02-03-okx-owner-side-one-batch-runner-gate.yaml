@@ -1,0 +1,123 @@
+schema_version: "1.0"
+gate_id: OKX_OWNER_SIDE_ONE_BATCH_RUNNER_V1
+issue_number: 55
+status: OPEN
+status_date: "2026-07-21"
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+current_outcome: null
+real_execution_status: NOT_EXECUTED_REQUIRES_OWNER_PRIVATE_STORAGE_AND_KEYS
+
+predecessor_gate:
+  issue_number: 54
+  outcome: GO_OWNER_CONTROLLED_PRIVATE_OKX_SAMPLING_CONTRACT
+  real_raw_sampling_executed: false
+
+objective: >-
+  Build and synthetically validate a disabled-by-default owner-side command that
+  can fetch and privately retain one exact four-source OKX batch only after
+  explicit owner confirmation and storage, encryption, access, terms, scale,
+  and redistribution attestations.
+
+implementation:
+  runner: src/hybrid_trader/replication/okx_owner_sampling_runner.py
+  cli: scripts/run_okx_owner_private_sampling.py
+  synthetic_validator: scripts/validate_okx_owner_sampling_runner.py
+  tests: tests/test_okx_owner_sampling_runner.py
+
+activation_contract:
+  real_confirmation_phrase: I_CONFIRM_OWNER_CONTROLLED_PRIVATE_OKX_RAW_SAMPLING
+  synthetic_confirmation_phrase: I_CONFIRM_SYNTHETIC_INJECTED_RESPONSES_ONLY
+  deletion_confirmation_phrase: I_CONFIRM_DELETE_OWNER_CONTROLLED_OKX_RAW_BATCH
+  enable_real_network_fetch_flag_required: true
+  exact_confirmation_required: true
+  safe_manifest_output_required: true
+  safe_manifest_must_be_json: true
+  safe_manifest_must_be_outside_private_raw_tree: true
+  safe_manifest_overwrite_allowed: false
+
+required_real_attestations:
+  - terms_reviewed
+  - personal_noncommercial_use
+  - reasonable_rate_and_scale
+  - redistribution_disabled
+  - encryption_at_rest
+  - owner_only_access
+  - backup_and_sync_excluded
+  - public_artifact_upload_disabled
+  - owner_controlled_private_storage
+  - owner_controlled_encryption_keys
+  - real_execution_owner_confirmed
+
+runner_contract:
+  exact_source_count: 4
+  frozen_source_order:
+    - OKX_SPOT_BTC_USDT_TICKER
+    - OKX_SWAP_BTC_USDT_SWAP_TICKER
+    - OKX_SWAP_BTC_USDT_SWAP_MARK_PRICE
+    - OKX_BTC_USDT_INDEX_TICKER
+  official_network_fetcher_in_real_mode_only: true
+  injected_fetcher_required_in_synthetic_mode: true
+  all_fetches_and_validations_complete_before_retention: true
+  fetch_failure_retains_nothing: true
+  safe_manifest_write_failure_rolls_back_batch: true
+  retained_batch_auto_deleted_after_success: false
+  separate_delete_command_required: true
+  private_store_outside_repository: true
+  retention_days_minimum: 1
+  retention_days_maximum: 7
+
+safe_output_contract:
+  runner_stdout_contains_raw_values: false
+  safe_manifest_contains_raw_values: false
+  safe_deletion_receipt_contains_raw_values: false
+  allowed_runner_summary:
+    - mode
+    - real_okx_request_performed
+    - real_raw_sampling_executed
+    - batch_id
+    - source_count
+    - safe_manifest_output
+    - safe_manifest_byte_count
+    - safe_manifest_sha256
+    - private_artifact_count
+
+synthetic_validation_contract:
+  official_network_fetcher_used: false
+  real_okx_request_performed: false
+  real_raw_sampling_executed: false
+  fake_responses_injected: true
+  private_artifacts_expected_before_delete: 4
+  leases_expected_before_delete: 4
+  raw_artifacts_expected_after_delete: 0
+  leases_expected_after_delete: 0
+  fake_market_values_in_public_evidence: false
+
+hard_prohibitions:
+  real_okx_request_in_ci: false
+  real_raw_sampling_in_ci: false
+  real_raw_sampling_in_connected_environment: false
+  private_api_or_trading_endpoint: false
+  public_raw_artifact: false
+  raw_values_in_logs: false
+  historical_backfill: false
+  basis_computation: false
+  funding_pnl_computation: false
+  returns_computation: false
+  transaction_cost_estimation: false
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_testing: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  report_2_4_authorized: false
+
+allowed_outcomes:
+  - GO_OWNER_SIDE_OKX_ONE_BATCH_RUNNER_READY
+  - BLOCKED_OWNER_EXECUTION_INPUTS
+  - BLOCKED_TERMS_OR_STORAGE
+
+paper_replication_pass: false
+economic_edge_verdict: INCONCLUSIVE
