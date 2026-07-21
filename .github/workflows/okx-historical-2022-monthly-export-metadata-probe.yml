@@ -1,0 +1,220 @@
+name: OKX Historical 2022 Monthly Export Metadata Probe
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/okx-historical-2022-monthly-export-metadata-probe.yml
+
+permissions:
+  contents: read
+
+jobs:
+  request-metadata-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Submit one bounded monthly March 2022 request without following links
+        run: |
+          mkdir -p build/okx-2022-monthly-export
+          python - <<'PY'
+          from __future__ import annotations
+
+          import hashlib
+          import json
+          import urllib.error
+          import urllib.request
+          from collections.abc import Mapping
+          from pathlib import Path
+          from typing import Any
+          from urllib.parse import urlsplit
+
+          ENDPOINT = 'https://www.okx.com/priapi/v5/broker/public/trade-data/download-link'
+          BODY = {
+              'module': '3',
+              'instType': 'SWAP',
+              'instQueryParam': {'instFamilyList': ['BTC-USDT']},
+              'dateQuery': {
+                  'dateAggrType': 'monthly',
+                  'begin': '1646092800000',
+                  'end': '1648684800000',
+              },
+          }
+          raw_request = json.dumps(BODY, separators=(',', ':'), sort_keys=True).encode()
+          request = urllib.request.Request(
+              ENDPOINT,
+              data=raw_request,
+              method='POST',
+              headers={
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json',
+                  'Origin': 'https://www.okx.com',
+                  'Referer': 'https://www.okx.com/en-gb/historical-data',
+                  'User-Agent': 'Emad211-Trade-bot-replication/1.0',
+              },
+          )
+          status: int | None = None
+          headers: dict[str, str] = {}
+          final_url = ENDPOINT
+          raw = b''
+          transport_error: str | None = None
+          try:
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  status = int(response.status)
+                  final_url = response.geturl()
+                  headers = {key.lower(): value for key, value in response.headers.items()}
+                  raw = response.read(2_000_001)
+          except urllib.error.HTTPError as exc:
+              status = int(exc.code)
+              final_url = exc.geturl()
+              headers = {key.lower(): value for key, value in exc.headers.items()}
+              raw = exc.read(2_000_001)
+          except urllib.error.URLError as exc:
+              transport_error = hashlib.sha256(str(exc.reason).encode()).hexdigest()
+          if len(raw) > 2_000_000:
+              raise SystemExit('Response exceeded metadata guard')
+          target = urlsplit(final_url)
+          if target.scheme != 'https' or target.hostname != 'www.okx.com':
+              raise SystemExit(f'Unexpected final host: {final_url}')
+
+          payload: Any = None
+          if raw:
+              payload = json.loads(raw)
+          forbidden = {
+              'fundingRate', 'realizedRate', 'markPx', 'idxPx', 'last',
+              'bidPx', 'askPx', 'open', 'high', 'low', 'close', 'vol',
+          }
+          observed_keys: set[str] = set()
+          observed_forbidden: set[str] = set()
+          list_profiles: list[dict[str, Any]] = []
+          safe_scalars: list[dict[str, Any]] = []
+          links: list[dict[str, Any]] = []
+          allowed_scalars = {
+              'code', 'msg', 'begin', 'end', 'dateAggrType', 'exportTime',
+              'totalSizeMB', 'groupSizeMB', 'sizeMB', 'filename', 'state',
+              'status', 'instFamily', 'instId', 'symbols',
+          }
+
+          def walk(value: Any, path: str = '$') -> None:
+              if isinstance(value, Mapping):
+                  keys = [str(key) for key in value]
+                  observed_keys.update(keys)
+                  observed_forbidden.update(forbidden.intersection(keys))
+                  for key, item in value.items():
+                      key_text = str(key)
+                      item_path = f'{path}.{key_text}'
+                      if key_text in allowed_scalars and isinstance(
+                          item, (str, int, float, bool, type(None))
+                      ):
+                          safe_scalars.append({'path': item_path, 'value': item})
+                      if isinstance(item, str) and item.startswith(('http://', 'https://')):
+                          parsed = urlsplit(item)
+                          links.append({
+                              'path': item_path,
+                              'scheme': parsed.scheme,
+                              'host': parsed.hostname or '',
+                              'url_path': parsed.path,
+                              'query_key_names': sorted(
+                                  part.split('=', 1)[0]
+                                  for part in parsed.query.split('&') if part
+                              ),
+                              'value_sha256': hashlib.sha256(item.encode()).hexdigest(),
+                          })
+                      walk(item, item_path)
+              elif isinstance(value, list):
+                  list_profiles.append({
+                      'path': path,
+                      'length': len(value),
+                      'item_types': sorted({type(item).__name__ for item in value}),
+                  })
+                  for index, item in enumerate(value[:500]):
+                      walk(item, f'{path}[{index}]')
+
+          if payload is not None:
+              walk(payload)
+          if observed_forbidden:
+              raise SystemExit(f'Market-value fields observed: {sorted(observed_forbidden)}')
+          code = payload.get('code') if isinstance(payload, Mapping) else None
+          if transport_error:
+              delivery_class = 'BLOCKED_TRANSPORT'
+          elif status in {401, 403}:
+              delivery_class = 'BLOCKED_AUTHENTICATION_OR_ACCESS'
+          elif status != 200:
+              delivery_class = 'BLOCKED_HTTP_RESPONSE'
+          elif str(code) != '0':
+              delivery_class = 'BLOCKED_PROVIDER_RESPONSE'
+          elif links:
+              delivery_class = 'DOWNLOAD_LINK_METADATA_RETURNED'
+          else:
+              delivery_class = 'EXPORT_METADATA_RETURNED_NO_LINK_OBSERVED'
+
+          evidence = {
+              'schema_version': '1.0',
+              'purpose': 'OKX_BOUNDED_MONTHLY_MARCH_2022_FUNDING_EXPORT_METADATA_ONLY',
+              'endpoint': ENDPOINT,
+              'request_method': 'POST',
+              'request_body': BODY,
+              'request_body_sha256': hashlib.sha256(raw_request).hexdigest(),
+              'response_status': status,
+              'final_url': final_url,
+              'content_type': headers.get('content-type', ''),
+              'response_byte_count': len(raw),
+              'response_sha256': hashlib.sha256(raw).hexdigest() if raw else None,
+              'transport_error_sha256': transport_error,
+              'top_code': code,
+              'top_level_keys': sorted(payload) if isinstance(payload, Mapping) else [],
+              'observed_keys': sorted(observed_keys),
+              'list_profiles': list_profiles,
+              'safe_scalars': safe_scalars,
+              'redacted_link_metadata': links,
+              'delivery_class': delivery_class,
+              'raw_response_retained': False,
+              'download_link_followed': False,
+              'market_file_downloaded': False,
+              'market_rows_retained': False,
+              'basis_computed': False,
+              'funding_pnl_computed': False,
+              'returns_computed': False,
+              'gate_verdict': 'UNRESOLVED_BOUNDED_MONTHLY_EXPORT_METADATA_ONLY',
+          }
+          Path('build/okx-2022-monthly-export/evidence.json').write_text(
+              json.dumps(evidence, indent=2, sort_keys=True) + '\n', encoding='utf-8'
+          )
+          print(json.dumps({
+              'response_status': status,
+              'top_code': code,
+              'delivery_class': delivery_class,
+              'list_profiles': list_profiles,
+              'redacted_link_metadata': links,
+          }, indent=2, sort_keys=True))
+          PY
+      - name: Verify no-download boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          evidence = json.loads(
+              Path('build/okx-2022-monthly-export/evidence.json').read_text()
+          )
+          assert evidence['request_body']['module'] == '3'
+          assert evidence['request_body']['instType'] == 'SWAP'
+          assert evidence['request_body']['dateQuery']['dateAggrType'] == 'monthly'
+          assert evidence['raw_response_retained'] is False
+          assert evidence['download_link_followed'] is False
+          assert evidence['market_file_downloaded'] is False
+          assert evidence['market_rows_retained'] is False
+          assert evidence['basis_computed'] is False
+          assert evidence['funding_pnl_computed'] is False
+          assert evidence['returns_computed'] is False
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: okx-2022-monthly-export-metadata-${{ github.sha }}
+          path: build/okx-2022-monthly-export/evidence.json
+          if-no-files-found: error
+          retention-days: 30
