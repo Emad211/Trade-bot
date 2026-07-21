@@ -3,10 +3,10 @@
 **Program:** Edge Discovery Research Program  
 **Section:** 2 — Research Replication  
 **Report:** 3 of 5  
-**Status date:** 2026-07-20  
-**Status:** `PARTIALLY_COMPLETE — OFFICIAL CFTC FOUNDATION AND BOUNDED SAFE CRYPTO SOURCE PROFILES VERIFIED; RAW RETENTION, PRICE/RETURN LINKAGE, AND PAPER-LEVEL GATES OPEN`
+**Status date:** 2026-07-21  
+**Status:** `PARTIALLY_COMPLETE — CFTC FOUNDATION, BOUNDED OKX PRIVATE-REVOCABLE FUNDING PILOT, AND SAFE BINANCE PROFILE VERIFIED; POINT-IN-TIME INSTRUMENT, ARCHIVE-AVAILABILITY, PRICE/RETURN, AND PAPER-LEVEL GATES REMAIN OPEN`
 
-This document is the current controlling status for Report 2.3. It supersedes earlier source-access, workflow, and authorization descriptions when they conflict. Detailed technical evidence remains in the linked leaf reports and machine-readable manifests.
+This document is the current controlling status for Report 2.3. It supersedes earlier source-access, workflow, retention, and authorization descriptions when they conflict. Detailed technical evidence remains in the linked leaf reports and machine-readable manifests.
 
 ---
 
@@ -35,11 +35,12 @@ This document is the current controlling status for Report 2.3. It supersedes ea
 - [CME public access and license gate](02-03-cme-public-access-and-license-gate.md)
 - [Machine-readable CME gate](02-03-cme-public-access-and-license-gate.yaml)
 
-### Crypto public-source gates
+### Cryptocurrency source and retention gates
 
 - [Official crypto source, license, and access selection](02-03-crypto-official-source-license-and-access-selection.md)
 - [Verified OKX public funding metadata pilot](02-03-okx-public-funding-metadata-pilot-evidence.md)
-- [Machine-readable OKX pilot evidence](02-03-okx-public-funding-metadata-pilot-evidence.yaml)
+- [Machine-readable OKX public pilot evidence](02-03-okx-public-funding-metadata-pilot-evidence.yaml)
+- [OKX private revocable retention contract](02-03-okx-private-revocable-retention-contract.yaml)
 - [Verified Binance BTCUSDT ephemeral pilot](02-03-binance-btcusdt-public-ephemeral-pilot-evidence.md)
 - [Machine-readable Binance pilot evidence](02-03-binance-btcusdt-public-ephemeral-pilot-evidence.yaml)
 
@@ -52,6 +53,8 @@ Repository: Emad211/Trade-bot
 Branch: agent/edge-research-reports
 Draft PR: #41
 PR state: OPEN, DRAFT, NOT MERGED
+Issue #50: CLOSED AS COMPLETED
+Issue #51: OPEN — NEXT OKX POINT-IN-TIME CONTRACT GATE
 ```
 
 The previously found over-permission defect in the factor-artifact audit remains corrected. Unverified files cannot receive an artifact-audit pass.
@@ -67,7 +70,7 @@ approved long-term immutable storage key
 explicit data and return units
 ```
 
-A successful engineering workflow, a safe metadata artifact, or retention-limited GitHub Actions storage is not an artifact-audit pass.
+A successful engineering workflow, a safe metadata artifact, retention-limited GitHub Actions storage, or a bounded private pilot is not by itself a paper-replication pass or an economic-edge pass.
 
 ---
 
@@ -143,19 +146,17 @@ ICE complete historical archive: BLOCKED_PAID_ARCHIVE
 CFTC PRE row-level cross-check: PENDING; GITHUB RUNNERS REPEATEDLY RETURNED HTTP 503
 ```
 
-### Cboe boundary
+The Cboe public pilot verified exact contract files, explicit `Close` and `Settle` fields, parser behavior, and safe evidence handling. It did not authorize raw retention, canonical historical availability, price linkage, or return calculation.
 
-The public VX pilot verified exact contract files, explicit `Close` and `Settle` fields, parser behavior, and safe evidence handling. It did not authorize raw retention, canonical historical availability, price linkage, or return calculation.
-
-### CME boundary
-
-The Historical Daily Bulletin route leads to DataMine. The observed route requires account/login, licensing, ordering, and fees. Published terms do not grant this project ordinary permission for automated collection, private content-addressed retention, database construction, combination with CFTC data, or derived return creation. Issue #47 is closed as `not planned` until a real permission/license path exists.
+The CME Historical Daily Bulletin route leads to DataMine and requires account/login, licensing, ordering, and fees. Issue #47 remains closed as `not planned` until a real permission and owner-accessible license path exists.
 
 No identity, payment, account, credential, jurisdiction, or access-control circumvention is permitted.
 
 ---
 
-## 5. Verified OKX bounded public metadata pilot
+## 5. Verified OKX funding evidence
+
+### 5.1 Bounded current public metadata profile
 
 ```text
 Workflow: OKX Public Funding Metadata Pilot
@@ -172,9 +173,95 @@ Safe artifact ID: 8468365676
 Safe artifact digest: 872710f6a4b306d4f1113aaecbcfbab460f2b4ef5cad909187c9b1e4a60116c3
 ```
 
-Independent inspection found no raw funding rows, funding-rate values, credentials, or reconstructable ordered market-data series in the artifact.
+This remains a current-public metadata profile. It does not establish historical archive publication time, historical contract-rule versions, returns, or an edge.
 
-This is a bounded current-public-metadata profile. It is not a 2022 historical acquisition, bulk-retention approval, funding-PnL calculation, or edge verdict.
+### 5.2 Verified March 2022 monthly delivery contract
+
+```text
+Metadata workflow run: 29810652877
+Metadata artifact ID: 8487263912
+Metadata artifact digest: sha256:72e8228e6dbec9600d9538cf2b839052d135cc6834825bece7e2f658d6daaac3
+
+Endpoint: POST /priapi/v5/broker/public/trade-data/download-link
+Module: 3
+Instrument type: SWAP
+Instrument family: BTC-USDT
+Aggregation: monthly
+Requested partition: 2022-03
+HTTP / application code: 200 / 0
+Official host: static.okx.com
+Official file: BTC-USDT-SWAP-fundingrates-2022-03.zip
+```
+
+No account credential, API key, KYC step, payment, or access circumvention was used for the bounded public delivery test.
+
+### 5.3 Verified ephemeral file identity
+
+```text
+Ephemeral validation run: 29811051931
+Safe evidence artifact ID: 8487415309
+Safe evidence artifact digest: sha256:806ed03e82d17be2ecc3cde7e374f16898363c1c9c1ee1fc380338c088a6d082
+Evidence JSON SHA-256: 4123d7c54ae18829ac0aca2d3d3f4abb16be41fb965506f2bb9301b829c954
+
+ZIP bytes: 1403
+ZIP SHA-256: ce4fe9aaf1dfdee16e1d11cdabcbb405eb348966902950db1ca862dc86779013
+CSV member: BTC-USDT-SWAP-fundingrates-2022-03.csv
+CSV bytes: 4546
+CSV SHA-256: 508195adcc2fd9e9a1978926d8da89af4054d79de4675268cbfb2ac9539e73da
+CRC32: 01e95991
+Fields: instrument_name, funding_rate, funding_time
+Rows / unique timestamps: 93 / 93
+Minimum UTC timestamp: 2022-02-28T16:00:00Z
+Maximum UTC timestamp: 2022-03-31T08:00:00Z
+Observed interval: 28800000 ms x 92
+```
+
+The provider's March partition starts at `2022-02-28T16:00:00Z`; this is retained exactly and is not rewritten to a naive UTC month boundary.
+
+The raw ZIP and CSV were used only ephemerally, then unlinked and removed before safe evidence upload. No raw row, ordered timestamp series, or funding-rate value was retained in the public artifact.
+
+### 5.4 Private revocable retention contract
+
+Issue #50 is closed with the admitted outcome:
+
+```text
+GO_PRIVATE_REVOCABLE_2022_FUNDING_PILOT
+```
+
+The controlling contract is:
+
+`02-03-okx-private-revocable-retention-contract.yaml`
+
+The contract authorizes only a bounded owner-controlled private pilot with:
+
+```text
+storage outside the repository
+encryption-at-rest attestation
+owner-only access attestation
+backup and sync exclusion
+public upload disabled
+content-addressed SHA-256 identity
+maximum initial scope: one month
+maximum lease: 30 days
+deletion on revocation, expiry, owner request, cancellation, uncertainty, or integrity failure
+post-delete verification and non-raw tombstone
+no secure-erase claim
+```
+
+It does not authorize bulk acquisition, public raw artifacts, redistribution, basis, funding PnL, returns, fitting, paper/live trading, or capital deployment.
+
+### 5.5 Remaining OKX gates
+
+```text
+Point-in-time 2022 instrument/version contract: OPEN — ISSUE #51
+Historical monthly archive publication available_at: OPEN — ISSUE #51
+Current successful retrieval may be backdated to 2022: FALSE
+Bulk raw acquisition: NOT AUTHORIZED
+Public raw redistribution: NOT AUTHORIZED
+Basis computation: NOT AUTHORIZED
+Funding PnL: NOT AUTHORIZED
+Returns: NOT AUTHORIZED
+```
 
 ---
 
@@ -217,25 +304,9 @@ Maximum absolute funding grid jitter: 3 ms
 Funding timestamps normalized or rewritten: false
 ```
 
-Every observed ZIP SHA-256 matched its paired provider checksum. Exact source and member hashes are frozen in the Binance evidence manifest.
+Every observed ZIP SHA-256 matched its paired provider checksum. Both uploaded artifacts contained safe JSON evidence only and no raw or derived market rows.
 
-### 6.4 Safe artifact proof
-
-```text
-Safe evidence artifact ID: 8468794862
-Safe evidence artifact digest: 575cc1a07f299dd52f8c1a889c78df4ba3989976e7d4ff33b11d0b38ac3ad344
-Evidence JSON SHA-256: 93b8c06ba836a3d61b9fa0fba1b4b377f3518841b2c72db36b96ee6196fede7b
-
-Receipt artifact ID: 8468795317
-Receipt artifact digest: 3bcfc1a5a14170fe1bb636ab1603640a5dfaa222c91bf750c3404c9ca47eaf9c
-Receipt JSON SHA-256: a0654baa54c25fb0f840ef31422e7108f2b9ead4347544fd24ab94f436da3f64
-```
-
-Both artifact ZIPs were independently opened outside the runner. Each contained exactly one JSON document. No CSV, provider ZIP, HTML, OHLC row, funding-rate row, basis row, or return row was present.
-
-Issue #48 is closed as completed only for this bounded checksum/schema/timing engineering pilot.
-
-### 6.5 Remaining Binance gates
+Remaining Binance gates:
 
 ```text
 Persistent raw archive retention: NOT AUTHORIZED
@@ -248,8 +319,6 @@ Funding PnL: NOT AUTHORIZED
 Returns: NOT AUTHORIZED
 ```
 
-The official helper repository's MIT statement is recorded as source evidence but is not treated as a blanket legal conclusion for every retention, redistribution, jurisdictional, or derived-data use.
-
 ---
 
 ## 7. Current source classifications
@@ -259,14 +328,18 @@ Official CFTC raw artifact: ACQUIRED_AND_ACTIONS_STAGED
 CFTC release ledger: VERIFIED_SCHEDULED_FAIL_CLOSED
 CFTC reporting-to-product registry: VERIFIED_PRICE_LINKAGE_DISABLED
 Traditional-futures provider contract chain: NOT ACQUIRED
-OKX bounded public funding metadata: VERIFIED_SAFE_PROFILE_ONLY
+OKX current public funding metadata: VERIFIED_SAFE_PROFILE_ONLY
+OKX March 2022 monthly funding delivery: VERIFIED_EPHEMERALLY
+OKX bounded private raw retention: AUTHORIZED_ONLY_UNDER_REVOCABLE_OWNER_CONTROLLED_CONTRACT
+OKX point-in-time 2022 instrument/version identity: OPEN
+OKX historical archive available_at: OPEN
 Binance six-object archive/checksum profile: VERIFIED_EPHEMERALLY_SAFE_METADATA_ONLY
 AQR original/maintained workbooks: REMAINING ARTIFACT GATES OPEN
 Moreira-Muir author artifact and reconciliation: SEPARATE OPEN REPLICATION SCOPE
 Licensed traditional-futures histories: BLOCKED_OR_PENDING
 ```
 
-Actions artifacts remain retention-limited and are not approved long-term immutable raw storage.
+Actions artifacts remain retention-limited and are not approved long-term immutable raw storage. Private raw retention is not a GitHub Actions storage mode and requires the separate revocable owner-controlled contract.
 
 ---
 
@@ -275,11 +348,11 @@ Actions artifacts remain retention-limited and are not approved long-term immuta
 | Hypothesis | Verified progress | Empirical status |
 |---|---|---|
 | `EDGE-FUT-TREND-001` | Mechanics ready; exact licensed price history incomplete | `INCONCLUSIVE` |
-| `EDGE-RISK-POLICY-001` | Recursive overlay mechanics ready | `INCONCLUSIVE` |
+| `EDGE-RISK-POLICY-001` | Recursive overlay mechanics and current-source reconciliation path ready | `INCONCLUSIVE` |
 | `EDGE-FUT-CARRY-001` | Same-contract and roll mechanics ready; provider chain incomplete | `INCONCLUSIVE` |
 | `EDGE-FUT-POSITION-001` | Official CFTC raw source, pilot, release ledger, and product registry verified; provider price linkage blocked | `INCONCLUSIVE` |
-| `EDGE-CRYPTO-BASIS-001` | Binance six-source checksum/schema/timing profile verified ephemerally; instrument versioning, retention, and returns blocked | `INCONCLUSIVE` |
-| `EDGE-CRYPTO-RV-001` | Linear accounting mechanics ready; safe public source profiles exist but empirical construction remains unauthorized | `INCONCLUSIVE` |
+| `EDGE-CRYPTO-BASIS-001` | Safe Binance profile and bounded OKX March 2022 funding artifact verified; instrument versioning, archive `available_at`, basis, and returns blocked | `INCONCLUSIVE` |
+| `EDGE-CRYPTO-RV-001` | Linear accounting mechanics and bounded source evidence exist; empirical construction remains unauthorized | `INCONCLUSIVE` |
 
 No hypothesis has an economic pass.
 
@@ -297,13 +370,17 @@ cftc_release_ledger_construction: true
 cftc_reporting_to_product_mapping: true
 safe_public_source_hash_profile_retention: true
 okx_bounded_public_metadata_probe: true
+okx_march_2022_ephemeral_file_validation: true
+okx_private_revocable_one_month_pilot: true
+okx_revocation_and_deletion_control_testing: true
 binance_ephemeral_checksum_validation: true
 formal_terms_and_retention_review: true
 point_in_time_instrument_metadata_design: true
 historical_availability_research: true
 
 traditional_futures_price_series_assignment: false
-crypto_persistent_raw_retention: false
+okx_bulk_raw_acquisition: false
+generic_crypto_persistent_raw_retention: false
 raw_redistribution: false
 basis_computation: false
 funding_pnl_computation: false
@@ -322,21 +399,24 @@ report_2_4_full_authorization: false
 
 ## 10. Next permitted gate
 
-Issue #50 owns the next crypto step:
+Issue #51 owns the next OKX step:
 
 ```text
-Verify OKX 2022 historical funding delivery and revocable-retention contract
+Freeze OKX BTC-USDT-SWAP 2022 instrument/version
+and archive-availability contract
 ```
 
 Only these outcomes are admitted:
 
 ```text
-GO_PRIVATE_REVOCABLE_2022_FUNDING_PILOT
-BLOCKED_ACCESS_OR_DELIVERY
-BLOCKED_LICENSE_OR_RETENTION
+GO_OKX_2022_POINT_IN_TIME_INSTRUMENT_CONTRACT
+BLOCKED_INSTRUMENT_VERSION_HISTORY
+BLOCKED_ARCHIVE_AVAILABILITY_TIMING
 ```
 
-The Binance path may continue only through formal retention/terms review, archive-publication timing research, and point-in-time instrument/version metadata. No basis or return calculation may begin from the engineering pilot alone.
+The gate must reconstruct historically effective contract rules and determine whether the March 2022 archive was contemporaneously available, later published, or backfilled. Current downloadability must not be projected backward.
+
+The Binance path may continue only through formal retention/terms review, archive-publication timing research, and point-in-time instrument/version metadata. No basis or return calculation may begin from either engineering pilot.
 
 ---
 
@@ -347,12 +427,14 @@ REAL REPOSITORY WORK: CONFIRMED
 OFFICIAL CFTC RAW SOURCE: CONFIRMED
 CFTC PARSER, PILOT, RELEASE LEDGER, AND PRODUCT REGISTRY: CONFIRMED
 TRADITIONAL-FUTURES PROVIDER PRICE LINKAGE: NOT AUTHORIZED
-OKX BOUNDED SAFE METADATA PROFILE: CONFIRMED
+OKX CURRENT PUBLIC METADATA PROFILE: CONFIRMED
+OKX MARCH 2022 MONTHLY FUNDING DELIVERY: CONFIRMED EPHEMERALLY
+OKX BOUNDED PRIVATE REVOCABLE PILOT: AUTHORIZED UNDER FROZEN CONTRACT
+OKX BULK RAW ACQUISITION OR PUBLIC RETENTION: NOT AUTHORIZED
+OKX POINT-IN-TIME 2022 INSTRUMENT CONTRACT: INCOMPLETE
+OKX HISTORICAL ARCHIVE AVAILABLE_AT: INCOMPLETE
 BINANCE SIX-OBJECT CHECKSUM/SCHEMA/TIMING PROFILE: CONFIRMED EPHEMERALLY
-BINANCE SAFE ARTIFACT CONTAINS MARKET ROWS: NO
-CRYPTO RAW RETENTION AUTHORIZATION: NOT GRANTED
-POINT-IN-TIME CRYPTO INSTRUMENT METADATA: INCOMPLETE
-HISTORICAL CRYPTO ARCHIVE AVAILABLE_AT: INCOMPLETE
+PUBLIC SAFE ARTIFACTS CONTAIN MARKET ROWS: NO
 BASIS / FUNDING PNL / RETURNS: NOT COMPUTED
 PAPER-LEVEL NUMERICAL REPLICATION: NOT COMPLETE
 TRADING EDGE: NOT ESTABLISHED
