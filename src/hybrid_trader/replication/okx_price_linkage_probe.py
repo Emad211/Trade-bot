@@ -196,25 +196,17 @@ def safe_url_metadata(value: str) -> tuple[str, str, str, tuple[str, ...]]:
     parsed = urlsplit(value)
     host = (parsed.hostname or "").lower()
     if parsed.scheme != "https" or host != OFFICIAL_HOST:
-        raise OKXPriceLinkageProbeError(
-            "Response resolved outside the frozen OKX HTTPS host"
-        )
-    query_names = tuple(
-        sorted({key for key, _ in parse_qsl(parsed.query, keep_blank_values=True)})
-    )
+        raise OKXPriceLinkageProbeError("Response resolved outside the frozen OKX HTTPS host")
+    query_names = tuple(sorted({key for key, _ in parse_qsl(parsed.query, keep_blank_values=True)}))
     return parsed.scheme, host, parsed.path, query_names
 
 
-def fetch_public_response(
-    url: str, *, timeout_seconds: float = 30.0
-) -> TimedHTTPResponse:
+def fetch_public_response(url: str, *, timeout_seconds: float = 30.0) -> TimedHTTPResponse:
     scheme, host, path, _ = safe_url_metadata(url)
     if scheme != "https" or host != OFFICIAL_HOST:
         raise OKXPriceLinkageProbeError("Request URL is outside the official OKX host")
     if path not in {contract.endpoint_path for contract in SOURCE_CONTRACTS}:
-        raise OKXPriceLinkageProbeError(
-            "Request URL is outside the frozen endpoint set"
-        )
+        raise OKXPriceLinkageProbeError("Request URL is outside the frozen endpoint set")
     if timeout_seconds <= 0:
         raise ValueError("timeout_seconds must be positive")
 
@@ -249,9 +241,7 @@ def _validate_decimal(value: object, *, field: str) -> None:
     try:
         decimal = Decimal(str(value))
     except (InvalidOperation, ValueError) as exc:
-        raise OKXPriceLinkageProbeError(
-            f"Invalid decimal in {field}: {value!r}"
-        ) from exc
+        raise OKXPriceLinkageProbeError(f"Invalid decimal in {field}: {value!r}") from exc
     if not decimal.is_finite():
         raise OKXPriceLinkageProbeError(f"Non-finite decimal in {field}")
 
@@ -260,9 +250,7 @@ def _validate_timestamp_ms(value: object) -> int:
     try:
         timestamp = int(str(value))
     except ValueError as exc:
-        raise OKXPriceLinkageProbeError(
-            f"Invalid provider timestamp: {value!r}"
-        ) from exc
+        raise OKXPriceLinkageProbeError(f"Invalid provider timestamp: {value!r}") from exc
     if timestamp < 10**12 or timestamp >= 10**14:
         raise OKXPriceLinkageProbeError("Provider timestamp is not milliseconds")
     return timestamp
@@ -278,16 +266,12 @@ def validate_source_response(
     research_available_at: datetime | None = None,
 ) -> SourceObservation:
     request_time = _require_aware_utc(request_started_at, field="request_started_at")
-    response_time = _require_aware_utc(
-        response_received_at, field="response_received_at"
-    )
+    response_time = _require_aware_utc(response_received_at, field="response_received_at")
     available_time = _require_aware_utc(
         research_available_at or datetime.now(UTC), field="research_available_at"
     )
     if not request_time <= response_time <= available_time:
-        raise ValueError(
-            "clocks must satisfy request <= response <= research available"
-        )
+        raise ValueError("clocks must satisfy request <= response <= research available")
 
     if response.status_code != 200:
         raise OKXPriceLinkageProbeError(
@@ -300,9 +284,7 @@ def validate_source_response(
 
     _, host, path, query_names = safe_url_metadata(response.final_url)
     if path != contract.endpoint_path:
-        raise OKXPriceLinkageProbeError(
-            "Final response path differs from the frozen endpoint"
-        )
+        raise OKXPriceLinkageProbeError("Final response path differs from the frozen endpoint")
     expected_query_names = tuple(sorted(key for key, _ in contract.query))
     if query_names != expected_query_names:
         raise OKXPriceLinkageProbeError("Final response query contract changed")
@@ -315,9 +297,7 @@ def validate_source_response(
         raise OKXPriceLinkageProbeError("Expected a top-level JSON object")
     payload = cast(Mapping[str, Any], decoded)
     if str(payload.get("code")) != "0" or str(payload.get("msg")) != "":
-        raise OKXPriceLinkageProbeError(
-            "OKX returned an unsuccessful application response"
-        )
+        raise OKXPriceLinkageProbeError("OKX returned an unsuccessful application response")
     data = payload.get("data")
     if not isinstance(data, list) or len(data) != 1 or not isinstance(data[0], dict):
         raise OKXPriceLinkageProbeError("Expected exactly one source row")
@@ -325,9 +305,7 @@ def validate_source_response(
 
     missing = contract.required_fields - set(row)
     if missing:
-        raise OKXPriceLinkageProbeError(
-            f"Response lacks required fields: {sorted(missing)}"
-        )
+        raise OKXPriceLinkageProbeError(f"Response lacks required fields: {sorted(missing)}")
     identity_fields: dict[str, str] = {}
     for field, expected in contract.expected_identity:
         observed = str(row.get(field, ""))
@@ -339,9 +317,7 @@ def validate_source_response(
 
     for field in contract.market_value_fields:
         _validate_decimal(row[field], field=field)
-    provider_timestamp_ms = _validate_timestamp_ms(
-        row[contract.provider_timestamp_field]
-    )
+    provider_timestamp_ms = _validate_timestamp_ms(row[contract.provider_timestamp_field])
     provider_timestamp = datetime.fromtimestamp(provider_timestamp_ms / 1000, tz=UTC)
     response_timestamp_ms = int(response_time.timestamp() * 1000)
     provider_age_ms = response_timestamp_ms - provider_timestamp_ms
@@ -391,9 +367,7 @@ def build_pilot_evidence(
         raise OKXPriceLinkageProbeError(
             "Source set or order differs from the frozen pilot contract"
         )
-    if len({observation.source_id for observation in observations}) != len(
-        observations
-    ):
+    if len({observation.source_id for observation in observations}) != len(observations):
         raise OKXPriceLinkageProbeError("Duplicate source identities detected")
     if any(
         observation.raw_response_retained
@@ -402,28 +376,18 @@ def build_pilot_evidence(
         or observation.historical_backfill
         for observation in observations
     ):
-        raise OKXPriceLinkageProbeError(
-            "Unsafe retention or historical promotion detected"
-        )
+        raise OKXPriceLinkageProbeError("Unsafe retention or historical promotion detected")
 
     request_order = tuple(
         observation.source_id
-        for observation in sorted(
-            observations, key=lambda item: item.request_started_at
-        )
+        for observation in sorted(observations, key=lambda item: item.request_started_at)
     )
     provider_order = tuple(
         observation.source_id
-        for observation in sorted(
-            observations, key=lambda item: item.provider_timestamp_ms
-        )
+        for observation in sorted(observations, key=lambda item: item.provider_timestamp_ms)
     )
-    request_order_observations = sorted(
-        observations, key=lambda item: item.request_started_at
-    )
-    provider_values = [
-        item.provider_timestamp_ms for item in request_order_observations
-    ]
+    request_order_observations = sorted(observations, key=lambda item: item.request_started_at)
+    provider_values = [item.provider_timestamp_ms for item in request_order_observations]
     monotonic = provider_values == sorted(provider_values)
 
     return PriceLinkagePilotEvidence(
@@ -483,9 +447,7 @@ def build_pilot_evidence(
 
 def _atomic_write(path: Path, payload: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix=f".{path.name}.", dir=path.parent
-    )
+    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
     temporary = Path(temporary_name)
     try:
         with os.fdopen(descriptor, "wb") as handle:

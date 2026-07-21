@@ -7,8 +7,8 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from hybrid_trader.replication.okx_price_linkage_probe import (
-    HTTPResponse,
     SOURCE_CONTRACTS,
+    HTTPResponse,
     OKXPriceLinkageProbeError,
     build_pilot_evidence,
     build_url,
@@ -77,9 +77,7 @@ def _row_for(source_id: str, timestamp_ms: int = 1784635200000) -> dict[str, str
     return {**identity, **values, "ts": str(timestamp_ms)}
 
 
-def _response(
-    contract_index: int, timestamp_ms: int = 1784635200000
-) -> tuple[str, HTTPResponse]:
+def _response(contract_index: int, timestamp_ms: int = 1784635200000) -> tuple[str, HTTPResponse]:
     contract = SOURCE_CONTRACTS[contract_index]
     url = build_url(contract)
     body = json.dumps(
@@ -88,9 +86,7 @@ def _response(
     return url, HTTPResponse(body, 200, "application/json", url)
 
 
-def _observation(
-    contract_index: int, timestamp_ms: int = 1784635200000, offset: int = 0
-):
+def _observation(contract_index: int, timestamp_ms: int = 1784635200000, offset: int = 0):
     contract = SOURCE_CONTRACTS[contract_index]
     url, response = _response(contract_index, timestamp_ms)
     return validate_source_response(
@@ -104,15 +100,11 @@ def _observation(
 
 
 def test_build_urls_are_deterministic_and_bounded() -> None:
-    assert build_url(SOURCE_CONTRACTS[0]).endswith(
-        "/api/v5/market/ticker?instId=BTC-USDT"
-    )
+    assert build_url(SOURCE_CONTRACTS[0]).endswith("/api/v5/market/ticker?instId=BTC-USDT")
     assert build_url(SOURCE_CONTRACTS[2]).endswith(
         "/api/v5/public/mark-price?instType=SWAP&instId=BTC-USDT-SWAP"
     )
-    assert build_url(SOURCE_CONTRACTS[3]).endswith(
-        "/api/v5/market/index-tickers?instId=BTC-USDT"
-    )
+    assert build_url(SOURCE_CONTRACTS[3]).endswith("/api/v5/market/index-tickers?instId=BTC-USDT")
 
 
 def test_safe_url_rejects_non_okx_or_http() -> None:
@@ -131,9 +123,7 @@ def test_each_contract_validates_identity_schema_decimal_and_timestamp(
     assert observation.source_id == contract.source_id
     assert observation.source_kind == contract.source_kind.value
     assert observation.identity_fields == contract.expected_identity_map
-    assert observation.market_value_fields_validated == tuple(
-        sorted(contract.market_value_fields)
-    )
+    assert observation.market_value_fields_validated == tuple(sorted(contract.market_value_fields))
     assert observation.provider_timestamp_ms == 1784635200000
     assert observation.raw_response_retained is False
     assert observation.market_values_retained is False
@@ -169,9 +159,7 @@ def test_missing_field_invalid_decimal_and_invalid_timestamp_fail_closed() -> No
     with pytest.raises(OKXPriceLinkageProbeError, match="required fields"):
         validate_source_response(
             contract=contract,
-            response=HTTPResponse(
-                json.dumps(decoded).encode(), 200, "application/json", url
-            ),
+            response=HTTPResponse(json.dumps(decoded).encode(), 200, "application/json", url),
             request_url=url,
             request_started_at=BASE,
             response_received_at=BASE + timedelta(seconds=1),
@@ -183,9 +171,7 @@ def test_missing_field_invalid_decimal_and_invalid_timestamp_fail_closed() -> No
     with pytest.raises(OKXPriceLinkageProbeError, match="Non-finite"):
         validate_source_response(
             contract=contract,
-            response=HTTPResponse(
-                json.dumps(decoded).encode(), 200, "application/json", url
-            ),
+            response=HTTPResponse(json.dumps(decoded).encode(), 200, "application/json", url),
             request_url=url,
             request_started_at=BASE,
             response_received_at=BASE + timedelta(seconds=1),
@@ -197,9 +183,7 @@ def test_missing_field_invalid_decimal_and_invalid_timestamp_fail_closed() -> No
     with pytest.raises(OKXPriceLinkageProbeError, match="not milliseconds"):
         validate_source_response(
             contract=contract,
-            response=HTTPResponse(
-                json.dumps(decoded).encode(), 200, "application/json", url
-            ),
+            response=HTTPResponse(json.dumps(decoded).encode(), 200, "application/json", url),
             request_url=url,
             request_started_at=BASE,
             response_received_at=BASE + timedelta(seconds=1),
@@ -243,13 +227,8 @@ def test_nonmonotonic_provider_timestamps_are_accepted_and_diagnosed() -> None:
     )
     evidence = build_pilot_evidence(observations)
     assert evidence.provider_timestamps_monotonic_in_request_order is False
-    assert evidence.provider_cache_contract[
-        "later_request_may_return_earlier_provider_timestamp"
-    ]
-    assert (
-        evidence.provider_cache_contract["cross_source_timestamp_monotonicity_required"]
-        is False
-    )
+    assert evidence.provider_cache_contract["later_request_may_return_earlier_provider_timestamp"]
+    assert evidence.provider_cache_contract["cross_source_timestamp_monotonicity_required"] is False
     assert evidence.provider_timestamp_spread_ms == 3000
     assert all(value is False for value in evidence.retention_state.values())
     assert all(value is False for value in evidence.authorization.values())
