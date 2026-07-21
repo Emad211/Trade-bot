@@ -1,0 +1,232 @@
+{
+  "authorization": {
+    "basis_computation": false,
+    "capital_deployment": false,
+    "empirical_fitting": false,
+    "funding_pnl_computation": false,
+    "live_trading": false,
+    "paper_trading": false,
+    "parameter_tuning": false,
+    "report_2_4_full_authorization": false,
+    "returns_computation": false,
+    "strategy_testing": false
+  },
+  "collection_mode": "PROSPECTIVE_ONLY",
+  "collection_started_at_utc": "2026-07-21T10:30:16.294785+00:00",
+  "economic_edge_verdict": "INCONCLUSIVE",
+  "funding_source_content": {
+    "endpoint_path": "/api/v5/public/funding-rate-history",
+    "funding_rate_values_retained": false,
+    "interval_seconds_counts": [[28800, 99]],
+    "maximum_provider_timestamp_ms": 1784620800000,
+    "minimum_provider_timestamp_ms": 1781769600000,
+    "official_host": "www.okx.com",
+    "ordered_timestamp_series_retained": false,
+    "raw_response_retained": false,
+    "request_fingerprint_sha256": "b46ff82d82c1cf42abf78b0b62da1efd3cb5fde918f776d0602ab56443eacfe2",
+    "response_byte_count": 19566,
+    "response_sha256": "a03276abef0dab4596055adf857a152a3b435514eb5b0d18c405fb934c2f2b7b",
+    "row_count": 100,
+    "schema_fields": ["formulaType", "fundingRate", "fundingTime", "instId", "instType", "method", "realizedRate"],
+    "schema_sha256": "9e8a8e8502b0af8cf3a4d5645b786888906ee9c2de0a9d4a03133aa9297322bb",
+    "source_id": "OKX_PUBLIC_FUNDING_RATE_HISTORY",
+    "unique_provider_timestamps": 100
+  },
+  "historical_state": {
+    "current_metadata_projected_backward": false,
+    "historical_backfill": false,
+    "historical_effective_time_inferred": false
+  },
+  "instrument_content": {
+    "effective_from_semantics": "FIRST_OBSERVED_NOT_PROVIDER_EFFECTIVE",
+    "endpoint_path": "/api/v5/public/instruments",
+    "historical_effective_from": null,
+    "official_host": "www.okx.com",
+    "provider_time_fields": {
+      "contTdSwTime": "1611916860000",
+      "listTime": "1573557408000"
+    },
+    "raw_response_retained": false,
+    "response_byte_count": 1079,
+    "response_sha256": "1ad06f4d8d48b1523e622701762de0a42586072b6f01d98b9e75e8d9b7edb9ec",
+    "schema_fields": ["alias", "auctionEndTime", "baseCcy", "category", "contTdSwTime", "ctMult", "ctType", "ctVal", "ctValCcy", "expTime", "floatPxLmtPct", "freq", "futureSettlement", "groupId", "initPxLmtPct", "instCategory", "instFamily", "instId", "instIdCode", "instType", "lever", "listTime", "longPosRemainingQuota", "lotSz", "maxIcebergSz", "maxLmtAmt", "maxLmtSz", "maxMktAmt", "maxMktSz", "maxPlatOICoinLmt", "maxPlatOILmt", "maxPxLmtPct", "maxStopSz", "maxTriggerSz", "maxTwapSz", "method", "minSz", "openType", "optType", "posLmtAmt", "posLmtPct", "preMktSwTime", "quoteCcy", "ruleType", "seriesId", "settleCcy", "shortPosRemainingQuota", "state", "stk", "tickSz", "tradeQuoteCcyList", "uly", "upcChg"],
+    "schema_sha256": "2c675368de7270f1eb2afbef92eb56a68dcd6e8d1503aa276cb94198d8707ad7",
+    "selected_fields": {
+      "contTdSwTime": "1611916860000",
+      "ctMult": "1",
+      "ctType": "linear",
+      "ctVal": "0.01",
+      "ctValCcy": "BTC",
+      "instFamily": "BTC-USDT",
+      "instId": "BTC-USDT-SWAP",
+      "instType": "SWAP",
+      "listTime": "1573557408000",
+      "lotSz": "0.01",
+      "minSz": "0.01",
+      "settleCcy": "USDT",
+      "state": "live",
+      "tickSz": "0.1"
+    },
+    "source_id": "OKX_CURRENT_BTC_USDT_SWAP_INSTRUMENT_API"
+  },
+  "issue_52_outcome": null,
+  "observations": [
+    {
+      "basis_computation_authorized": false,
+      "changed_fields": [],
+      "content_kind": "INSTRUMENT",
+      "content_version_id": "90e429110215d9f4df991d9447b96a1bc31cccf54f88af63a7dd96702c480b3f",
+      "empirical_fitting_authorized": false,
+      "funding_pnl_computation_authorized": false,
+      "historical_backfill": false,
+      "historical_effective_time_inferred": false,
+      "observation_clock": {
+        "provider_timestamp": null,
+        "registry_committed_at": "2026-07-21T10:30:16.894612Z",
+        "request_started_at": "2026-07-21T10:30:16.294785Z",
+        "research_available_at": "2026-07-21T10:30:16.604226Z",
+        "response_received_at": "2026-07-21T10:30:16.603927Z"
+      },
+      "observation_id": "66c27d62616ce0f25355e3acd5e0fd2dcdbcde0a13fa7db1bcf20d34cfa104f4",
+      "paper_or_live_trading_authorized": false,
+      "previous_observation_id": null,
+      "returns_computation_authorized": false,
+      "source_health": {
+        "application_code": "0",
+        "error_fingerprint_sha256": null,
+        "http_status": 200,
+        "latency_milliseconds": 309,
+        "raw_error_retained": false,
+        "response_sha256": "1ad06f4d8d48b1523e622701762de0a42586072b6f01d98b9e75e8d9b7edb9ec",
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "basis_computation_authorized": false,
+      "changed_fields": [],
+      "content_kind": "FUNDING_SOURCE",
+      "content_version_id": "dcb752c70225b47c0e3aa9ff0ce89dca5154dbd95c24a5fb84ddbe126913ae4d",
+      "empirical_fitting_authorized": false,
+      "funding_pnl_computation_authorized": false,
+      "historical_backfill": false,
+      "historical_effective_time_inferred": false,
+      "observation_clock": {
+        "provider_timestamp": null,
+        "registry_committed_at": "2026-07-21T10:30:16.894612Z",
+        "request_started_at": "2026-07-21T10:30:16.604403Z",
+        "research_available_at": "2026-07-21T10:30:16.894491Z",
+        "response_received_at": "2026-07-21T10:30:16.893675Z"
+      },
+      "observation_id": "122a88bbc72fefb3b43a20ffd5212b91856d9a1b6f2f2fd7a6cc54c09fd1e234",
+      "paper_or_live_trading_authorized": false,
+      "previous_observation_id": null,
+      "returns_computation_authorized": false,
+      "source_health": {
+        "application_code": "0",
+        "error_fingerprint_sha256": null,
+        "http_status": 200,
+        "latency_milliseconds": 289,
+        "raw_error_retained": false,
+        "response_sha256": "a03276abef0dab4596055adf857a152a3b435514eb5b0d18c405fb934c2f2b7b",
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "basis_computation_authorized": false,
+      "changed_fields": [],
+      "content_kind": "INSTRUMENT",
+      "content_version_id": "90e429110215d9f4df991d9447b96a1bc31cccf54f88af63a7dd96702c480b3f",
+      "empirical_fitting_authorized": false,
+      "funding_pnl_computation_authorized": false,
+      "historical_backfill": false,
+      "historical_effective_time_inferred": false,
+      "observation_clock": {
+        "provider_timestamp": null,
+        "registry_committed_at": "2026-07-21T10:44:35.402300Z",
+        "request_started_at": "2026-07-21T10:44:34.902563Z",
+        "research_available_at": "2026-07-21T10:44:35.180432Z",
+        "response_received_at": "2026-07-21T10:44:35.180178Z"
+      },
+      "observation_id": "96812116bee5dceae618714ad199f05b80609ba8b0bf6ab1ba908b6935a2a807",
+      "paper_or_live_trading_authorized": false,
+      "previous_observation_id": "66c27d62616ce0f25355e3acd5e0fd2dcdbcde0a13fa7db1bcf20d34cfa104f4",
+      "returns_computation_authorized": false,
+      "source_health": {
+        "application_code": "0",
+        "error_fingerprint_sha256": null,
+        "http_status": 200,
+        "latency_milliseconds": 278,
+        "raw_error_retained": false,
+        "response_sha256": "1ad06f4d8d48b1523e622701762de0a42586072b6f01d98b9e75e8d9b7edb9ec",
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "basis_computation_authorized": false,
+      "changed_fields": [],
+      "content_kind": "FUNDING_SOURCE",
+      "content_version_id": "dcb752c70225b47c0e3aa9ff0ce89dca5154dbd95c24a5fb84ddbe126913ae4d",
+      "empirical_fitting_authorized": false,
+      "funding_pnl_computation_authorized": false,
+      "historical_backfill": false,
+      "historical_effective_time_inferred": false,
+      "observation_clock": {
+        "provider_timestamp": null,
+        "registry_committed_at": "2026-07-21T10:44:35.402300Z",
+        "request_started_at": "2026-07-21T10:44:35.180594Z",
+        "research_available_at": "2026-07-21T10:44:35.402201Z",
+        "response_received_at": "2026-07-21T10:44:35.401397Z"
+      },
+      "observation_id": "c9d49d39fda12f75d0991c2cf3b31728918f1e51267845b9f5a8698edcb01b96",
+      "paper_or_live_trading_authorized": false,
+      "previous_observation_id": "122a88bbc72fefb3b43a20ffd5212b91856d9a1b6f2f2fd7a6cc54c09fd1e234",
+      "returns_computation_authorized": false,
+      "source_health": {
+        "application_code": "0",
+        "error_fingerprint_sha256": null,
+        "http_status": 200,
+        "latency_milliseconds": 221,
+        "raw_error_retained": false,
+        "response_sha256": "a03276abef0dab4596055adf857a152a3b435514eb5b0d18c405fb934c2f2b7b",
+        "status": "SUCCESS"
+      }
+    }
+  ],
+  "previous_snapshot_sha256": "729dfb417385a6ccdb9efbb39c0b856eb86a69db89f5c47044080920b2593a75",
+  "provider_timestamp_policy": {
+    "funding_response_provider_timestamp": null,
+    "funding_settlement_times_are_provider_response_timestamps": false,
+    "instrument_response_provider_timestamp": null,
+    "missing_provider_timestamp_preserved_as_null": true
+  },
+  "registry_committed_at_utc": "2026-07-21T10:44:35.402300+00:00",
+  "registry_id": "OKX_BTC_USDT_SWAP_PROSPECTIVE_REGISTRY_V1",
+  "registry_verdict": "PROSPECTIVE_APPEND_SNAPSHOT",
+  "retention_state": {
+    "funding_rate_values_retained": false,
+    "ordered_timestamp_series_retained": false,
+    "public_market_rows_retained": false,
+    "raw_funding_response_retained": false,
+    "raw_instrument_response_retained": false
+  },
+  "schema_version": "1.1",
+  "snapshot_sequence": 2,
+  "source_change_summary": {
+    "funding_source": {
+      "changed_fields": [],
+      "content_version_changed": false,
+      "current_content_version_id": "dcb752c70225b47c0e3aa9ff0ce89dca5154dbd95c24a5fb84ddbe126913ae4d",
+      "previous_content_version_id": "dcb752c70225b47c0e3aa9ff0ce89dca5154dbd95c24a5fb84ddbe126913ae4d"
+    },
+    "instrument": {
+      "changed_fields": [],
+      "content_version_changed": false,
+      "current_content_version_id": "90e429110215d9f4df991d9447b96a1bc31cccf54f88af63a7dd96702c480b3f",
+      "previous_content_version_id": "90e429110215d9f4df991d9447b96a1bc31cccf54f88af63a7dd96702c480b3f"
+    }
+  },
+  "version_ids": {
+    "funding_source": "dcb752c70225b47c0e3aa9ff0ce89dca5154dbd95c24a5fb84ddbe126913ae4d",
+    "instrument": "90e429110215d9f4df991d9447b96a1bc31cccf54f88af63a7dd96702c480b3f"
+  }
+}
