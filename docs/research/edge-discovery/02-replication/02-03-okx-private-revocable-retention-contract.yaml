@@ -1,0 +1,151 @@
+schema_version: '1.0'
+contract:
+  id: OKX-PRIVATE-REVOCABLE-RAW-2026-07-21-V1
+  decision_owner: Emad211
+  effective_date: '2026-07-21'
+  allowed_purpose: PERSONAL_STRATEGY_RESEARCH_ONLY
+  scope:
+    venue: OKX
+    source_family: HISTORICAL_FUNDING_EXPORT
+    instrument_family: BTC-USDT
+    contract_identity: BTC-USDT-SWAP
+    bounded_pilot_month: '2022-03'
+    bulk_acquisition_authorized: false
+license_snapshot:
+  id: OKX_HISTORICAL_DATA_TERMS_2026-07-21_V1
+  historical_data_terms_url: https://www.okx.com/en-gb/help/historicaldata-terms-and-conditions
+  api_agreement_url: https://www.okx.com/en-ae/help/okx-api-agreement
+  interpretation:
+    personal_possession_allowed: true
+    personal_retention_allowed: true
+    own_strategy_development_allowed: true
+    redistribution_allowed: false
+    sublicensing_allowed: false
+    commercial_data_product_allowed: false
+    license_revocable: true
+    deletion_on_revocation_or_expiry_required: true
+    regional_and_technical_controls_must_not_be_circumvented: true
+storage_requirements:
+  root_outside_repository: true
+  encrypted_filesystem_attestation_required: true
+  owner_only_access_attestation_required: true
+  backup_and_sync_exclusion_attestation_required: true
+  public_artifact_upload_disabled_attestation_required: true
+  directory_mode: '0700'
+  raw_file_mode: '0600'
+  content_addressed_identity: SHA256
+  maximum_artifact_bytes: 20000000
+  maximum_retention_days: 30
+  secure_erase_guaranteed: false
+  raw_rows_in_git: false
+  raw_rows_in_public_actions_artifact: false
+  raw_rows_in_public_cloud_storage: false
+  reconstructable_ordered_market_series_in_public_evidence: false
+lease_requirements:
+  required_fields:
+    - artifact_id
+    - source_id
+    - source_object_key_sha256
+    - raw_sha256
+    - byte_count
+    - created_at_utc
+    - expires_at_utc
+    - policy_id
+    - license_snapshot_id
+    - allowed_purpose
+    - requested_retention_days
+    - attestation_flags
+  overwrite_existing_identity: false
+  reuse_previously_deleted_identity: false
+deletion_triggers:
+  - LICENSE_REVOKED
+  - LICENSE_EXPIRED
+  - LEASE_EXPIRED
+  - OWNER_REQUEST
+  - PROJECT_CANCELLED
+  - LICENSE_SCOPE_UNCERTAIN
+  - INTEGRITY_FAILURE_DELETE_ANYWAY
+deletion_control:
+  deletion_must_not_be_blocked_by_integrity_mismatch: true
+  raw_file_unlink_required: true
+  active_lease_removal_required: true
+  post_delete_existence_check_required: true
+  tombstone_without_raw_content_required: true
+  secure_erase_claim_must_remain_false: true
+  compliance_scan_required_before_use: true
+bounded_delivery_evidence:
+  metadata_workflow_run_id: 29810652877
+  metadata_artifact_id: 8487263912
+  metadata_artifact_digest: sha256:72e8228e6dbec9600d9538cf2b839052d135cc6834825bece7e2f658d6daaac3
+  request:
+    endpoint: https://www.okx.com/priapi/v5/broker/public/trade-data/download-link
+    method: POST
+    module: '3'
+    inst_type: SWAP
+    inst_family: BTC-USDT
+    date_aggregation: monthly
+    begin_ms: '1646092800000'
+    end_ms: '1648684800000'
+  response:
+    http_status: 200
+    application_code: '0'
+    details_count: 1
+    official_file_host: static.okx.com
+    official_file_path: /cdn/okex/traderecords/swaprates/monthly/202203/BTC-USDT-SWAP-fundingrates-2022-03.zip
+    official_filename: BTC-USDT-SWAP-fundingrates-2022-03.zip
+    raw_link_retained: false
+ephemeral_file_validation:
+  workflow_run_id: 29811051931
+  evidence_artifact_id: 8487415309
+  evidence_artifact_digest: sha256:806ed03e82d17be2ecc3cde7e374f16898363c1c9c1ee1fc380338c088a6d082
+  evidence_json_sha256: 4123d7c54ae18829ac0aca2d3d3f4abb16be41fb965506f2bb9301b829c954
+  raw_zip:
+    byte_count: 1403
+    sha256: ce4fe9aaf1dfdee16e1d11cdabcbb405eb348966902950db1ca862dc86779013
+    crc_validation_passed: true
+    encrypted_members: 0
+    path_traversal_detected: false
+  csv_member:
+    filename: BTC-USDT-SWAP-fundingrates-2022-03.csv
+    byte_count: 4546
+    sha256: 508195adcc2fd9e9a1978926d8da89af4054d79de4675268cbfb2ac9539e73da
+    crc32: 01e95991
+    fieldnames:
+      - instrument_name
+      - funding_rate
+      - funding_time
+    header_sha256: 9a64087a90de9be72d2b9adddc51225bd484e6a717d7a26f20d6adad7860330f
+    row_count: 93
+    unique_timestamp_count: 93
+    minimum_timestamp_utc: '2022-02-28T16:00:00+00:00'
+    maximum_timestamp_utc: '2022-03-31T08:00:00+00:00'
+    observed_interval_ms: 28800000
+    observed_interval_count: 92
+    rate_values_retained: false
+  deletion_receipt:
+    delete_method: unlink_then_remove_ephemeral_directory
+    raw_file_exists_after_delete: false
+    private_directory_exists_after_delete: false
+    secure_erase_claimed: false
+  raw_file_uploaded: false
+  raw_rows_retained: false
+  returns_computed: false
+  basis_computed: false
+  funding_pnl_computed: false
+authorization:
+  outcome: GO_PRIVATE_REVOCABLE_2022_FUNDING_PILOT
+  bounded_private_raw_pilot: true
+  maximum_one_month_initial_scope: true
+  persistent_raw_requires_all_attestations: true
+  public_raw_artifact: false
+  redistribution: false
+  bulk_download: false
+  returns: false
+  basis: false
+  funding_pnl: false
+  empirical_fitting: false
+  parameter_tuning: false
+  paper_trading: false
+  live_trading: false
+  capital_deployment: false
+  report_2_4_full_authorization: false
