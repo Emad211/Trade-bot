@@ -79,4 +79,4 @@ jobs:
           git commit -m 'Normalize prospective OKX registry implementation'
           git push origin HEAD:agent/edge-research-reports
 
-# Re-triggered after the initial prospective registry implementation was added.
+# Re-triggered after the prospective gate manifest commit on the current branch head.
