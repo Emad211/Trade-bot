@@ -65,16 +65,31 @@ jobs:
 
       - name: Complete non-optional test suite and replication coverage
         shell: bash
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
         run: |
           set -o pipefail
-          /tmp/hybrid-trader-replication-integrity/bin/pytest \
+          COVERAGE=/tmp/hybrid-trader-replication-integrity/bin/coverage
+          PYTHON=/tmp/hybrid-trader-replication-integrity/bin/python
+
+          "$COVERAGE" erase
+          "$COVERAGE" run \
+            --branch \
+            --source=hybrid_trader.replication \
+            -m pytest \
             -q -m "not optional_ml" \
-            --cov=hybrid_trader.replication \
-            --cov-report=term-missing \
-            --cov-report=xml:replication-coverage.xml \
-            --cov-report=json:replication-coverage.json \
-            --cov-fail-under=70 \
             2>&1 | tee replication-pytest.log
+
+          "$COVERAGE" report --show-missing --fail-under=70 \
+            2>&1 | tee -a replication-pytest.log
+          "$COVERAGE" xml -o replication-coverage.xml
+          "$COVERAGE" json -o replication-coverage.json
+          "$PYTHON" - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("replication-coverage.json").read_text())
+          print(json.dumps(report["totals"], indent=2, sort_keys=True))
+          PY
 
       - name: Upload replication coverage evidence
         if: always()
