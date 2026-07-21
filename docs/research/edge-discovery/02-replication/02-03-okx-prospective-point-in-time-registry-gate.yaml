@@ -1,0 +1,162 @@
+schema_version: "1.0"
+gate_id: OKX_BTC_USDT_SWAP_PROSPECTIVE_POINT_IN_TIME_REGISTRY_V1
+issue_number: 52
+status: OPEN
+status_date: "2026-07-21"
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+supersedes_historical_repair: false
+predecessor_gate:
+  issue_number: 51
+  primary_outcome: BLOCKED_INSTRUMENT_VERSION_HISTORY
+  secondary_blocker: BLOCKED_ARCHIVE_AVAILABILITY_TIMING
+  historical_backfill_permitted: false
+objective: >-
+  Establish an append-only, content-addressed, prospective registry for the
+  current BTC-USDT-SWAP instrument contract and the OKX public funding source
+  from the first verified observation forward, without projecting any current
+  value, timestamp, schema, or source state into the past.
+collection_boundary:
+  mode: PROSPECTIVE_ONLY
+  first_effective_semantics: FIRST_OBSERVED_NOT_PROVIDER_EFFECTIVE
+  start_time: null
+  start_time_must_come_from_first_verified_observation: true
+  current_metadata_projected_backward: false
+  observation_gap_interpolation: false
+required_clocks:
+  - request_started_at
+  - response_received_at
+  - provider_timestamp
+  - research_available_at
+  - registry_committed_at
+clock_rules:
+  ordering: request_started_at <= response_received_at <= research_available_at <= registry_committed_at
+  provider_timestamp_nullable: true
+  missing_provider_timestamp_preserved_as_null: true
+  provider_timestamp_may_be_inferred: false
+instrument_content_contract:
+  provider_id: BTC-USDT-SWAP
+  source_endpoint: /api/v5/public/instruments
+  required_identity_fields:
+    - instId
+    - instFamily
+    - instType
+    - ctType
+    - ctVal
+    - ctValCcy
+    - ctMult
+    - settleCcy
+    - tickSz
+    - lotSz
+    - minSz
+    - state
+  provider_time_fields_retained_without_reinterpretation:
+    - listTime
+    - contTdSwTime
+  required_lineage:
+    - official_host
+    - endpoint_path
+    - response_byte_count
+    - response_sha256
+    - schema_fields
+    - schema_sha256
+    - content_version_id
+  historical_effective_from_allowed: false
+funding_source_contract:
+  source_endpoint: /api/v5/public/funding-rate-history
+  instrument_id: BTC-USDT-SWAP
+  bounded_limit: 100
+  retained_safe_fields:
+    - official_host
+    - endpoint_path
+    - request_fingerprint_sha256
+    - response_byte_count
+    - response_sha256
+    - schema_fields
+    - schema_sha256
+    - row_count
+    - unique_provider_timestamps
+    - minimum_provider_timestamp_ms
+    - maximum_provider_timestamp_ms
+    - interval_seconds_counts
+  raw_response_retained: false
+  funding_rate_values_retained: false
+  realized_rate_values_retained: false
+  ordered_timestamp_series_retained: false
+  public_market_rows_retained: false
+versioning_contract:
+  content_addressed: true
+  content_hash_algorithm: SHA256
+  append_only: true
+  overwrite_previous_version: false
+  duplicate_observation: reject
+  registry_commit_time_monotonic: true
+  previous_observation_chain_required_after_first: true
+  content_change_requires_field_diff: true
+  unchanged_content_may_declare_diff: false
+  previous_version_deletion: false
+source_health_contract:
+  statuses:
+    - SUCCESS
+    - HTTP_ERROR
+    - TRANSPORT_ERROR
+    - CONTRACT_ERROR
+  successful_observation_requires:
+    - http_status_200
+    - response_sha256
+  failed_observation_requires:
+    - error_fingerprint_sha256
+  raw_error_retained: false
+  source_unavailability_is_market_null: false
+revision_controls:
+  detect_changes_in:
+    - official_host
+    - endpoint_path
+    - response_code
+    - schema_fields
+    - selected_instrument_fields
+    - provider_time_fields
+    - timestamp_order
+    - timestamp_uniqueness
+    - interval_distribution
+    - response_identity
+  ambiguous_provider_timestamp: fail_closed
+  observation_gap_continuity_inferred: false
+retention_boundary:
+  safe_metadata_in_git: true
+  raw_instrument_response_in_git: false
+  raw_funding_response_in_git: false
+  raw_market_values_in_actions_artifact: false
+  reconstructable_ordered_market_series_in_public_evidence: false
+  private_raw_retention_inherited_from_issue_50: false
+hard_prohibitions:
+  historical_backfill: false
+  bulk_archive_acquisition: false
+  raw_redistribution: false
+  basis_computation: false
+  funding_pnl_computation: false
+  returns_computation: false
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_testing: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  report_2_4_authorized: false
+allowed_outcomes:
+  - GO_PROSPECTIVE_OKX_POINT_IN_TIME_REGISTRY
+  - BLOCKED_SOURCE_TIMESTAMP_OR_REVISION_CONTRACT
+  - BLOCKED_TERMS_OR_RETENTION
+current_outcome: null
+initial_snapshot:
+  status: NOT_YET_VERIFIED
+  workflow_run_id: null
+  artifact_id: null
+  artifact_digest: null
+  evidence_sha256: null
+hypothesis_verdicts:
+  EDGE-CRYPTO-BASIS-001: INCONCLUSIVE
+  EDGE-CRYPTO-RV-001: INCONCLUSIVE
+paper_replication_pass: false
+economic_edge_verdict: INCONCLUSIVE
