@@ -1,0 +1,338 @@
+name: OKX Historical Delivery Metadata Probe
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/okx-historical-delivery-metadata-probe.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: okx-historical-delivery-metadata-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  inspect-delivery-mechanism:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out the triggering commit
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Install isolated browser runtime
+        run: |
+          mkdir -p build/okx-historical-delivery-probe/runtime
+          cd build/okx-historical-delivery-probe/runtime
+          npm init -y >/dev/null
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Inspect official landing-page delivery mechanism without downloading market data
+        shell: bash
+        run: |
+          mkdir -p build/okx-historical-delivery-probe/output
+          cat > build/okx-historical-delivery-probe/runtime/probe.mjs <<'NODE'
+          import crypto from 'node:crypto';
+          import fs from 'node:fs';
+          import { chromium } from 'playwright';
+
+          const outputPath = 'build/okx-historical-delivery-probe/output/probe.json';
+          const landingUrl = 'https://www.okx.com/en-gb/historical-data';
+          const prohibitedExtensions = /\.(zip|csv|gz|gzip|parquet|tar|7z|bz2|xz)(?:$|[?#])/i;
+          const sensitiveNames = /^(?:token|access_token|signature|sig|key|api_key|credential|x-amz-.+|expires?)$/i;
+          const allowedHosts = new Set([
+            'www.okx.com',
+            'okx.com',
+            'my.okx.com',
+            'eea.okx.com',
+            'app.okx.com',
+            'static.okx.com',
+            'static-cdn.okx.com',
+            'static-cdn.jtvnw.net'
+          ]);
+
+          function sha256(value) {
+            return crypto.createHash('sha256').update(value).digest('hex');
+          }
+
+          function sanitizeUrl(raw) {
+            try {
+              const url = new URL(raw);
+              for (const key of [...url.searchParams.keys()]) {
+                if (sensitiveNames.test(key)) url.searchParams.set(key, '[REDACTED]');
+              }
+              url.hash = '';
+              return url.toString();
+            } catch {
+              return raw;
+            }
+          }
+
+          function compactHeaders(headers) {
+            const selected = {};
+            for (const name of ['content-type', 'content-length', 'location', 'cache-control', 'content-disposition']) {
+              if (headers[name] !== undefined) selected[name] = headers[name];
+            }
+            return selected;
+          }
+
+          const evidence = {
+            schema_version: '1.0',
+            purpose: 'OKX_2022_HISTORICAL_FUNDING_DELIVERY_METADATA_ONLY',
+            landing_url: landingUrl,
+            raw_market_data_download_authorized: false,
+            raw_market_data_download_attempted: false,
+            response_bodies_retained: false,
+            screenshots_retained: false,
+            browser_downloads_cancelled: 0,
+            blocked_market_file_requests: [],
+            navigation: {},
+            page_state_before_click: {},
+            page_state_after_click: {},
+            requests: [],
+            responses: [],
+            errors: []
+          };
+
+          const browser = await chromium.launch({ headless: true });
+          const context = await browser.newContext({
+            acceptDownloads: false,
+            locale: 'en-GB',
+            timezoneId: 'UTC'
+          });
+          const page = await context.newPage();
+
+          page.on('download', async download => {
+            evidence.browser_downloads_cancelled += 1;
+            evidence.raw_market_data_download_attempted = true;
+            evidence.errors.push({
+              stage: 'download_event',
+              message: 'Browser download event was cancelled by policy',
+              suggested_filename: download.suggestedFilename()
+            });
+            await download.cancel().catch(() => {});
+          });
+
+          page.on('request', request => {
+            evidence.requests.push({
+              phase: evidence.page_state_before_click.clicked ? 'after_click' : 'before_click',
+              method: request.method(),
+              resource_type: request.resourceType(),
+              url: sanitizeUrl(request.url()),
+              host: (() => { try { return new URL(request.url()).hostname; } catch { return ''; } })(),
+              redirected_from: request.redirectedFrom() ? sanitizeUrl(request.redirectedFrom().url()) : ''
+            });
+          });
+
+          page.on('response', response => {
+            const request = response.request();
+            evidence.responses.push({
+              phase: evidence.page_state_before_click.clicked ? 'after_click' : 'before_click',
+              status: response.status(),
+              resource_type: request.resourceType(),
+              url: sanitizeUrl(response.url()),
+              host: (() => { try { return new URL(response.url()).hostname; } catch { return ''; } })(),
+              headers: compactHeaders(response.headers())
+            });
+          });
+
+          await page.route('**/*', async route => {
+            const request = route.request();
+            const url = request.url();
+            let host = '';
+            try { host = new URL(url).hostname; } catch {}
+            if (prohibitedExtensions.test(url)) {
+              evidence.blocked_market_file_requests.push({
+                url: sanitizeUrl(url),
+                host,
+                method: request.method(),
+                resource_type: request.resourceType()
+              });
+              evidence.raw_market_data_download_attempted = true;
+              await route.abort('blockedbyclient');
+              return;
+            }
+            if (host && !allowedHosts.has(host) && !host.endsWith('.okx.com')) {
+              if (['image', 'media', 'font'].includes(request.resourceType())) {
+                await route.abort('blockedbyclient');
+                return;
+              }
+            }
+            await route.continue();
+          });
+
+          try {
+            const mainResponse = await page.goto(landingUrl, {
+              waitUntil: 'domcontentloaded',
+              timeout: 90000
+            });
+            await page.waitForTimeout(5000);
+            evidence.navigation = {
+              requested_url: landingUrl,
+              final_url: page.url(),
+              title: await page.title(),
+              main_status: mainResponse?.status() ?? null,
+              main_headers: mainResponse ? compactHeaders(mainResponse.headers()) : {},
+              body_text_sha256: sha256(await page.locator('body').innerText()),
+              html_sha256: sha256(await page.content())
+            };
+
+            evidence.page_state_before_click = await page.evaluate(() => {
+              const compact = value => (value || '').replace(/\s+/g, ' ').trim().slice(0, 1000);
+              const controls = [...document.querySelectorAll('button,a,[role="button"],input,select')]
+                .map((element, index) => ({
+                  index,
+                  tag: element.tagName,
+                  role: element.getAttribute('role') || '',
+                  text: compact(element.textContent || element.getAttribute('aria-label') || ''),
+                  href: element instanceof HTMLAnchorElement ? element.href : '',
+                  type: element.getAttribute('type') || '',
+                  name: element.getAttribute('name') || '',
+                  disabled: 'disabled' in element ? Boolean(element.disabled) : false
+                }))
+                .filter(item => item.text || item.href || item.name);
+              const bodyText = compact(document.body.innerText);
+              return {
+                clicked: false,
+                body_excerpt: bodyText,
+                controls,
+                login_text_present: /log in|sign in/i.test(document.body.innerText),
+                funding_text_present: /funding rate/i.test(document.body.innerText),
+                download_text_count: (document.body.innerText.match(/download/gi) || []).length
+              };
+            });
+
+            const clickResult = await page.evaluate(() => {
+              const normalize = value => (value || '').replace(/\s+/g, ' ').trim();
+              const all = [...document.querySelectorAll('*')];
+              const heading = all.find(element => normalize(element.textContent) === 'Funding rate');
+              if (!heading) return { clicked: false, reason: 'funding_heading_not_found' };
+              let node = heading;
+              for (let depth = 0; depth < 8 && node; depth += 1, node = node.parentElement) {
+                const candidates = [...node.querySelectorAll('button,a,[role="button"]')];
+                const target = candidates.find(element => /download/i.test(normalize(element.textContent) || element.getAttribute('aria-label') || ''));
+                if (target) {
+                  const metadata = {
+                    tag: target.tagName,
+                    text: normalize(target.textContent),
+                    href: target instanceof HTMLAnchorElement ? target.href : '',
+                    role: target.getAttribute('role') || '',
+                    depth
+                  };
+                  target.click();
+                  return { clicked: true, target: metadata };
+                }
+              }
+              return { clicked: false, reason: 'funding_download_control_not_found' };
+            });
+            evidence.page_state_before_click.clicked = clickResult.clicked;
+            evidence.page_state_before_click.click_result = clickResult;
+            await page.waitForTimeout(5000);
+
+            evidence.page_state_after_click = await page.evaluate(() => {
+              const compact = value => (value || '').replace(/\s+/g, ' ').trim().slice(0, 2000);
+              const controls = [...document.querySelectorAll('button,a,[role="button"],input,select,option')]
+                .map((element, index) => ({
+                  index,
+                  tag: element.tagName,
+                  role: element.getAttribute('role') || '',
+                  text: compact(element.textContent || element.getAttribute('aria-label') || ''),
+                  href: element instanceof HTMLAnchorElement ? element.href : '',
+                  type: element.getAttribute('type') || '',
+                  name: element.getAttribute('name') || '',
+                  value: 'value' in element ? String(element.value || '').slice(0, 300) : '',
+                  disabled: 'disabled' in element ? Boolean(element.disabled) : false
+                }))
+                .filter(item => item.text || item.href || item.name || item.value);
+              const dialogs = [...document.querySelectorAll('[role="dialog"],dialog,[aria-modal="true"]')]
+                .map(element => compact(element.innerText));
+              return {
+                final_url: location.href,
+                body_excerpt: compact(document.body.innerText),
+                controls,
+                dialogs,
+                login_text_present: /log in|sign in/i.test(document.body.innerText),
+                kyc_text_present: /kyc|identity verification|verify your identity/i.test(document.body.innerText),
+                payment_text_present: /payment|credit card|fee|subscribe/i.test(document.body.innerText),
+                terms_text_present: /terms|personal use|license/i.test(document.body.innerText)
+              };
+            });
+          } catch (error) {
+            evidence.errors.push({ stage: 'page_probe', message: String(error?.stack || error) });
+          } finally {
+            await browser.close();
+          }
+
+          evidence.requests = evidence.requests.slice(-500);
+          evidence.responses = evidence.responses.slice(-500);
+          evidence.observed_hosts = [...new Set([
+            ...evidence.requests.map(item => item.host),
+            ...evidence.responses.map(item => item.host)
+          ].filter(Boolean))].sort();
+          evidence.market_file_request_count = evidence.blocked_market_file_requests.length;
+          evidence.raw_market_data_retained = false;
+          evidence.gate_verdict = 'UNRESOLVED_METADATA_PROBE_ONLY';
+          fs.writeFileSync(outputPath, JSON.stringify(evidence, null, 2) + '\n');
+          NODE
+
+          cd build/okx-historical-delivery-probe/runtime
+          node probe.mjs
+          cd "$GITHUB_WORKSPACE"
+
+      - name: Verify safe evidence contains no market-data payload
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('build/okx-historical-delivery-probe/output/probe.json')
+          evidence = json.loads(path.read_text(encoding='utf-8'))
+          if evidence['raw_market_data_retained'] is not False:
+              raise SystemExit('Raw market data retention was not disabled')
+          if evidence['response_bodies_retained'] is not False:
+              raise SystemExit('Response bodies were retained')
+          if evidence['gate_verdict'] != 'UNRESOLVED_METADATA_PROBE_ONLY':
+              raise SystemExit('Metadata probe self-promoted to a gate verdict')
+          forbidden_keys = {'fundingRate', 'realizedRate', 'px', 'sz', 'open', 'high', 'low', 'close'}
+          serialized = json.dumps(evidence, sort_keys=True)
+          for key in forbidden_keys:
+              if f'"{key}"' in serialized:
+                  raise SystemExit(f'Potential raw market field leaked: {key}')
+          print(json.dumps({
+              'final_url': evidence.get('navigation', {}).get('final_url'),
+              'observed_hosts': evidence.get('observed_hosts'),
+              'market_file_request_count': evidence.get('market_file_request_count'),
+              'download_events_cancelled': evidence.get('browser_downloads_cancelled'),
+              'errors': evidence.get('errors'),
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload metadata-only probe evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: okx-historical-delivery-metadata-${{ github.sha }}
+          path: build/okx-historical-delivery-probe/output/probe.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Record non-promotional summary
+        run: |
+          {
+            echo "## OKX historical delivery metadata probe"
+            echo
+            echo "- Raw market-data download authorized: no"
+            echo "- Response bodies retained: no"
+            echo "- ZIP/CSV requests: blocked"
+            echo "- Gate verdict: unresolved metadata probe only"
+            echo "- Funding PnL or returns: not computed"
+          } >> "$GITHUB_STEP_SUMMARY"
