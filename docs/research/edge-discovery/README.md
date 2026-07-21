@@ -55,6 +55,7 @@ Verified foundations include:
 - verified prospective spot, swap, mark, and index source-linkage metadata with non-monotonic provider-cache timing preserved;
 - an owner-controlled private four-source sampling contract and a disabled-by-default one-batch runner, both validated synthetically with zero real raw execution;
 - a fail-closed account-fee, per-fill, funding-bill, position-aggregate, and current funding-formula accounting contract;
+- a fail-closed executable-price, order/fill lifecycle, latency, spread/slippage, and non-overlapping cost-aggregation semantics contract;
 - repository-wide static analysis, unit testing, package-smoke, and dedicated source workflows.
 
 Gate outcomes:
@@ -69,9 +70,11 @@ Issue #54: CLOSED — GO_OWNER_CONTROLLED_PRIVATE_OKX_SAMPLING_CONTRACT
 Issue #55: CLOSED — GO_OWNER_SIDE_OKX_ONE_BATCH_RUNNER_READY
 Issue #56: CLOSED — GO_OKX_FEE_AND_FUNDING_ACCOUNTING_CONTRACT
 Independent Issue #56 blocker: BLOCKED_ACCOUNT_SPECIFIC_FEE_SNAPSHOT
+Issue #57: CLOSED — GO_OKX_EXECUTABLE_PRICE_AND_COST_SEMANTICS_CONTRACT
+Independent Issue #57 blocker: BLOCKED_OWNER_FEE_OR_EXECUTION_INPUTS
 ```
 
-The GO outcomes are deliberately narrow. They authorize prospective source/version monitoring, safe metadata linkage, tested private-retention and owner-runner contracts, and synthetic accounting validation. They do not repair history, execute a real raw batch, acquire owner fee rates, or authorize basis, funding PnL, returns, numerical transaction costs, fitting, tuning, strategy tests, paper/live trading, leverage, Report 2.4, or capital deployment.
+The GO outcomes are deliberately narrow. They authorize prospective source/version monitoring, safe metadata linkage, tested private-retention and owner-runner contracts, and synthetic accounting validation. They do not repair history, execute a real raw batch, acquire owner fee rates, admit real order/book/fill inputs, or authorize basis, funding PnL, returns, numerical transaction costs, fitting, tuning, strategy tests, paper/live trading, leverage, Report 2.4, or capital deployment.
 
 Current hard blockers:
 
@@ -85,7 +88,9 @@ OKX March 2022 complete instrument/version history: BLOCKED
 OKX March 2022 archive publication available_at: BLOCKED
 Real owner-controlled OKX raw batch: NOT EXECUTED
 Owner-account-specific fee snapshot: BLOCKED_OWNER_READ_ONLY_CREDENTIALS
-Executable-price / spread / slippage / impact / latency contract: INCOMPLETE
+Executable-price / spread / slippage / impact / latency semantics: VERIFIED SYNTHETIC CONTRACT
+Real order / book / fill inputs: NOT ADMITTED
+Numerical transaction-cost estimation: NOT AUTHORIZED
 Binance persistent raw retention and historical available_at: OPEN GATES
 Basis / funding PnL / returns / transaction costs: NOT AUTHORIZED
 Paper-level numerical replication: NOT COMPLETE
@@ -139,6 +144,7 @@ All six hypothesis verdicts remain `INCONCLUSIVE`.
 - [Owner-controlled private synchronized-sampling contract](02-replication/02-03-okx-private-synchronized-sampling-contract-evidence.md)
 - [Disabled owner-side one-batch runner](02-replication/02-03-okx-owner-side-one-batch-runner-evidence.md)
 - [Verified fee and funding accounting contract](02-replication/02-03-okx-fee-and-funding-accounting-contract-evidence.md)
+- [Verified executable-price and cost-semantics contract](02-replication/02-03-okx-executable-price-and-cost-semantics-evidence.md)
 - [Verified Binance BTCUSDT ephemeral pilot](02-replication/02-03-binance-btcusdt-public-ephemeral-pilot-evidence.md)
 
 ### Key workflows
@@ -156,6 +162,7 @@ All six hypothesis verdicts remain `INCONCLUSIVE`.
 - `.github/workflows/okx-private-synchronized-sampling-contract.yml`
 - `.github/workflows/okx-owner-side-one-batch-runner.yml`
 - `.github/workflows/okx-fee-accounting-contract.yml`
+- `.github/workflows/okx-execution-cost-semantics-contract.yml`
 - `.github/workflows/binance-btcusdt-public-ephemeral-pilot.yml`
 
 ### 3. Dataset and Experiment System
