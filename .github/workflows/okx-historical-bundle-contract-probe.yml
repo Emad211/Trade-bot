@@ -1,0 +1,208 @@
+name: OKX Historical Bundle Contract Probe
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/okx-historical-bundle-contract-probe.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: okx-historical-bundle-contract-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  inspect-public-bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out the triggering commit
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Fetch and inspect only the official page bundle
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+
+          import hashlib
+          import json
+          import re
+          import tempfile
+          import urllib.request
+          from pathlib import Path
+          from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+
+          SOURCE_URL = (
+              "https://www.okx.com/cdn/assets/okfe/broker-center/"
+              "brokerHistory/index.06c0c768.js"
+          )
+          MAX_BYTES = 1_000_000
+          output = Path("build/okx-historical-bundle-contract-probe/evidence.json")
+          output.parent.mkdir(parents=True, exist_ok=True)
+
+          def sha256(data: bytes) -> str:
+              return hashlib.sha256(data).hexdigest()
+
+          def safe_url(raw: str) -> str:
+              try:
+                  parts = urlsplit(raw)
+              except ValueError:
+                  return raw[:500]
+              query = []
+              for key, value in parse_qsl(parts.query, keep_blank_values=True):
+                  query.append((key, f"sha256:{sha256(value.encode())[:16]}" if value else ""))
+              return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), ""))
+
+          request = urllib.request.Request(
+              SOURCE_URL,
+              headers={
+                  "Accept": "application/javascript,text/javascript,*/*;q=0.1",
+                  "User-Agent": (
+                      "Emad211-Trade-bot-replication/1.0 "
+                      "(+https://github.com/Emad211/Trade-bot)"
+                  ),
+              },
+          )
+          raw: bytes
+          status: int
+          content_type: str
+          final_url: str
+          with urllib.request.urlopen(request, timeout=45) as response:
+              status = int(response.status)
+              content_type = response.headers.get("Content-Type", "")
+              final_url = response.geturl()
+              raw = response.read(MAX_BYTES + 1)
+          if status != 200:
+              raise SystemExit(f"Official bundle returned HTTP {status}")
+          if len(raw) > MAX_BYTES:
+              raise SystemExit("Official bundle exceeded byte-size guard")
+          if "javascript" not in content_type.lower():
+              raise SystemExit(f"Unexpected bundle content type: {content_type!r}")
+          final_parts = urlsplit(final_url)
+          if final_parts.scheme != "https" or final_parts.hostname != "www.okx.com":
+              raise SystemExit(f"Bundle redirected off the frozen official host: {final_url}")
+
+          with tempfile.NamedTemporaryFile(prefix="okx-broker-history-", suffix=".js") as handle:
+              handle.write(raw)
+              handle.flush()
+              text = raw.decode("utf-8", errors="strict")
+
+              literals = re.findall(r"[\"']([^\"'\r\n]{1,500})[\"']", text)
+              keywords = (
+                  "funding",
+                  "history",
+                  "historical",
+                  "download",
+                  "export",
+                  "trade-data",
+                  "instrument",
+                  "dategroup",
+                  "daterange",
+                  "module",
+                  "file",
+              )
+              candidate_literals = sorted(
+                  {
+                      value
+                      for value in literals
+                      if any(keyword in value.lower() for keyword in keywords)
+                  }
+              )
+              endpoint_pattern = re.compile(
+                  r"/(?:priapi|api|v\d+|broker)[A-Za-z0-9_./{}?=&%:+-]{3,300}"
+              )
+              candidate_paths = sorted(set(endpoint_pattern.findall(text)))
+              candidate_paths = [
+                  value
+                  for value in candidate_paths
+                  if any(keyword in value.lower() for keyword in keywords)
+              ]
+              absolute_urls = sorted(
+                  {
+                      safe_url(value)
+                      for value in re.findall(r"https?://[^\"'\s\\]{1,500}", text)
+                      if any(keyword in value.lower() for keyword in keywords)
+                  }
+              )
+
+          evidence = {
+              "schema_version": "1.0",
+              "purpose": "OKX_HISTORICAL_DELIVERY_STATIC_CONTRACT_METADATA_ONLY",
+              "source_url": SOURCE_URL,
+              "final_url": safe_url(final_url),
+              "http_status": status,
+              "content_type": content_type,
+              "bundle_byte_count": len(raw),
+              "bundle_sha256": sha256(raw),
+              "candidate_string_literals": candidate_literals[:250],
+              "candidate_endpoint_paths": candidate_paths[:250],
+              "candidate_absolute_urls": absolute_urls[:100],
+              "raw_bundle_retained": False,
+              "response_body_uploaded": False,
+              "market_data_requested": False,
+              "market_data_retained": False,
+              "gate_verdict": "UNRESOLVED_STATIC_METADATA_ONLY",
+          }
+          output.write_text(
+              json.dumps(evidence, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(evidence, indent=2, sort_keys=True))
+          PY
+
+      - name: Verify evidence is metadata-only
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("build/okx-historical-bundle-contract-probe/evidence.json")
+          evidence = json.loads(path.read_text(encoding="utf-8"))
+          if evidence["raw_bundle_retained"] is not False:
+              raise SystemExit("Raw JavaScript bundle was retained")
+          if evidence["response_body_uploaded"] is not False:
+              raise SystemExit("JavaScript response body was uploaded")
+          if evidence["market_data_requested"] is not False:
+              raise SystemExit("Market data was requested")
+          if evidence["market_data_retained"] is not False:
+              raise SystemExit("Market data was retained")
+          if evidence["gate_verdict"] != "UNRESOLVED_STATIC_METADATA_ONLY":
+              raise SystemExit("Static probe self-promoted to a gate verdict")
+          if any(len(value) > 500 for value in evidence["candidate_string_literals"]):
+              raise SystemExit("Extracted source fragment exceeds the safety bound")
+          print(json.dumps({
+              "bundle_sha256": evidence["bundle_sha256"],
+              "bundle_byte_count": evidence["bundle_byte_count"],
+              "candidate_endpoint_paths": evidence["candidate_endpoint_paths"],
+              "candidate_absolute_urls": evidence["candidate_absolute_urls"],
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload safe static-contract evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: okx-historical-bundle-contract-${{ github.sha }}
+          path: build/okx-historical-bundle-contract-probe/evidence.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Record non-promotional summary
+        run: |
+          {
+            echo "## OKX historical bundle contract probe"
+            echo
+            echo "- Official page JavaScript bundle: inspected ephemerally"
+            echo "- Raw bundle retained or uploaded: no"
+            echo "- Market data requested or retained: no"
+            echo "- Gate verdict: unresolved static metadata only"
+          } >> "$GITHUB_STEP_SUMMARY"
