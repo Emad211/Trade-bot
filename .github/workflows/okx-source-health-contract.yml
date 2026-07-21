@@ -1,44 +1,41 @@
-name: install-gate58-source-health
+name: OKX Source Health and Sampling Abort Contract
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [main]
     paths:
-      - .github/workflows/install-gate58-source-health.yml
-      - .gate58-payload.b64
+      - .github/workflows/okx-source-health-contract.yml
+      - src/hybrid_trader/replication/okx_source_health.py
+      - scripts/validate_okx_source_health_contract.py
+      - tests/test_okx_source_health.py
+      - docs/research/edge-discovery/02-replication/02-03-okx-source-health-and-sampling-abort-gate.yaml
+  push:
+    branches: [agent/edge-research-reports]
+    paths:
+      - .github/workflows/okx-source-health-contract.yml
+      - src/hybrid_trader/replication/okx_source_health.py
+      - scripts/validate_okx_source_health_contract.py
+      - tests/test_okx_source_health.py
+      - docs/research/edge-discovery/02-replication/02-03-okx-source-health-and-sampling-abort-gate.yaml
 
 permissions:
-  contents: write
-
-concurrency:
-  group: install-gate58-source-health
-  cancel-in-progress: false
+  contents: read
 
 jobs:
-  install-verify-publish:
-    if: github.actor != 'github-actions[bot]'
+  validate-synthetic-health-contract:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: agent/edge-research-reports
-          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: pip
       - name: Install verification dependencies
         run: python -m pip install -e '.[dev,replication]'
-      - name: Decode and install verified payload
+      - name: Verify health state machine and tests
         run: |
-          set -euo pipefail
-          base64 -d .gate58-payload.b64 > /tmp/gate58-payload.tar.gz
-          echo 'ced15dade5d3d1666a1234be0e2bd667bab5fba3bc13ee2ef6a68c74b7e48708  /tmp/gate58-payload.tar.gz' | sha256sum -c -
-          tar -xzf /tmp/gate58-payload.tar.gz
-      - name: Verify source-health contract
-        run: |
-          set -euo pipefail
           files=(
             src/hybrid_trader/replication/okx_source_health.py
             scripts/validate_okx_source_health_contract.py
@@ -50,9 +47,11 @@ jobs:
             src/hybrid_trader/replication/okx_source_health.py \
             scripts/validate_okx_source_health_contract.py
           pytest -q tests/test_okx_source_health.py
+      - name: Generate safe synthetic health evidence
+        run: |
           python scripts/validate_okx_source_health_contract.py \
             --output-dir build/okx-source-health
-      - name: Independently verify safe synthetic evidence
+      - name: Independently verify safe evidence and zero real access
         run: |
           python - <<'PY'
           import hashlib
@@ -90,7 +89,7 @@ jobs:
           assert all(value is False for value in evidence['authorizations'].values())
           assert evidence['economic_edge_verdict'] == 'INCONCLUSIVE'
 
-          text = raw.decode('utf-8')
+          text = path.read_text(encoding='utf-8')
           forbidden = (
               'API_KEY', 'SECRET_KEY', 'PASSPHRASE',
               'synthetic-price', 'synthetic-size',
@@ -100,54 +99,9 @@ jobs:
           assert not list(root.glob('*.csv'))
           assert not list(root.glob('*.zip'))
           PY
-      - name: Publish verified contract through Git Data API
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          python - <<'PY'
-          import json
-          import os
-          from pathlib import Path
-          from urllib.request import Request, urlopen
-
-          repository = os.environ['GITHUB_REPOSITORY']
-          token = os.environ['GH_TOKEN']
-          branch = 'agent/edge-research-reports'
-          api = f'https://api.github.com/repos/{repository}'
-          headers = {
-              'Accept': 'application/vnd.github+json',
-              'Authorization': f'Bearer {token}',
-              'X-GitHub-Api-Version': '2022-11-28',
-              'Content-Type': 'application/json',
-          }
-
-          def call(method: str, url: str, payload: dict | None = None) -> dict:
-              data = None if payload is None else json.dumps(payload).encode('utf-8')
-              request = Request(url, data=data, headers=headers, method=method)
-              with urlopen(request) as response:
-                  return json.loads(response.read())
-
-          ref = call('GET', f'{api}/git/ref/heads/{branch}')
-          parent = ref['object']['sha']
-          commit = call('GET', f'{api}/git/commits/{parent}')
-          base_tree = commit['tree']['sha']
-          paths = (
-              'src/hybrid_trader/replication/okx_source_health.py',
-              'scripts/validate_okx_source_health_contract.py',
-              'tests/test_okx_source_health.py',
-              'docs/research/edge-discovery/02-replication/02-03-okx-source-health-and-sampling-abort-gate.yaml',
-          )
-          entries = []
-          for path_text in paths:
-              content = Path(path_text).read_text(encoding='utf-8')
-              blob = call('POST', f'{api}/git/blobs', {'content': content, 'encoding': 'utf-8'})
-              entries.append({'path': path_text, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']})
-          tree = call('POST', f'{api}/git/trees', {'base_tree': base_tree, 'tree': entries})
-          created = call('POST', f'{api}/git/commits', {
-              'message': 'Add OKX source-health and sampling-abort contract',
-              'tree': tree['sha'],
-              'parents': [parent],
-          })
-          call('PATCH', f'{api}/git/refs/heads/{branch}', {'sha': created['sha'], 'force': False})
-          print(created['sha'])
-          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: okx-source-health-safe-evidence-${{ github.sha }}
+          path: build/okx-source-health/okx-source-health-contract-safe-evidence.json
+          if-no-files-found: error
+          retention-days: 90
