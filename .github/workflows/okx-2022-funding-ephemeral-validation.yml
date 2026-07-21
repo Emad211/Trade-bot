@@ -1,0 +1,121 @@
+name: OKX 2022 Funding Ephemeral Validation
+
+on:
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - .github/workflows/okx-2022-funding-ephemeral-validation.yml
+
+permissions:
+  contents: write
+
+jobs:
+  validate-ephemerally:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/edge-research-reports
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install verification dependencies
+        run: python -m pip install -e '.[dev,replication]'
+      - name: Normalize and verify implementation
+        run: |
+          ruff format \
+            src/hybrid_trader/replication/okx_historical_export.py \
+            scripts/audit_okx_2022_funding_archive.py \
+            tests/test_okx_historical_export.py
+          ruff check --fix \
+            src/hybrid_trader/replication/okx_historical_export.py \
+            scripts/audit_okx_2022_funding_archive.py \
+            tests/test_okx_historical_export.py
+          ruff format --check \
+            src/hybrid_trader/replication/okx_historical_export.py \
+            scripts/audit_okx_2022_funding_archive.py \
+            tests/test_okx_historical_export.py
+          ruff check \
+            src/hybrid_trader/replication/okx_historical_export.py \
+            scripts/audit_okx_2022_funding_archive.py \
+            tests/test_okx_historical_export.py
+          mypy \
+            src/hybrid_trader/replication/okx_historical_export.py \
+            scripts/audit_okx_2022_funding_archive.py
+          pytest -q tests/test_okx_historical_export.py
+      - name: Download, profile and delete the bounded archive
+        run: |
+          python scripts/audit_okx_2022_funding_archive.py \
+            --output build/okx-2022-funding-ephemeral
+      - name: Independently verify safe evidence and deletion
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('build/okx-2022-funding-ephemeral')
+          files = sorted(path.name for path in root.iterdir() if path.is_file())
+          assert files == ['evidence.json'], files
+          evidence = json.loads((root / 'evidence.json').read_text(encoding='utf-8'))
+          profile = evidence['archive_profile']
+          member = profile['member']
+          assert evidence['pilot_id'] == 'OKX_BTC_USDT_SWAP_FUNDING_2022_03_EPHEMERAL_V1'
+          assert evidence['raw_archive_deleted_verified'] is True
+          assert evidence['raw_archive_uploaded'] is False
+          assert evidence['raw_archive_retained'] is False
+          assert evidence['raw_rows_retained'] is False
+          assert evidence['ordered_timestamp_series_retained'] is False
+          assert evidence['funding_rate_values_retained'] is False
+          assert evidence['basis_computed'] is False
+          assert evidence['funding_pnl_computed'] is False
+          assert evidence['returns_computed'] is False
+          assert evidence['empirical_fitting_executed'] is False
+          assert evidence['paper_or_live_trading_authorized'] is False
+          assert evidence['gate_verdict'] == 'PRIVATE_REVOCABLE_PILOT_TECHNICALLY_VERIFIED'
+          assert profile['member_count'] == 1
+          assert len(profile['archive_sha256']) == 64
+          assert profile['archive_byte_count'] > 0
+          assert member['row_count'] > 0
+          assert member['unique_timestamp_count'] > 0
+          assert member['duplicate_timestamp_count'] == 0
+          assert member['minimum_timestamp_utc'].startswith('2022-03-')
+          assert member['maximum_timestamp_utc'].startswith('2022-03-')
+          assert member['filename'].lower().endswith('.csv')
+          assert evidence['export_metadata']['archive_link']['host'] == 'static.okx.com'
+          assert evidence['export_metadata']['archive_link']['path'].endswith(
+              'BTC-USDT-SWAP-fundingrates-2022-03.zip'
+          )
+          assert not list(root.glob('*.zip'))
+          assert not list(root.glob('*.csv'))
+          print(json.dumps({
+              'archive_sha256': profile['archive_sha256'],
+              'archive_byte_count': profile['archive_byte_count'],
+              'member': member,
+              'raw_archive_deleted_verified': evidence['raw_archive_deleted_verified'],
+          }, indent=2, sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: okx-2022-funding-ephemeral-safe-evidence-${{ github.sha }}
+          path: build/okx-2022-funding-ephemeral/evidence.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Publish formatter output and retire one-shot workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/okx-2022-funding-ephemeral-validation.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            src/hybrid_trader/replication/okx_historical_export.py \
+            scripts/audit_okx_2022_funding_archive.py \
+            tests/test_okx_historical_export.py \
+            .github/workflows/okx-2022-funding-ephemeral-validation.yml
+          git commit -m 'Record bounded OKX funding verifier implementation'
+          git push origin HEAD:agent/edge-research-reports
