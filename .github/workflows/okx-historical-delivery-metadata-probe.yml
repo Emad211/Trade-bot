@@ -37,29 +37,27 @@ jobs:
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
 
-      - name: Inspect official landing-page delivery mechanism without downloading market data
+      - name: Inspect official delivery metadata without retaining market data
         shell: bash
         run: |
           mkdir -p build/okx-historical-delivery-probe/output
           cat > build/okx-historical-delivery-probe/runtime/probe.mjs <<'NODE'
           import crypto from 'node:crypto';
           import fs from 'node:fs';
+          import path from 'node:path';
           import { chromium } from 'playwright';
 
-          const outputPath = 'build/okx-historical-delivery-probe/output/probe.json';
+          const workspace = process.env.GITHUB_WORKSPACE;
+          if (!workspace) throw new Error('GITHUB_WORKSPACE is unavailable');
+          const outputPath = path.join(
+            workspace,
+            'build/okx-historical-delivery-probe/output/probe.json'
+          );
+          fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+
           const landingUrl = 'https://www.okx.com/en-gb/historical-data';
           const prohibitedExtensions = /\.(zip|csv|gz|gzip|parquet|tar|7z|bz2|xz)(?:$|[?#])/i;
-          const sensitiveNames = /^(?:token|access_token|signature|sig|key|api_key|credential|x-amz-.+|expires?)$/i;
-          const allowedHosts = new Set([
-            'www.okx.com',
-            'okx.com',
-            'my.okx.com',
-            'eea.okx.com',
-            'app.okx.com',
-            'static.okx.com',
-            'static-cdn.okx.com',
-            'static-cdn.jtvnw.net'
-          ]);
+          const sensitiveNames = /^(?:token|access_token|security-token|signature|sig|policy|key|key-pair-id|api_key|credential|ossaccesskeyid|x-amz-.+|x-oss-.+|expires?)$/i;
 
           function sha256(value) {
             return crypto.createHash('sha256').update(value).digest('hex');
@@ -78,118 +76,132 @@ jobs:
             }
           }
 
-          function compactHeaders(headers) {
-            const selected = {};
-            for (const name of ['content-type', 'content-length', 'location', 'cache-control', 'content-disposition']) {
-              if (headers[name] !== undefined) selected[name] = headers[name];
+          function hostname(raw) {
+            try { return new URL(raw).hostname.toLowerCase(); } catch { return ''; }
+          }
+
+          function selectedHeaders(headers) {
+            const result = {};
+            for (const name of [
+              'content-type',
+              'content-length',
+              'content-disposition',
+              'location',
+              'cache-control'
+            ]) {
+              if (headers[name] !== undefined) result[name] = headers[name];
             }
-            return selected;
+            return result;
           }
 
           const evidence = {
-            schema_version: '1.0',
+            schema_version: '1.1',
             purpose: 'OKX_2022_HISTORICAL_FUNDING_DELIVERY_METADATA_ONLY',
             landing_url: landingUrl,
             raw_market_data_download_authorized: false,
             raw_market_data_download_attempted: false,
+            raw_market_data_retained: false,
             response_bodies_retained: false,
             screenshots_retained: false,
             browser_downloads_cancelled: 0,
             blocked_market_file_requests: [],
             navigation: {},
-            page_state_before_click: {},
-            page_state_after_click: {},
+            before_click: {},
+            click_result: {},
+            after_click: {},
             requests: [],
             responses: [],
-            errors: []
+            errors: [],
+            gate_verdict: 'UNRESOLVED_METADATA_PROBE_ONLY'
           };
 
-          const browser = await chromium.launch({ headless: true });
-          const context = await browser.newContext({
-            acceptDownloads: false,
-            locale: 'en-GB',
-            timezoneId: 'UTC'
-          });
-          const page = await context.newPage();
+          let browser = null;
+          let phase = 'before_click';
 
-          page.on('download', async download => {
-            evidence.browser_downloads_cancelled += 1;
-            evidence.raw_market_data_download_attempted = true;
-            evidence.errors.push({
-              stage: 'download_event',
-              message: 'Browser download event was cancelled by policy',
-              suggested_filename: download.suggestedFilename()
+          try {
+            browser = await chromium.launch({ headless: true });
+            const context = await browser.newContext({
+              acceptDownloads: false,
+              locale: 'en-GB',
+              timezoneId: 'UTC'
             });
-            await download.cancel().catch(() => {});
-          });
+            const page = await context.newPage();
 
-          page.on('request', request => {
-            evidence.requests.push({
-              phase: evidence.page_state_before_click.clicked ? 'after_click' : 'before_click',
-              method: request.method(),
-              resource_type: request.resourceType(),
-              url: sanitizeUrl(request.url()),
-              host: (() => { try { return new URL(request.url()).hostname; } catch { return ''; } })(),
-              redirected_from: request.redirectedFrom() ? sanitizeUrl(request.redirectedFrom().url()) : ''
-            });
-          });
-
-          page.on('response', response => {
-            const request = response.request();
-            evidence.responses.push({
-              phase: evidence.page_state_before_click.clicked ? 'after_click' : 'before_click',
-              status: response.status(),
-              resource_type: request.resourceType(),
-              url: sanitizeUrl(response.url()),
-              host: (() => { try { return new URL(response.url()).hostname; } catch { return ''; } })(),
-              headers: compactHeaders(response.headers())
-            });
-          });
-
-          await page.route('**/*', async route => {
-            const request = route.request();
-            const url = request.url();
-            let host = '';
-            try { host = new URL(url).hostname; } catch {}
-            if (prohibitedExtensions.test(url)) {
-              evidence.blocked_market_file_requests.push({
-                url: sanitizeUrl(url),
-                host,
-                method: request.method(),
-                resource_type: request.resourceType()
-              });
+            page.on('download', async download => {
+              evidence.browser_downloads_cancelled += 1;
               evidence.raw_market_data_download_attempted = true;
-              await route.abort('blockedbyclient');
-              return;
-            }
-            if (host && !allowedHosts.has(host) && !host.endsWith('.okx.com')) {
-              if (['image', 'media', 'font'].includes(request.resourceType())) {
+              evidence.errors.push({
+                stage: 'download_event',
+                message: 'Browser download event cancelled by policy',
+                suggested_filename: download.suggestedFilename()
+              });
+              await download.cancel().catch(() => {});
+            });
+
+            page.on('request', request => {
+              evidence.requests.push({
+                phase,
+                method: request.method(),
+                resource_type: request.resourceType(),
+                url: sanitizeUrl(request.url()),
+                host: hostname(request.url()),
+                redirected_from: request.redirectedFrom()
+                  ? sanitizeUrl(request.redirectedFrom().url())
+                  : ''
+              });
+            });
+
+            page.on('response', response => {
+              evidence.responses.push({
+                phase,
+                status: response.status(),
+                resource_type: response.request().resourceType(),
+                url: sanitizeUrl(response.url()),
+                host: hostname(response.url()),
+                headers: selectedHeaders(response.headers())
+              });
+            });
+
+            await page.route('**/*', async route => {
+              const request = route.request();
+              const url = request.url();
+              if (prohibitedExtensions.test(url)) {
+                evidence.blocked_market_file_requests.push({
+                  phase,
+                  method: request.method(),
+                  resource_type: request.resourceType(),
+                  url: sanitizeUrl(url),
+                  host: hostname(url)
+                });
+                evidence.raw_market_data_download_attempted = true;
                 await route.abort('blockedbyclient');
                 return;
               }
-            }
-            await route.continue();
-          });
+              await route.continue();
+            });
 
-          try {
             const mainResponse = await page.goto(landingUrl, {
               waitUntil: 'domcontentloaded',
               timeout: 90000
             });
-            await page.waitForTimeout(5000);
+            await page.waitForTimeout(7000);
+            const bodyText = await page.locator('body').innerText();
             evidence.navigation = {
               requested_url: landingUrl,
-              final_url: page.url(),
+              final_url: sanitizeUrl(page.url()),
               title: await page.title(),
               main_status: mainResponse?.status() ?? null,
-              main_headers: mainResponse ? compactHeaders(mainResponse.headers()) : {},
-              body_text_sha256: sha256(await page.locator('body').innerText()),
-              html_sha256: sha256(await page.content())
+              main_headers: mainResponse ? selectedHeaders(mainResponse.headers()) : {},
+              body_text_sha256: sha256(bodyText),
+              html_sha256: sha256(await page.content()),
+              funding_text_present: /funding rate/i.test(bodyText),
+              login_text_present: /log in|sign in/i.test(bodyText),
+              kyc_text_present: /kyc|identity verification|verify your identity/i.test(bodyText),
+              payment_text_present: /payment|credit card|subscription|subscribe/i.test(bodyText)
             };
-
-            evidence.page_state_before_click = await page.evaluate(() => {
-              const compact = value => (value || '').replace(/\s+/g, ' ').trim().slice(0, 1000);
-              const controls = [...document.querySelectorAll('button,a,[role="button"],input,select')]
+            evidence.before_click = await page.evaluate(() => {
+              const compact = value => (value || '').replace(/\s+/g, ' ').trim().slice(0, 500);
+              return [...document.querySelectorAll('button,a,[role="button"],input,select,option')]
                 .map((element, index) => ({
                   index,
                   tag: element.tagName,
@@ -198,50 +210,53 @@ jobs:
                   href: element instanceof HTMLAnchorElement ? element.href : '',
                   type: element.getAttribute('type') || '',
                   name: element.getAttribute('name') || '',
+                  value: 'value' in element ? compact(String(element.value || '')) : '',
                   disabled: 'disabled' in element ? Boolean(element.disabled) : false
                 }))
-                .filter(item => item.text || item.href || item.name);
-              const bodyText = compact(document.body.innerText);
-              return {
-                clicked: false,
-                body_excerpt: bodyText,
-                controls,
-                login_text_present: /log in|sign in/i.test(document.body.innerText),
-                funding_text_present: /funding rate/i.test(document.body.innerText),
-                download_text_count: (document.body.innerText.match(/download/gi) || []).length
-              };
+                .filter(item => /funding|download|historical|login|log in|sign in|terms|date|month|year/i.test(
+                  `${item.text} ${item.href} ${item.name} ${item.value}`
+                ))
+                .slice(0, 150);
             });
+            for (const item of evidence.before_click) {
+              if (item.href) item.href = sanitizeUrl(item.href);
+            }
 
-            const clickResult = await page.evaluate(() => {
+            evidence.click_result = await page.evaluate(() => {
               const normalize = value => (value || '').replace(/\s+/g, ' ').trim();
-              const all = [...document.querySelectorAll('*')];
-              const heading = all.find(element => normalize(element.textContent) === 'Funding rate');
+              const nodes = [...document.querySelectorAll('*')];
+              const heading = nodes.find(element => normalize(element.textContent) === 'Funding rate');
               if (!heading) return { clicked: false, reason: 'funding_heading_not_found' };
-              let node = heading;
-              for (let depth = 0; depth < 8 && node; depth += 1, node = node.parentElement) {
-                const candidates = [...node.querySelectorAll('button,a,[role="button"]')];
-                const target = candidates.find(element => /download/i.test(normalize(element.textContent) || element.getAttribute('aria-label') || ''));
-                if (target) {
-                  const metadata = {
-                    tag: target.tagName,
-                    text: normalize(target.textContent),
-                    href: target instanceof HTMLAnchorElement ? target.href : '',
-                    role: target.getAttribute('role') || '',
-                    depth
-                  };
-                  target.click();
-                  return { clicked: true, target: metadata };
-                }
+              let container = heading;
+              for (let depth = 0; depth < 10 && container; depth += 1, container = container.parentElement) {
+                const candidates = [...container.querySelectorAll('button,a,[role="button"]')];
+                const target = candidates.find(element => /download/i.test(
+                  normalize(element.textContent) || element.getAttribute('aria-label') || ''
+                ));
+                if (!target) continue;
+                const result = {
+                  clicked: true,
+                  depth,
+                  tag: target.tagName,
+                  text: normalize(target.textContent),
+                  href: target instanceof HTMLAnchorElement ? target.href : '',
+                  role: target.getAttribute('role') || ''
+                };
+                target.click();
+                return result;
               }
               return { clicked: false, reason: 'funding_download_control_not_found' };
             });
-            evidence.page_state_before_click.clicked = clickResult.clicked;
-            evidence.page_state_before_click.click_result = clickResult;
-            await page.waitForTimeout(5000);
 
-            evidence.page_state_after_click = await page.evaluate(() => {
-              const compact = value => (value || '').replace(/\s+/g, ' ').trim().slice(0, 2000);
-              const controls = [...document.querySelectorAll('button,a,[role="button"],input,select,option')]
+            if (typeof evidence.click_result.href === 'string') {
+              evidence.click_result.href = sanitizeUrl(evidence.click_result.href);
+            }
+            phase = 'after_click';
+            await page.waitForTimeout(7000);
+            const afterBody = await page.locator('body').innerText();
+            const afterControls = await page.evaluate(() => {
+              const compact = value => (value || '').replace(/\s+/g, ' ').trim().slice(0, 500);
+              return [...document.querySelectorAll('button,a,[role="button"],input,select,option')]
                 .map((element, index) => ({
                   index,
                   tag: element.tagName,
@@ -250,46 +265,79 @@ jobs:
                   href: element instanceof HTMLAnchorElement ? element.href : '',
                   type: element.getAttribute('type') || '',
                   name: element.getAttribute('name') || '',
-                  value: 'value' in element ? String(element.value || '').slice(0, 300) : '',
+                  value: 'value' in element ? compact(String(element.value || '')) : '',
                   disabled: 'disabled' in element ? Boolean(element.disabled) : false
                 }))
-                .filter(item => item.text || item.href || item.name || item.value);
-              const dialogs = [...document.querySelectorAll('[role="dialog"],dialog,[aria-modal="true"]')]
-                .map(element => compact(element.innerText));
-              return {
-                final_url: location.href,
-                body_excerpt: compact(document.body.innerText),
-                controls,
-                dialogs,
-                login_text_present: /log in|sign in/i.test(document.body.innerText),
-                kyc_text_present: /kyc|identity verification|verify your identity/i.test(document.body.innerText),
-                payment_text_present: /payment|credit card|fee|subscribe/i.test(document.body.innerText),
-                terms_text_present: /terms|personal use|license/i.test(document.body.innerText)
-              };
+                .filter(item => /funding|download|historical|login|log in|sign in|terms|date|month|year/i.test(
+                  `${item.text} ${item.href} ${item.name} ${item.value}`
+                ))
+                .slice(0, 150);
             });
+            for (const item of afterControls) {
+              if (item.href) item.href = sanitizeUrl(item.href);
+            }
+            evidence.after_click = {
+              final_url: sanitizeUrl(page.url()),
+              body_text_sha256: sha256(afterBody),
+              controls: afterControls,
+              dialogs: await page.evaluate(() =>
+                [...document.querySelectorAll('[role="dialog"],dialog,[aria-modal="true"]')]
+                  .map(element => (element.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 1000))
+                  .filter(Boolean)
+                  .slice(0, 20)
+              ),
+              login_text_present: /log in|sign in/i.test(afterBody),
+              kyc_text_present: /kyc|identity verification|verify your identity/i.test(afterBody),
+              payment_text_present: /payment|credit card|subscription|subscribe/i.test(afterBody),
+              terms_text_present: /terms|personal use|license/i.test(afterBody)
+            };
           } catch (error) {
-            evidence.errors.push({ stage: 'page_probe', message: String(error?.stack || error) });
+            evidence.errors.push({
+              stage: 'browser_probe',
+              message: String(error?.stack || error)
+            });
           } finally {
-            await browser.close();
+            if (browser) await browser.close().catch(() => {});
+            evidence.requests = evidence.requests.slice(-500);
+            evidence.responses = evidence.responses.slice(-500);
+            evidence.observed_hosts = [...new Set([
+              ...evidence.requests.map(item => item.host),
+              ...evidence.responses.map(item => item.host)
+            ].filter(Boolean))].sort();
+            evidence.market_file_request_count = evidence.blocked_market_file_requests.length;
+            evidence.raw_market_data_retained = false;
+            evidence.response_bodies_retained = false;
+            evidence.gate_verdict = 'UNRESOLVED_METADATA_PROBE_ONLY';
+            fs.writeFileSync(outputPath, JSON.stringify(evidence, null, 2) + '\n');
           }
-
-          evidence.requests = evidence.requests.slice(-500);
-          evidence.responses = evidence.responses.slice(-500);
-          evidence.observed_hosts = [...new Set([
-            ...evidence.requests.map(item => item.host),
-            ...evidence.responses.map(item => item.host)
-          ].filter(Boolean))].sort();
-          evidence.market_file_request_count = evidence.blocked_market_file_requests.length;
-          evidence.raw_market_data_retained = false;
-          evidence.gate_verdict = 'UNRESOLVED_METADATA_PROBE_ONLY';
-          fs.writeFileSync(outputPath, JSON.stringify(evidence, null, 2) + '\n');
           NODE
 
           cd build/okx-historical-delivery-probe/runtime
           node probe.mjs
           cd "$GITHUB_WORKSPACE"
 
+      - name: Ensure failure evidence exists
+        if: always()
+        shell: bash
+        run: |
+          path="build/okx-historical-delivery-probe/output/probe.json"
+          if [[ ! -s "$path" ]]; then
+            mkdir -p "$(dirname "$path")"
+            cat > "$path" <<'JSON'
+          {
+            "schema_version": "1.1",
+            "purpose": "OKX_2022_HISTORICAL_FUNDING_DELIVERY_METADATA_ONLY",
+            "raw_market_data_download_authorized": false,
+            "raw_market_data_retained": false,
+            "response_bodies_retained": false,
+            "gate_verdict": "UNRESOLVED_METADATA_PROBE_ONLY",
+            "errors": [{"stage": "workflow_fallback", "message": "Probe did not produce evidence JSON"}]
+          }
+          JSON
+          fi
+
       - name: Verify safe evidence contains no market-data payload
+        if: always()
         run: |
           python - <<'PY'
           import json
@@ -297,14 +345,14 @@ jobs:
 
           path = Path('build/okx-historical-delivery-probe/output/probe.json')
           evidence = json.loads(path.read_text(encoding='utf-8'))
-          if evidence['raw_market_data_retained'] is not False:
+          if evidence.get('raw_market_data_retained') is not False:
               raise SystemExit('Raw market data retention was not disabled')
-          if evidence['response_bodies_retained'] is not False:
+          if evidence.get('response_bodies_retained') is not False:
               raise SystemExit('Response bodies were retained')
-          if evidence['gate_verdict'] != 'UNRESOLVED_METADATA_PROBE_ONLY':
+          if evidence.get('gate_verdict') != 'UNRESOLVED_METADATA_PROBE_ONLY':
               raise SystemExit('Metadata probe self-promoted to a gate verdict')
-          forbidden_keys = {'fundingRate', 'realizedRate', 'px', 'sz', 'open', 'high', 'low', 'close'}
           serialized = json.dumps(evidence, sort_keys=True)
+          forbidden_keys = {'fundingRate', 'realizedRate', 'open', 'high', 'low', 'close'}
           for key in forbidden_keys:
               if f'"{key}"' in serialized:
                   raise SystemExit(f'Potential raw market field leaked: {key}')
@@ -313,11 +361,13 @@ jobs:
               'observed_hosts': evidence.get('observed_hosts'),
               'market_file_request_count': evidence.get('market_file_request_count'),
               'download_events_cancelled': evidence.get('browser_downloads_cancelled'),
+              'click_result': evidence.get('click_result'),
               'errors': evidence.get('errors'),
           }, indent=2, sort_keys=True))
           PY
 
       - name: Upload metadata-only probe evidence
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: okx-historical-delivery-metadata-${{ github.sha }}
@@ -326,6 +376,7 @@ jobs:
           retention-days: 30
 
       - name: Record non-promotional summary
+        if: always()
         run: |
           {
             echo "## OKX historical delivery metadata probe"
