@@ -1,0 +1,86 @@
+schema_version: "1.0"
+decision_id: OKX_BTC_USDT_SWAP_2022_INSTRUMENT_VERSION_GATE_DECISION_V1
+issue_number: 51
+decision_date: "2026-07-21"
+status: CLOSED_BLOCKED
+outcome: BLOCKED_INSTRUMENT_VERSION_HISTORY
+secondary_blocker: BLOCKED_ARCHIVE_AVAILABILITY_TIMING
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+scope:
+  venue: OKX
+  instrument_family: BTC-USDT
+  contract_identity: BTC-USDT-SWAP
+  target_point_in_time: "2022-03"
+  funding_archive_sha256: ce4fe9aaf1dfdee16e1d11cdabcbb405eb348966902950db1ca862dc86779013
+controlling_evidence:
+  source_audit_workflow_run_id: 29819157464
+  source_audit_artifact_id: 8490609657
+  source_audit_artifact_digest: sha256:1a047568482057b68254d02589e79154980a6b13ea693e05a179d490ac7023cc
+  source_audit_evidence_sha256: 5ef88fc780ec9280f0e7bf109e00743c50114a60e1aa353f3183f17ea7ab26df
+  source_audit_manifest: 02-03-okx-2022-instrument-source-audit-evidence.yaml
+  source_audit_report: 02-03-okx-2022-instrument-source-audit-evidence.md
+  archive_representation_manifest: 02-03-okx-2022-archive-object-representation-evidence.yaml
+instrument_version_findings:
+  verified:
+    - Original BTCUSDT perpetual public launch was announced for 2019-12-16T06:00:00Z.
+    - Original launch specification recorded USDT settlement, 0.0001 BTC face value, and 0.1 tick size.
+    - An official March 2020 notice changed face value from 0.0001 BTC to 0.01 BTC.
+    - An official October 2020 notice recorded zero interest and BTC funding clamps of -0.375% and +0.375%.
+    - The verified March 2022 funding artifact has 93 unique timestamps on an exact eight-hour grid.
+  unresolved:
+    - The proposed May 2021 change from 0.01 BTC to 0.001 BTC was postponed, and no official completion, cancellation, or replacement notice was located.
+    - No frozen March 2022 instrument specification closes contract value, tick size, lot size, minimum size, linear/inverse status, and all related effective intervals.
+    - No complete March 2022 funding-formula lineage closes the interest, premium-index averaging, cap/floor, mark/index, and rule-version dependencies.
+  rejected_inferences:
+    - Absence of a located change notice is not continuity proof.
+    - The currently revised June 2022 guide is not a frozen March 2022 vintage.
+    - Current instrument API values are not projected backward.
+    - Current API listTime and contTdSwTime are not reinterpreted as the dated public launch time.
+archive_availability_findings:
+  service_availability_verified_by: "2023-10-26"
+  historical_batch_api_module_verified_by: "2025-09-02"
+  current_file_retrieval_verified: true
+  current_object_last_modified_utc: "2026-02-07T11:42:16Z"
+  current_object_etag: '"C107A7D014AA053CF61713BD33876C7C"'
+  specific_file_first_publication_time_verified: false
+  original_2022_object_version_verified: false
+  backfill_or_replacement_excluded: false
+  current_bytes_may_be_backdated_to_2022: false
+  conservative_available_at_policy: CURRENT_VERIFIED_RETRIEVAL_ONLY
+blocker_order:
+  primary:
+    outcome: BLOCKED_INSTRUMENT_VERSION_HISTORY
+    reason: >-
+      The historically effective March 2022 instrument and funding-rule contract
+      cannot be uniquely reconstructed from the located official evidence without
+      unsupported continuity assumptions.
+  secondary:
+    outcome: BLOCKED_ARCHIVE_AVAILABILITY_TIMING
+    reason: >-
+      Service-level and module-level availability do not prove when the specific
+      March 2022 file was first published, and the current representation carries
+      a 2026 Last-Modified value.
+research_consequence:
+  historical_causal_use_of_monthly_archive: false
+  retrospective_noncausal_replication_candidate: true
+  retrospective_label_required: true
+  persistent_raw_retention_outside_issue_50_contract: false
+  bulk_acquisition: false
+  public_raw_artifact: false
+  redistribution: false
+  basis_computation: false
+  funding_pnl_computation: false
+  returns_computation: false
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_testing: false
+  paper_trading: false
+  live_trading: false
+  capital_deployment: false
+  report_2_4_authorized: false
+hypothesis_verdicts:
+  EDGE-CRYPTO-BASIS-001: INCONCLUSIVE
+  EDGE-CRYPTO-RV-001: INCONCLUSIVE
+paper_replication_pass: false
+economic_edge_verdict: INCONCLUSIVE
