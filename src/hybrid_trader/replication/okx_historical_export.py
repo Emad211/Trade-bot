@@ -142,8 +142,9 @@ def _iso_utc(value: datetime) -> str:
 def _timestamp_order(values: list[datetime]) -> str:
     if len(values) < 2:
         return "single"
-    ascending = all(left <= right for left, right in zip(values, values[1:], strict=True))
-    descending = all(left >= right for left, right in zip(values, values[1:], strict=True))
+    pairs = list(zip(values[:-1], values[1:], strict=True))
+    ascending = all(left <= right for left, right in pairs)
+    descending = all(left >= right for left, right in pairs)
     if ascending and descending:
         return "constant"
     if ascending:
