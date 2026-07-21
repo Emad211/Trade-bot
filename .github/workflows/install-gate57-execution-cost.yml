@@ -41,7 +41,7 @@ jobs:
         run: |
           set -euo pipefail
           cat .gate57-payload.b64.part* | tr -d '\n' | base64 -d > /tmp/gate57-payload.tar.gz
-          echo 'f3804f1a97c1bca76dc85a9d2413aa05517eef455ad8d414e9a9e201a8d248cd  /tmp/gate57-payload.tar.gz' | sha256sum -c -
+          echo '9c4fa751222c691c469494efd9b9ac9748b2af54aa16443c9a02b05328807deb  /tmp/gate57-payload.tar.gz' | sha256sum -c -
           tar -xzf /tmp/gate57-payload.tar.gz
 
       - name: Verify executable-price and cost semantics contract
