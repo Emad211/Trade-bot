@@ -1,0 +1,148 @@
+schema_version: "1.0"
+gate_id: OKX_FEE_FILL_FUNDING_ACCOUNTING_CONTRACT_V1
+issue_number: 56
+status: OPEN
+status_date: "2026-07-21"
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+current_outcome: null
+secondary_blocker: BLOCKED_ACCOUNT_SPECIFIC_FEE_SNAPSHOT
+
+objective: >-
+  Freeze account-fee, per-fill, funding-bill, position-aggregate, and current
+  funding-formula semantics before any cost, PnL, return, or strategy calculation.
+
+predecessor_gates:
+  - issue_number: 53
+    outcome: GO_PROSPECTIVE_OKX_PRICE_LINKAGE_METADATA_PILOT
+  - issue_number: 54
+    outcome: GO_OWNER_CONTROLLED_PRIVATE_OKX_SAMPLING_CONTRACT
+  - issue_number: 55
+    outcome: GO_OWNER_SIDE_OKX_ONE_BATCH_RUNNER_READY
+    real_raw_sampling_executed: false
+
+official_sources:
+  api_guide: https://www.okx.com/docs-v5/en/
+  account_fee_endpoint: /api/v5/account/trade-fee
+  fills_endpoint: /api/v5/trade/fills
+  fills_history_endpoint: /api/v5/trade/fills-history
+  bills_endpoint: /api/v5/account/bills
+  bills_archive_endpoint: /api/v5/account/bills-archive
+  bills_history_archive_endpoint: /api/v5/account/bills-history-archive
+  positions_endpoint: /api/v5/account/positions
+  futures_fee_article: https://www.okx.com/en-us/help/how-to-calculate-the-contract-transaction-fee
+  funding_formula_revision: https://www.okx.com/en-us/help/important-update-revision-of-the-funding-rate-formula-for-okx-perpetual
+  current_funding_mechanism: https://www.okx.com/en-us/help/perps-funding-fee-mechanism
+
+account_fee_contract:
+  authentication_required: true
+  permission: Read
+  owner_account_specific: true
+  spot_query:
+    instType: SPOT
+    instId: BTC-USDT
+  swap_query:
+    instType: SWAP
+    instFamily: BTC-USDT
+  maker_taker_signs:
+    positive: REBATE
+    negative: COMMISSION
+  zero_fee_pairs_reflected_by_open_api: false
+  generic_lv1_example_is_owner_snapshot: false
+  actual_snapshot_status: BLOCKED_OWNER_READ_ONLY_CREDENTIALS
+
+fill_contract:
+  aggregation_level: PER_FILL
+  trade_chronology_field: fillTime
+  record_generation_field: ts
+  ts_replaces_fillTime: false
+  fee_currency_explicit: true
+  fee_currency_inference: false
+  liquidity_role_field: execType
+  spot_fee_rate_field_expected: true
+  swap_fee_rate_inferred: false
+  required_reconciliation_ids:
+    - tradeId
+    - ordId
+    - billId
+
+funding_bill_contract:
+  aggregation_level: PER_BILL
+  funding_expense_subtype: 173
+  funding_income_subtype: 174
+  provider_amount_sign_rewritten: false
+  merged_with_trading_fee: false
+  merged_with_fill_pnl: false
+
+position_contract:
+  aggregation_level: POSITION_AGGREGATE
+  provider_reconciliation: realizedPnl=pnl+fee+fundingFee+liqPenalty+settledPnl
+  readd_fill_fee: false
+  readd_funding_bill: false
+  mixed_aggregation_levels_without_transform: REJECT
+  duplicate_reconciliation_keys: REJECT
+  mixed_currencies_without_conversion: REJECT
+
+funding_formula_version:
+  formula_id: OKX_PERPETUAL_FUNDING_8_OVER_N_2026_V1
+  source_publication: "2026-05-29T00:00:00Z"
+  migration_start: "2026-06-01T00:00:00Z"
+  conservative_admission: "2026-06-04T00:00:00Z"
+  fixed_interest_rate_decimal: "0.0001"
+  interval_factor: 8/N
+  supported_intervals_hours: [1, 2, 4, 8]
+  projected_backward_to_march_2022: false
+  migration_window_without_provider_formula_identity: AMBIGUOUS
+
+synthetic_validation:
+  real_account_request_allowed: false
+  credentials_allowed_in_ci: false
+  account_values_allowed_in_public_evidence: false
+  required_checks:
+    - exact_spot_and_swap_query_contracts
+    - maker_taker_sign_preservation
+    - fee_currency_non_inference
+    - fill_time_chronology
+    - funding_subtype_separation
+    - position_reconciliation
+    - mixed_level_double_count_rejection
+    - formula_version_boundary
+
+owner_snapshot_boundary:
+  real_snapshot_requires:
+    - read_only_credentials
+    - withdrawal_permission_disabled
+    - trading_permission_disabled
+    - owner_controlled_secret_storage
+    - exact_regional_endpoint_confirmation
+    - explicit_owner_confirmation
+  current_environment_has_credentials: false
+  actual_fee_rates_may_be_assumed: false
+
+hard_prohibitions:
+  real_account_call_in_ci: false
+  account_credentials_in_repository: false
+  account_values_in_public_evidence: false
+  assumed_fee_rates: false
+  historical_fee_tier_backfill: false
+  current_funding_formula_backfill: false
+  basis_computation: false
+  funding_pnl_computation: false
+  returns_computation: false
+  transaction_cost_estimation: false
+  empirical_fitting: false
+  strategy_testing: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  report_2_4_authorized: false
+
+allowed_outcomes:
+  - GO_OKX_FEE_AND_FUNDING_ACCOUNTING_CONTRACT
+  - BLOCKED_ACCOUNT_SPECIFIC_FEE_SNAPSHOT
+  - BLOCKED_ACCOUNTING_SEMANTICS
+  - BLOCKED_TERMS_OR_CREDENTIAL_BOUNDARY
+
+paper_replication_pass: false
+economic_edge_verdict: INCONCLUSIVE
