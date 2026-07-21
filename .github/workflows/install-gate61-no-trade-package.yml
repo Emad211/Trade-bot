@@ -8,6 +8,10 @@ on:
       - .gate61-package.part01
       - .gate61-package.part02
       - .gate61-package.part03
+      - .gate61-package.part04
+      - .gate61-package.part05
+      - .gate61-package.part06
+      - .gate61-package.part07
       - .github/workflows/install-gate61-no-trade-package.yml
 
 permissions:
@@ -36,7 +40,7 @@ jobs:
         run: |
           set -euo pipefail
           cat .gate61-package.part* | tr -d '\n' | base64 -d > /tmp/gate61-package.tar.gz
-          echo 'e854d7d00662eeaa5cadb9f54f62dabc64514d290c778fd1ca0afe790e01e26f  /tmp/gate61-package.tar.gz' | sha256sum -c -
+          echo 'e42fda2c3cdb81abfef9a88650a3d259953a9b6488cfe6ea3e5c1ae0f38c797c  /tmp/gate61-package.tar.gz' | sha256sum -c -
           tar -xzf /tmp/gate61-package.tar.gz
 
       - name: Install verification dependencies
@@ -82,6 +86,7 @@ jobs:
           closed = [
               'real_public_request_performed',
               'real_private_fee_request_performed',
+              'private_redirect_following_allowed',
               'credentials_supplied_to_ci',
               'orders_sent',
               'trade_permission_used',
@@ -158,6 +163,10 @@ jobs:
               '.gate61-package.part01',
               '.gate61-package.part02',
               '.gate61-package.part03',
+              '.gate61-package.part04',
+              '.gate61-package.part05',
+              '.gate61-package.part06',
+              '.gate61-package.part07',
               '.github/workflows/install-gate61-no-trade-package.yml',
               'docs/research/edge-discovery/02-replication/02-04-owner-controlled-no-trade-observation-gate-draft.md',
           ]
