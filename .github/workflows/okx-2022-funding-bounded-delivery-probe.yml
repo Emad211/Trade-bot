@@ -1,0 +1,429 @@
+name: OKX 2022 Funding Bounded Delivery Probe
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/okx-2022-funding-bounded-delivery-probe.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: okx-2022-funding-bounded-delivery-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  inspect-delivery-metadata:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Check out triggering commit
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Submit one bounded public metadata request without downloading files
+        shell: bash
+        run: |
+          mkdir -p build/okx-2022-funding-delivery
+          python - <<'PY'
+          from __future__ import annotations
+
+          import hashlib
+          import json
+          import urllib.error
+          import urllib.request
+          from collections.abc import Mapping, Sequence
+          from datetime import UTC, datetime, timedelta
+          from pathlib import Path
+          from typing import Any
+          from urllib.parse import parse_qsl, urlsplit
+
+          ENDPOINT = (
+              "https://www.okx.com/priapi/v5/broker/public/"
+              "trade-data/download-link"
+          )
+          REFERER = "https://www.okx.com/en-gb/historical-data"
+          MAX_RESPONSE_BYTES = 2_000_000
+          TEST_DATE = datetime(2022, 3, 15, tzinfo=UTC)
+          BEGIN_MS = int(TEST_DATE.timestamp() * 1000)
+          END_MS = int((TEST_DATE + timedelta(days=1)).timestamp() * 1000) - 1
+          OUTPUT = Path("build/okx-2022-funding-delivery/evidence.json")
+
+          payload: dict[str, Any] = {
+              "module": "3",
+              "instType": "SWAP",
+              "instQueryParam": {
+                  "instFamilyList": ["BTC-USDT"],
+              },
+              "dateQuery": {
+                  "dateAggrType": "daily",
+                  "begin": str(BEGIN_MS),
+                  "end": str(END_MS),
+              },
+          }
+          request_bytes = json.dumps(
+              payload,
+              separators=(",", ":"),
+              sort_keys=True,
+          ).encode("utf-8")
+
+          def sha256(value: bytes) -> str:
+              return hashlib.sha256(value).hexdigest()
+
+          def bounded_string(value: Any, limit: int = 500) -> str:
+              return str(value).replace("\r", " ").replace("\n", " ")[:limit]
+
+          def sanitize_url(raw: str) -> dict[str, Any]:
+              try:
+                  parsed = urlsplit(raw)
+              except ValueError:
+                  return {
+                      "parseable": False,
+                      "value_sha256": sha256(raw.encode("utf-8")),
+                  }
+              return {
+                  "parseable": True,
+                  "scheme": parsed.scheme,
+                  "host": (parsed.hostname or "").lower(),
+                  "path": parsed.path,
+                  "query_parameter_names": sorted(
+                      {key for key, _ in parse_qsl(parsed.query, keep_blank_values=True)}
+                  ),
+                  "has_query": bool(parsed.query),
+                  "full_url_sha256": sha256(raw.encode("utf-8")),
+              }
+
+          def is_url_like(value: Any) -> bool:
+              return isinstance(value, str) and value.startswith(("https://", "http://"))
+
+          forbidden_market_fields = {
+              "fundingRate",
+              "realizedRate",
+              "open",
+              "high",
+              "low",
+              "close",
+              "px",
+              "price",
+              "markPx",
+              "indexPx",
+          }
+          safe_scalar_fields = {
+              "module",
+              "instType",
+              "instId",
+              "instFamily",
+              "ccy",
+              "dateAggrType",
+              "begin",
+              "end",
+              "totalSize",
+              "totalFileNum",
+              "fileCount",
+              "count",
+              "size",
+              "startDate",
+              "endDate",
+              "date",
+              "status",
+              "state",
+              "type",
+              "fileName",
+              "filename",
+          }
+
+          def collect_tree_metadata(value: Any) -> dict[str, Any]:
+              object_key_sets: list[list[str]] = []
+              array_lengths: list[int] = []
+              forbidden_detected: set[str] = set()
+              url_metadata: list[dict[str, Any]] = []
+              safe_scalars: list[dict[str, Any]] = []
+
+              def walk(item: Any, path: str, depth: int = 0) -> None:
+                  if depth > 8:
+                      return
+                  if isinstance(item, Mapping):
+                      keys = sorted(str(key) for key in item)
+                      object_key_sets.append(keys)
+                      for key, child in item.items():
+                          key_text = str(key)
+                          child_path = f"{path}.{key_text}"
+                          if key_text in forbidden_market_fields:
+                              forbidden_detected.add(key_text)
+                              continue
+                          if is_url_like(child):
+                              url_metadata.append(
+                                  {
+                                      "path": child_path,
+                                      "url": sanitize_url(str(child)),
+                                  }
+                              )
+                              continue
+                          if (
+                              key_text in safe_scalar_fields
+                              and isinstance(child, (str, int, float, bool))
+                          ):
+                              safe_scalars.append(
+                                  {
+                                      "path": child_path,
+                                      "field": key_text,
+                                      "value": bounded_string(child),
+                                  }
+                              )
+                          walk(child, child_path, depth + 1)
+                      return
+                  if isinstance(item, list):
+                      array_lengths.append(len(item))
+                      for index, child in enumerate(item[:200]):
+                          walk(child, f"{path}[{index}]", depth + 1)
+
+              walk(value, "$")
+              deduplicated_key_sets: list[list[str]] = []
+              for keys in object_key_sets:
+                  if keys not in deduplicated_key_sets:
+                      deduplicated_key_sets.append(keys)
+              return {
+                  "object_key_sets": deduplicated_key_sets[:100],
+                  "array_lengths": array_lengths[:100],
+                  "forbidden_market_fields_detected": sorted(forbidden_detected),
+                  "url_metadata": url_metadata[:100],
+                  "safe_scalars": safe_scalars[:200],
+              }
+
+          evidence: dict[str, Any] = {
+              "schema_version": "1.0",
+              "purpose": "OKX_2022_FUNDING_BOUNDED_DELIVERY_METADATA_ONLY",
+              "official_endpoint": ENDPOINT,
+              "official_referer": REFERER,
+              "authentication_headers_sent": False,
+              "cookies_sent": False,
+              "request_method": "POST",
+              "request_payload": payload,
+              "request_byte_count": len(request_bytes),
+              "request_sha256": sha256(request_bytes),
+              "test_date_utc": "2022-03-15",
+              "begin_utc": datetime.fromtimestamp(BEGIN_MS / 1000, tz=UTC).isoformat(),
+              "end_utc": datetime.fromtimestamp(END_MS / 1000, tz=UTC).isoformat(),
+              "http_status": None,
+              "final_url": "",
+              "content_type": "",
+              "response_byte_count": 0,
+              "response_sha256": "",
+              "response_top_level_type": "",
+              "response_top_level_fields": [],
+              "response_code": "",
+              "response_message": "",
+              "details_count": None,
+              "response_tree_metadata": {},
+              "transport_error": "",
+              "delivery_observation": "UNRESOLVED",
+              "returned_file_links_followed": False,
+              "returned_file_links_retained_raw": False,
+              "response_body_retained": False,
+              "raw_market_data_retained": False,
+              "funding_rows_retained": False,
+              "funding_rates_retained": False,
+              "export_files_downloaded": False,
+              "license_or_retention_verdict": "NOT_DECIDED_BY_THIS_PROBE",
+              "gate_verdict": "UNRESOLVED_BOUNDED_DELIVERY_METADATA_ONLY",
+          }
+
+          request = urllib.request.Request(
+              ENDPOINT,
+              data=request_bytes,
+              method="POST",
+              headers={
+                  "Accept": "application/json",
+                  "Content-Type": "application/json",
+                  "Referer": REFERER,
+                  "Origin": "https://www.okx.com",
+                  "User-Agent": (
+                      "Emad211-Trade-bot-replication/1.0 "
+                      "(+https://github.com/Emad211/Trade-bot)"
+                  ),
+              },
+          )
+
+          raw = b""
+          response_headers: Mapping[str, str] = {}
+          try:
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  evidence["http_status"] = int(response.status)
+                  evidence["final_url"] = response.geturl()
+                  response_headers = dict(response.headers.items())
+                  raw = response.read(MAX_RESPONSE_BYTES + 1)
+          except urllib.error.HTTPError as exc:
+              evidence["http_status"] = int(exc.code)
+              evidence["final_url"] = exc.geturl()
+              response_headers = dict(exc.headers.items()) if exc.headers else {}
+              raw = exc.read(MAX_RESPONSE_BYTES + 1)
+          except (TimeoutError, urllib.error.URLError) as exc:
+              evidence["transport_error"] = bounded_string(repr(exc), 1000)
+              evidence["delivery_observation"] = "TRANSPORT_FAILURE"
+
+          if len(raw) > MAX_RESPONSE_BYTES:
+              evidence["transport_error"] = "Response exceeded the 2 MB byte-size guard"
+              evidence["delivery_observation"] = "RESPONSE_SIZE_GUARD_TRIGGERED"
+              raw = raw[:MAX_RESPONSE_BYTES]
+
+          evidence["content_type"] = response_headers.get(
+              "Content-Type",
+              response_headers.get("content-type", ""),
+          )
+          evidence["response_byte_count"] = len(raw)
+          evidence["response_sha256"] = sha256(raw) if raw else ""
+
+          final_url = evidence["final_url"]
+          if final_url:
+              final_parts = urlsplit(final_url)
+              if (
+                  final_parts.scheme != "https"
+                  or final_parts.hostname not in {"www.okx.com", "okx.com"}
+              ):
+                  evidence["transport_error"] = (
+                      "POST endpoint redirected off the frozen official host"
+                  )
+                  evidence["delivery_observation"] = "OFFICIAL_HOST_VIOLATION"
+
+          parsed: Any = None
+          if raw:
+              try:
+                  parsed = json.loads(raw)
+                  evidence["response_top_level_type"] = type(parsed).__name__
+                  if isinstance(parsed, Mapping):
+                      evidence["response_top_level_fields"] = sorted(
+                          str(key) for key in parsed
+                      )
+                      evidence["response_code"] = bounded_string(parsed.get("code", ""))
+                      evidence["response_message"] = bounded_string(
+                          parsed.get("msg", parsed.get("message", "")),
+                          1000,
+                      )
+                      data = parsed.get("data")
+                      details: Any = None
+                      if isinstance(data, Mapping):
+                          details = data.get("details")
+                      if isinstance(details, list):
+                          evidence["details_count"] = len(details)
+                  evidence["response_tree_metadata"] = collect_tree_metadata(parsed)
+              except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                  evidence["transport_error"] = bounded_string(repr(exc), 1000)
+                  evidence["delivery_observation"] = "NON_JSON_RESPONSE"
+
+          metadata = evidence["response_tree_metadata"]
+          forbidden = set(metadata.get("forbidden_market_fields_detected", []))
+          status = evidence["http_status"]
+          code = str(evidence["response_code"])
+          details_count = evidence["details_count"]
+
+          if forbidden:
+              evidence["delivery_observation"] = "UNEXPECTED_MARKET_ROWS_IN_METADATA_RESPONSE"
+          elif status in {401, 403}:
+              evidence["delivery_observation"] = "AUTH_OR_REGION_BLOCKED"
+          elif status == 200 and code in {"0", ""} and isinstance(details_count, int):
+              evidence["delivery_observation"] = (
+                  "DETAILS_PRESENT_METADATA_ONLY"
+                  if details_count > 0
+                  else "NO_DETAILS_FOR_BOUNDED_DATE"
+              )
+          elif status == 200:
+              evidence["delivery_observation"] = "APPLICATION_RESPONSE_REJECTED_OR_UNEXPECTED"
+          elif status is not None:
+              evidence["delivery_observation"] = "HTTP_ERROR"
+
+          OUTPUT.write_text(
+              json.dumps(evidence, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print(
+              json.dumps(
+                  {
+                      "http_status": evidence["http_status"],
+                      "response_byte_count": evidence["response_byte_count"],
+                      "response_sha256": evidence["response_sha256"],
+                      "response_code": evidence["response_code"],
+                      "response_message": evidence["response_message"],
+                      "details_count": evidence["details_count"],
+                      "delivery_observation": evidence["delivery_observation"],
+                      "url_metadata": evidence["response_tree_metadata"].get(
+                          "url_metadata", []
+                      ),
+                      "transport_error": evidence["transport_error"],
+                  },
+                  indent=2,
+                  sort_keys=True,
+              )
+          )
+          PY
+
+      - name: Verify strict metadata-only boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          evidence = json.loads(
+              Path("build/okx-2022-funding-delivery/evidence.json")
+              .read_text(encoding="utf-8")
+          )
+          assert evidence["authentication_headers_sent"] is False
+          assert evidence["cookies_sent"] is False
+          assert evidence["returned_file_links_followed"] is False
+          assert evidence["returned_file_links_retained_raw"] is False
+          assert evidence["response_body_retained"] is False
+          assert evidence["raw_market_data_retained"] is False
+          assert evidence["funding_rows_retained"] is False
+          assert evidence["funding_rates_retained"] is False
+          assert evidence["export_files_downloaded"] is False
+          assert evidence["license_or_retention_verdict"] == "NOT_DECIDED_BY_THIS_PROBE"
+          assert evidence["gate_verdict"] == "UNRESOLVED_BOUNDED_DELIVERY_METADATA_ONLY"
+          assert not evidence["response_tree_metadata"].get(
+              "forbidden_market_fields_detected", []
+          ), "Unexpected market rows appeared in the metadata response"
+          for item in evidence["response_tree_metadata"].get("url_metadata", []):
+              url = item["url"]
+              assert "full_url" not in url
+              assert "full_url_sha256" in url
+          print(
+              json.dumps(
+                  {
+                      "request_payload": evidence["request_payload"],
+                      "http_status": evidence["http_status"],
+                      "details_count": evidence["details_count"],
+                      "delivery_observation": evidence["delivery_observation"],
+                      "response_tree_metadata": evidence["response_tree_metadata"],
+                  },
+                  indent=2,
+                  sort_keys=True,
+              )
+          )
+          PY
+
+      - name: Upload safe bounded-delivery evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: okx-2022-funding-bounded-delivery-${{ github.sha }}
+          path: build/okx-2022-funding-delivery/evidence.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Record non-promotional summary
+        if: always()
+        run: |
+          {
+            echo "## OKX 2022 funding bounded delivery probe"
+            echo
+            echo "- Scope: BTC-USDT family, one UTC day, 2022-03-15"
+            echo "- Authentication or cookies: none"
+            echo "- Returned files followed or downloaded: no"
+            echo "- Raw response or market rows retained: no"
+            echo "- Gate verdict: unresolved metadata only"
+          } >> "$GITHUB_STEP_SUMMARY"
