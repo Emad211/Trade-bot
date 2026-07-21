@@ -58,16 +58,16 @@ def test_safe_url_metadata_rejects_non_okx_hosts() -> None:
     with pytest.raises(OKXInstrumentSourceError, match="outside the OKX"):
         safe_url_metadata("https://example.com/help/test")
 
-    assert safe_url_metadata(
-        "https://static.okx.com/path/file.zip?v=1&token=redacted"
-    ) == ("https", "static.okx.com", "/path/file.zip", ("token", "v"))
+    assert safe_url_metadata("https://static.okx.com/path/file.zip?v=1&token=redacted") == (
+        "https",
+        "static.okx.com",
+        "/path/file.zip",
+        ("token", "v"),
+    )
 
 
 def test_page_audit_retains_only_hash_marker_and_transport_metadata() -> None:
-    raw = (
-        b"<html><body>BTCUSDT Perpetual <b>0.01 BTC</b> "
-        b"<span>March 2022</span></body></html>"
-    )
+    raw = b"<html><body>BTCUSDT Perpetual <b>0.01 BTC</b> <span>March 2022</span></body></html>"
 
     audit = audit_official_page_bytes(
         contract=_contract(),
@@ -109,8 +109,7 @@ def test_current_instrument_profile_is_current_only_negative_control() -> None:
         raw=raw,
         http_status=200,
         final_url=(
-            "https://www.okx.com/api/v5/public/instruments?"
-            "instType=SWAP&instId=BTC-USDT-SWAP"
+            "https://www.okx.com/api/v5/public/instruments?instType=SWAP&instId=BTC-USDT-SWAP"
         ),
         content_type="application/json",
     )
