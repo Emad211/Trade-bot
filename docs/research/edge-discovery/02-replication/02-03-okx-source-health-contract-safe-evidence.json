@@ -1,0 +1,126 @@
+{
+  "authorizations": {
+    "basis_computation": false,
+    "capital_deployment": false,
+    "empirical_fitting": false,
+    "funding_pnl_computation": false,
+    "live_trading": false,
+    "paper_trading": false,
+    "real_sampling": false,
+    "report_2_4": false,
+    "returns_computation": false,
+    "strategy_testing": false,
+    "transaction_cost_estimation": false
+  },
+  "batch_contract": {
+    "cross_source_skew_policy_explicit": true,
+    "duplicate_source_rejected": true,
+    "healthy_batch_decision": "ADMIT_PRIVATE_BATCH",
+    "nonmonotonic_provider_time_within_policy_admitted": true,
+    "numerical_calculation_authorized": false,
+    "partial_source_set_rejected": true,
+    "rejected_data_retained": false
+  },
+  "economic_edge_verdict": "INCONCLUSIVE",
+  "gate_id": "OKX_SOURCE_HEALTH_AND_SAMPLING_ABORT_CONTRACT_V1",
+  "health_states": [
+    "HEALTHY",
+    "HEARTBEAT_NO_BOOK_CHANGE",
+    "STALE_PROVIDER_TIME",
+    "FUTURE_PROVIDER_TIME",
+    "RESEARCH_DELAY_EXCEEDED",
+    "CLOCK_INVALID",
+    "RATE_LIMITED",
+    "HTTP_ERROR",
+    "TRANSPORT_ERROR",
+    "PROVIDER_ERROR",
+    "CONNECTION_SILENT",
+    "SERVICE_UPGRADE_DRAIN",
+    "SEQUENCE_GAP",
+    "SEQUENCE_REGRESSION",
+    "SCHEMA_CHANGED",
+    "IDENTITY_CHANGED",
+    "EMPTY_RESPONSE",
+    "PARTIAL_SOURCE_SET",
+    "DUPLICATE_SOURCE",
+    "CROSS_SOURCE_SKEW_EXCEEDED",
+    "POLICY_VERSION_MISMATCH",
+    "QUARANTINED"
+  ],
+  "incident_contract": {
+    "carry_forward_used": false,
+    "incident_id_is_sha256": true,
+    "interpolation_used": false,
+    "market_values_retained": false,
+    "price_null_created": false,
+    "raw_payload_retained": false
+  },
+  "issue_number": 58,
+  "official_contract": {
+    "checksum_deprecation_production_date": "2026-06-23",
+    "deprecated_checksum_channels": [
+      "books",
+      "books-l2-tbt",
+      "books50-l2-tbt"
+    ],
+    "rest_rate_limit_code": "50011",
+    "sequence_integrity_fields": [
+      "seqId",
+      "prevSeqId"
+    ],
+    "service_upgrade_notice_code": "64008",
+    "snapshot_prev_seq_id": -1,
+    "websocket_disconnect_boundary_seconds": 30
+  },
+  "policy_contract": {
+    "explicit_policy_required": true,
+    "hidden_thresholds_allowed": false,
+    "policy_fingerprint_present": true,
+    "required_fields": [
+      "policy_id",
+      "maximum_provider_age_ms",
+      "maximum_future_clock_skew_ms",
+      "maximum_response_to_research_delay_ms",
+      "maximum_websocket_silence_seconds",
+      "maximum_cross_source_provider_time_skew_ms",
+      "required_source_ids",
+      "expected_schema_sha256",
+      "expected_identity_sha256",
+      "checksum_deprecation_effective_at",
+      "sequence_validation_mode",
+      "rate_limit_backoff_policy_id"
+    ],
+    "threshold_values_persisted_in_public_evidence": false
+  },
+  "private_trading_endpoint_called": false,
+  "public_evidence_contains_account_values": false,
+  "public_evidence_contains_credentials": false,
+  "public_evidence_contains_real_books": false,
+  "public_evidence_contains_real_fills": false,
+  "public_evidence_contains_real_prices": false,
+  "public_evidence_contains_real_sizes": false,
+  "real_market_request_performed": false,
+  "real_order_request_performed": false,
+  "rest_contract": {
+    "carry_forward_allowed": false,
+    "healthy_admitted": true,
+    "identity_drift_quarantined": true,
+    "interpolation_allowed": false,
+    "rate_limit_classification": "RATE_LIMITED",
+    "schema_drift_quarantined": true,
+    "source_failure_is_market_null": false
+  },
+  "schema_version": "1.0",
+  "sequence_contract": {
+    "checksum_deprecated": true,
+    "checksum_used_for_integrity": false,
+    "heartbeat_admitted_as_new_book_data": false,
+    "heartbeat_state": "HEARTBEAT_NO_BOOK_CHANGE",
+    "sequence_authoritative": true,
+    "sequence_gap_state": "SEQUENCE_GAP",
+    "silence_state": "CONNECTION_SILENT",
+    "snapshot_next_sequence_id_present": true,
+    "snapshot_state": "HEALTHY"
+  },
+  "validation_mode": "SYNTHETIC_METADATA_AND_SEQUENCE_ONLY"
+}
