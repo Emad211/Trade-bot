@@ -1,5 +1,7 @@
 # Owner Runbook — One OKX No-Trade Observation
 
+> **Execution update:** The direct execution examples in this historical Gate #61 runbook are superseded by the sealed one-time plan runbook for Issue #63. The current CLI requires a sealed plan and claim for `observe`. Use `02-04-okx-owner-local-sealed-execution-plan-runbook.md` after Gate #63 is verified.
+
 **Gate:** Issue #61  
 **Execution location:** the owner's local machine only  
 **Current state:** package preparation and synthetic verification; no real execution has occurred.

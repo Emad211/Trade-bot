@@ -6,6 +6,13 @@ from collections.abc import Sequence
 from dataclasses import asdict
 from pathlib import Path
 
+from hybrid_trader.replication.okx_no_trade_execution_plan import (
+    DEFAULT_PLAN_TTL_SECONDS,
+    SealedExecutionPlanError,
+    SealedPlanInputs,
+    create_sealed_execution_plan,
+    execute_sealed_real_no_trade_observation,
+)
 from hybrid_trader.replication.okx_no_trade_observation import (
     DELETE_CONFIRMATION_PHRASE,
     OWNER_CONFIRMATION_PHRASE,
@@ -15,7 +22,6 @@ from hybrid_trader.replication.okx_no_trade_observation import (
     NoTradeObservationError,
     ObservationMode,
     delete_no_trade_observation,
-    execute_real_no_trade_observation,
     load_credentials_from_environment,
     load_no_trade_health_policy,
 )
@@ -104,19 +110,39 @@ def _config(args: argparse.Namespace) -> NoTradeObservationConfig:
     )
 
 
+def _sealed_inputs(
+    args: argparse.Namespace,
+    *,
+    plan_path: Path,
+) -> SealedPlanInputs:
+    return SealedPlanInputs(
+        observation_config=_config(args),
+        reviewed_head_sha=args.code_head_sha,
+        plan_output=plan_path,
+        claim_output=args.plan_claim_output,
+        safe_deletion_receipt_output=args.safe_deletion_receipt_output,
+        ttl_seconds=args.plan_ttl_seconds,
+    )
+
+
 def _preflight(args: argparse.Namespace) -> int:
-    config = _config(args)
-    config.validate()
     credentials = load_credentials_from_environment()
-    credentials.validate()
+    inputs = _sealed_inputs(
+        args,
+        plan_path=args.sealed_execution_plan_output,
+    )
+    plan = create_sealed_execution_plan(inputs, credentials=credentials)
     safe = {
         "preflight": "PASS",
-        "mode": config.mode.value,
-        "api_domain": config.api_domain,
-        "policy_id": config.health_policy.policy_id,
-        "policy_fingerprint_sha256": config.health_policy.policy_fingerprint_sha256,
-        "required_public_source_count": len(config.health_policy.required_source_ids),
-        "fee_query_count": 2,
+        "plan_id": plan.plan_id,
+        "plan_expires_at_utc": plan.expires_at_utc,
+        "actual_git_head_sha": plan.actual_git_head_sha,
+        "clean_worktree": plan.clean_worktree,
+        "api_domain": inputs.observation_config.api_domain,
+        "policy_id": plan.policy_id,
+        "policy_fingerprint_sha256": plan.policy_fingerprint_sha256,
+        "required_public_source_count": len(plan.required_public_source_ids),
+        "fee_query_count": len(plan.fee_query_paths),
         "credential_environment_fields_present": True,
         "credential_values_printed": False,
         "network_request_performed": False,
@@ -130,9 +156,16 @@ def _preflight(args: argparse.Namespace) -> int:
 
 
 def _observe(args: argparse.Namespace) -> int:
-    config = _config(args)
     credentials = load_credentials_from_environment()
-    result = execute_real_no_trade_observation(config, credentials=credentials)
+    inputs = _sealed_inputs(
+        args,
+        plan_path=args.sealed_execution_plan,
+    )
+    result = execute_sealed_real_no_trade_observation(
+        inputs,
+        plan_path=args.sealed_execution_plan,
+        credentials=credentials,
+    )
     print(json.dumps(asdict(result), indent=2, sort_keys=True))
     return 0
 
@@ -183,12 +216,28 @@ def main(argv: Sequence[str] | None = None) -> int:
         "preflight", help="Validate local policy, paths, attestations and credential presence only."
     )
     _add_observation_arguments(preflight)
+    preflight.add_argument("--sealed-execution-plan-output", required=True, type=Path)
+    preflight.add_argument("--plan-claim-output", required=True, type=Path)
+    preflight.add_argument("--safe-deletion-receipt-output", required=True, type=Path)
+    preflight.add_argument(
+        "--plan-ttl-seconds",
+        type=int,
+        default=DEFAULT_PLAN_TTL_SECONDS,
+    )
     preflight.set_defaults(handler=_preflight)
 
     observe = subparsers.add_parser(
-        "observe", help="Perform one owner-confirmed fee snapshot plus four-source public batch."
+        "observe", help="Consume one sealed plan for an owner-confirmed no-trade observation."
     )
     _add_observation_arguments(observe)
+    observe.add_argument("--sealed-execution-plan", required=True, type=Path)
+    observe.add_argument("--plan-claim-output", required=True, type=Path)
+    observe.add_argument("--safe-deletion-receipt-output", required=True, type=Path)
+    observe.add_argument(
+        "--plan-ttl-seconds",
+        type=int,
+        default=DEFAULT_PLAN_TTL_SECONDS,
+    )
     observe.set_defaults(handler=_observe)
 
     delete = subparsers.add_parser(
@@ -210,7 +259,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         return int(args.handler(args))
-    except NoTradeObservationError as exc:
+    except (NoTradeObservationError, SealedExecutionPlanError) as exc:
         parser.error(str(exc))
     return 2
 

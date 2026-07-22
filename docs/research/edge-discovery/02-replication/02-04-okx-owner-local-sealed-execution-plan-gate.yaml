@@ -1,0 +1,127 @@
+schema_version: "1.0"
+gate_id: OKX_OWNER_LOCAL_SEALED_EXECUTION_PLAN_V1
+issue_number: 63
+status: OPEN
+status_date: "2026-07-22"
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+current_outcome: null
+
+objective: >-
+  Bind Gate 61 owner-local preflight and observation to one exact clean Git head,
+  one authenticated short-lived plan, and one atomic pre-network claim so the
+  observation cannot be changed or replayed after preflight.
+
+predecessor:
+  issue_number: 61
+  outcome: GO_OWNER_CONTROLLED_OKX_NO_TRADE_OBSERVATION_PACKAGE_READY
+  real_execution_occurred: false
+
+actual_head_contract:
+  git_top_level_must_equal_repository_root: true
+  actual_head_must_equal_reviewed_head: true
+  actual_head_must_equal_observation_config_head: true
+  clean_worktree_required_at_preflight: true
+  clean_worktree_required_at_observe: true
+  syntactically_valid_user_sha_alone_sufficient: false
+
+sealed_plan_contract:
+  schema_version: "1.0"
+  file_mode: "0600"
+  outside_repository: true
+  outside_private_raw_root: true
+  overwrite_allowed: false
+  default_ttl_seconds: 600
+  maximum_ttl_seconds: 1800
+  random_nonce_minimum_bytes: 32
+  plan_id_content_addressed: true
+  hmac_authenticated_with_owner_secret: true
+  same_credential_binding_required: true
+  plain_credential_hashes_allowed: false
+  credential_values_allowed: false
+  owner_path_values_allowed: false
+  owner_path_fingerprints_secret_keyed: true
+
+bound_configuration:
+  - actual_git_head_sha
+  - reviewed_git_head_sha
+  - api_domain
+  - policy_id
+  - policy_fingerprint_sha256
+  - requested_retention_days
+  - plan_ttl_seconds
+  - confirmation_phrase_identity
+  - public_and_private_network_enablement
+  - owner_storage_attestations
+  - read_only_credential_attestations
+  - private_root_fingerprint
+  - fee_snapshot_output_fingerprint
+  - batch_manifest_output_fingerprint
+  - observation_receipt_output_fingerprint
+  - deletion_receipt_output_fingerprint
+  - plan_output_fingerprint
+  - claim_output_fingerprint
+  - exact_fee_query_paths
+  - exact_public_source_ids
+
+expiry_and_replay:
+  future_creation_skew_seconds: 5
+  expired_plan: REJECT
+  excessive_ttl: REJECT
+  changed_configuration: REJECT
+  changed_credentials: REJECT
+  dirty_worktree: REJECT
+  changed_head: REJECT
+  claim_creation: ATOMIC_EXCLUSIVE_BEFORE_NETWORK
+  durability: FILE_FSYNC_AND_PARENT_DIRECTORY_FSYNC_REQUIRED
+  unsupported_directory_fsync: FAIL_CLOSED
+  second_claim: REJECT_REPLAY
+  crash_after_claim: PLAN_REMAINS_CONSUMED
+  execution_failure: CLAIM_FINALIZED_FAILED_AND_PLAN_CONSUMED
+  execution_success: CLAIM_FINALIZED_COMPLETED_WITH_SAFE_RECEIPT_SHA
+
+safe_claim_contract:
+  file_mode: "0600"
+  credential_values_present: false
+  owner_path_values_present: false
+  replay_allowed: false
+  orders_sent: false
+  report_2_4_authorized: false
+  failure_evidence: EXCEPTION_TYPE_FINGERPRINT_ONLY
+
+synthetic_ci:
+  real_public_request_allowed: false
+  real_private_request_allowed: false
+  owner_credentials_allowed: false
+  synthetic_credentials_in_process_only: true
+  actual_checkout_preflight_required: true
+  scoped_tests_expected_minimum: 28
+  safe_artifact_only: true
+
+hard_non_authorizations:
+  real_owner_observation: false
+  order_or_cancel: false
+  trade_or_withdraw_permission: false
+  balance_fill_bill_position_or_pnl_query: false
+  basis_computation: false
+  funding_pnl_computation: false
+  returns_computation: false
+  transaction_cost_estimation: false
+  empirical_fitting: false
+  strategy_testing: false
+  report_2_4: false
+  paper_or_live_trading: false
+  leverage: false
+  capital_deployment: false
+
+allowed_outcomes:
+  - GO_OWNER_LOCAL_OKX_SEALED_ONE_TIME_EXECUTION_PLAN_READY
+  - BLOCKED_ACTUAL_HEAD_OR_CLEAN_WORKTREE_BINDING
+  - BLOCKED_PLAN_AUTHENTICATION_OR_CREDENTIAL_BINDING
+  - BLOCKED_EXPIRY_OR_REPLAY_CONTROL
+  - BLOCKED_PRE_NETWORK_CLAIM_OR_FAILURE_FINALIZATION
+  - BLOCKED_SAFE_EVIDENCE_BOUNDARY
+
+paper_replication_pass: false
+economic_edge_verdict: INCONCLUSIVE
+report_2_4_authorized: false
