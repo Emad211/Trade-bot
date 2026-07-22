@@ -36,9 +36,14 @@ jobs:
   validate-synthetic-sealed-plan:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      SOURCE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
-      - name: Check out triggering commit
+      - name: Check out exact source head
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v6
@@ -62,7 +67,7 @@ jobs:
             fi
           done
 
-      - name: Run actual-checkout preflight without network access
+      - name: Run exact-head preflight without network access
         shell: bash
         env:
           OKX_API_KEY: gate63-ci-synthetic-api-key
@@ -70,6 +75,11 @@ jobs:
           OKX_PASSPHRASE: gate63-ci-synthetic-passphrase
         run: |
           set -euo pipefail
+          actual_head="$(git rev-parse HEAD)"
+          if [[ "$actual_head" != "$SOURCE_HEAD_SHA" ]]; then
+            echo "Checkout head $actual_head does not match source head $SOURCE_HEAD_SHA" >&2
+            exit 1
+          fi
           if [[ -n "$(git status --porcelain=v1 --untracked-files=normal)" ]]; then
             echo 'Checkout is not clean before sealed preflight' >&2
             git status --short
@@ -84,7 +94,7 @@ jobs:
             --safe-batch-manifest-output "$root/safe/batch-manifest.json" \
             --safe-observation-receipt-output "$root/safe/observation-receipt.json" \
             --policy configs/okx_no_trade_observation_policy_v1.yaml \
-            --code-head-sha "$(git rev-parse HEAD)" \
+            --code-head-sha "$SOURCE_HEAD_SHA" \
             --api-domain www.okx.com \
             --retention-days 2 \
             --confirm I_CONFIRM_OWNER_CONTROLLED_OKX_NO_TRADE_OBSERVATION \
@@ -127,8 +137,8 @@ jobs:
               raise SystemExit('Sealed plan mode is not 0600')
           if summary['network_request_performed'] is not False:
               raise SystemExit('Preflight unexpectedly performed network access')
-          if summary['actual_git_head_sha'] != os.environ['GITHUB_SHA']:
-              raise SystemExit('Preflight did not bind the triggering head')
+          if summary['actual_git_head_sha'] != os.environ['SOURCE_HEAD_SHA']:
+              raise SystemExit('Preflight did not bind the exact source head')
           for forbidden in (
               os.environ['OKX_API_KEY'],
               os.environ['OKX_SECRET_KEY'],
@@ -164,12 +174,13 @@ jobs:
           rm -rf build/gate63-safe
           PYTHONPATH=src python scripts/validate_okx_no_trade_execution_plan_contract.py \
             --output-dir build/gate63-safe \
-            --code-head-sha "${GITHUB_SHA}"
+            --code-head-sha "${SOURCE_HEAD_SHA}"
 
       - name: Independently verify safe evidence and closed gates
         run: |
           python - <<'PY'
           import json
+          import os
           from pathlib import Path
 
           root = Path('build/gate63-safe')
@@ -178,6 +189,8 @@ jobs:
           if files != [expected]:
               raise SystemExit(f'Unexpected Gate 63 evidence files: {files}')
           evidence = json.loads(expected.read_text(encoding='utf-8'))
+          if evidence['code_head_sha'] != os.environ['SOURCE_HEAD_SHA']:
+              raise SystemExit('Safe evidence is not bound to the exact source head')
           required_true = (
               'actual_head_bound',
               'clean_worktree_required',
@@ -232,7 +245,7 @@ jobs:
       - name: Upload safe synthetic evidence
         uses: actions/upload-artifact@v7
         with:
-          name: okx-sealed-execution-plan-safe-evidence-${{ github.sha }}
+          name: okx-sealed-execution-plan-safe-evidence-${{ github.event.pull_request.head.sha || github.sha }}
           path: build/gate63-safe/okx-sealed-execution-plan-safe-evidence.json
           if-no-files-found: error
           retention-days: 90
