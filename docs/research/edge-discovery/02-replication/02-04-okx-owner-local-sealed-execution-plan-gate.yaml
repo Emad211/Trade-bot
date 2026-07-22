@@ -1,11 +1,11 @@
-schema_version: "1.0"
+schema_version: "1.1"
 gate_id: OKX_OWNER_LOCAL_SEALED_EXECUTION_PLAN_V1
 issue_number: 63
-status: OPEN
+status: CLOSED
 status_date: "2026-07-22"
 repository: Emad211/Trade-bot
 branch: agent/edge-research-reports
-current_outcome: null
+current_outcome: GO_OWNER_LOCAL_OKX_SEALED_ONE_TIME_EXECUTION_PLAN_READY
 
 objective: >-
   Bind Gate 61 owner-local preflight and observation to one exact clean Git head,
@@ -16,6 +16,14 @@ predecessor:
   issue_number: 61
   outcome: GO_OWNER_CONTROLLED_OKX_NO_TRADE_OBSERVATION_PACKAGE_READY
   real_execution_occurred: false
+
+implementation_identity:
+  source_package_sha256: 9e6f3b9f68f38d163332ad4c83864b3405731a0760e02c0304a46c21145d28b2
+  validator_patch_sha256: b5dfbcd84b89a54466caa244f66e278dee65a93a4828fcaf923e16ad4358ce53
+  non_workflow_publication_commit: db6dfeed31b1639d65af110aa2bb7476cb69860b
+  permanent_workflow_commit: b5b674da7014b5ac3f2f241da577791e8881f632
+  temporary_package_files_retained: false
+  temporary_workflows_retained: false
 
 actual_head_contract:
   git_top_level_must_equal_repository_root: true
@@ -78,7 +86,9 @@ expiry_and_replay:
   second_claim: REJECT_REPLAY
   crash_after_claim: PLAN_REMAINS_CONSUMED
   execution_failure: CLAIM_FINALIZED_FAILED_AND_PLAN_CONSUMED
-  execution_success: CLAIM_FINALIZED_COMPLETED_WITH_SAFE_RECEIPT_SHA
+  invalid_safe_receipt_sha: CLAIM_FINALIZED_FAILED_AND_PLAN_CONSUMED
+  execution_success: CLAIM_FINALIZED_COMPLETED_WITH_VALIDATED_SAFE_RECEIPT_SHA
+  tampered_claim: REJECT
 
 safe_claim_contract:
   file_mode: "0600"
@@ -95,8 +105,43 @@ synthetic_ci:
   owner_credentials_allowed: false
   synthetic_credentials_in_process_only: true
   actual_checkout_preflight_required: true
-  scoped_tests_expected_minimum: 28
+  scoped_tests_passed: 31
   safe_artifact_only: true
+
+verified_proofs:
+  - actual_head_bound
+  - clean_worktree_required
+  - plan_mode_0600
+  - claim_mode_0600
+  - credential_binding_hmac_present
+  - plan_authenticator_hmac_present
+  - claim_created_before_executor
+  - successful_claim_finalized
+  - replay_rejected
+  - failure_raised_after_claim
+  - failed_plan_consumed
+  - failed_plan_replay_rejected
+  - configuration_change_rejected
+  - credential_change_rejected
+  - expired_plan_rejected
+  - dirty_worktree_rejected
+  - head_mismatch_rejected
+  - durable_file_and_parent_directory_fsync_verified
+  - invalid_receipt_sha_rejected
+  - invalid_receipt_plan_consumed
+  - tampered_claim_rejected
+  - safe_local_plan_and_claim_exclude_values
+
+verification_evidence:
+  permanent_workflow_run: 29940382297
+  permanent_artifact_id: 8537940880
+  permanent_artifact_digest: sha256:b1f7a7ffc54174e56073057d4f6a8d69aba151900ad11a05658dd97acf8221c8
+  safe_evidence_sha256: b0a21d1dcb8aa7982bf25ba97446bc6fd130f26be67d36bbe8c32d3f7e924fde
+  general_ci_run: 29940382313
+  replication_integrity_run: 29940383127
+  pre_outcome_checks_passed: true
+  exact_post_outcome_head_run_record_location: ISSUE_63_AND_PR_41
+  exact_post_outcome_head_run_required: true
 
 hard_non_authorizations:
   real_owner_observation: false
@@ -114,14 +159,7 @@ hard_non_authorizations:
   leverage: false
   capital_deployment: false
 
-allowed_outcomes:
-  - GO_OWNER_LOCAL_OKX_SEALED_ONE_TIME_EXECUTION_PLAN_READY
-  - BLOCKED_ACTUAL_HEAD_OR_CLEAN_WORKTREE_BINDING
-  - BLOCKED_PLAN_AUTHENTICATION_OR_CREDENTIAL_BINDING
-  - BLOCKED_EXPIRY_OR_REPLAY_CONTROL
-  - BLOCKED_PRE_NETWORK_CLAIM_OR_FAILURE_FINALIZATION
-  - BLOCKED_SAFE_EVIDENCE_BOUNDARY
-
+real_execution_occurred: false
 paper_replication_pass: false
 economic_edge_verdict: INCONCLUSIVE
 report_2_4_authorized: false

@@ -1,0 +1,76 @@
+schema_version: "1.0"
+gate_id: OKX_OWNER_LOCAL_SEALED_EXECUTION_PLAN_V1
+issue_number: 63
+outcome: GO_OWNER_LOCAL_OKX_SEALED_ONE_TIME_EXECUTION_PLAN_READY
+status_date: "2026-07-22"
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+
+implementation:
+  source_package_sha256: 9e6f3b9f68f38d163332ad4c83864b3405731a0760e02c0304a46c21145d28b2
+  validator_patch_sha256: b5dfbcd84b89a54466caa244f66e278dee65a93a4828fcaf923e16ad4358ce53
+  non_workflow_publication_commit: db6dfeed31b1639d65af110aa2bb7476cb69860b
+  permanent_workflow_commit: b5b674da7014b5ac3f2f241da577791e8881f632
+  temporary_package_files_retained: false
+  temporary_workflows_retained: false
+
+verification:
+  scoped_tests_passed: 31
+  ruff_passed: true
+  strict_mypy_passed: true
+  general_ci_run: 29940382313
+  general_ci_passed: true
+  replication_integrity_run: 29940383127
+  replication_integrity_passed: true
+  permanent_workflow_run: 29940382297
+  permanent_workflow_passed: true
+  permanent_artifact_id: 8537940880
+  permanent_artifact_digest: sha256:b1f7a7ffc54174e56073057d4f6a8d69aba151900ad11a05658dd97acf8221c8
+  safe_evidence_sha256: b0a21d1dcb8aa7982bf25ba97446bc6fd130f26be67d36bbe8c32d3f7e924fde
+  exact_post_outcome_head_run_record_location: ISSUE_63_AND_PR_41
+  exact_post_outcome_head_run_required: true
+
+proved_true:
+  - actual_head_bound
+  - clean_worktree_required
+  - plan_mode_0600
+  - claim_mode_0600
+  - credential_binding_hmac_present
+  - plan_authenticator_hmac_present
+  - claim_created_before_executor
+  - successful_claim_finalized
+  - replay_rejected
+  - failure_raised_after_claim
+  - failed_plan_consumed
+  - failed_plan_replay_rejected
+  - configuration_change_rejected
+  - credential_change_rejected
+  - expired_plan_rejected
+  - dirty_worktree_rejected
+  - head_mismatch_rejected
+  - durable_file_and_parent_directory_fsync_verified
+  - invalid_receipt_sha_rejected
+  - invalid_receipt_plan_consumed
+  - tampered_claim_rejected
+  - safe_local_plan_and_claim_exclude_values
+
+closed_fields:
+  credentials_present_in_safe_evidence: false
+  owner_path_values_present_in_safe_evidence: false
+  real_public_request_performed: false
+  real_private_fee_request_performed: false
+  credentials_supplied_to_ci: false
+  orders_sent: false
+  trade_permission_used: false
+  withdraw_permission_used: false
+  basis_computation_authorized: false
+  funding_pnl_computation_authorized: false
+  returns_computation_authorized: false
+  transaction_cost_estimation_authorized: false
+  strategy_testing_authorized: false
+  paper_or_live_trading_authorized: false
+  report_2_4_authorized: false
+
+real_execution_occurred: false
+paper_replication_pass: false
+economic_edge_verdict: INCONCLUSIVE
