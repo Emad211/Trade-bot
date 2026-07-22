@@ -42,7 +42,7 @@ jobs:
         run: |
           set -euo pipefail
           cat .gate63-package.part* | tr -d '\n' | base64 -d > "${RUNNER_TEMP}/gate63-package.tar.gz"
-          echo '8675d9afb5f6ce117b985745f05105860f402f2d564feb6153332f4c95d5ef28  '"${RUNNER_TEMP}/gate63-package.tar.gz" | sha256sum -c -
+          echo 'f2ed4d975c9cbaf39b1fd141464bc0696af1d16492b9999cf217162e3cffdf74  '"${RUNNER_TEMP}/gate63-package.tar.gz" | sha256sum -c -
           ARCHIVE="${RUNNER_TEMP}/gate63-package.tar.gz" python - <<'PY'
           import os
           import tarfile
