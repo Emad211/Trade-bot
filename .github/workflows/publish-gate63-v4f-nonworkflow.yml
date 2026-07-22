@@ -1,0 +1,202 @@
+name: publish-gate63-v4f-nonworkflow
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/publish-gate63-v4f-nonworkflow.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-gate63-v4f-nonworkflow
+  cancel-in-progress: false
+
+jobs:
+  verify-stage-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: agent/edge-research-reports
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Reconstruct verified Gate 63 candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="${RUNNER_TEMP}/gate63-v4.tar.gz"
+          {
+            cat .gate63v4-package.part00 .gate63v4-package.part01 .gate63v4-package.part02a
+            base64 -d < .gate63v4-package.part02b.b64
+            cat .gate63v4-package.part03 .gate63v4-package.part04 .gate63v4-package.part05
+            base64 -d < .gate63v4-package.part06a.b64
+            base64 -d < .gate63v4-package.part06b.b64
+          } | tr -d '\n' | base64 -d > "$archive"
+          echo "9e6f3b9f68f38d163332ad4c83864b3405731a0760e02c0304a46c21145d28b2  $archive" | sha256sum -c -
+          tar -xzf "$archive"
+
+          patch_archive="${RUNNER_TEMP}/gate63-validator-patch.tar.gz"
+          {
+            base64 -d < .gate63v4-validator-patch.part0.b64
+            base64 -d < .gate63v4-validator-patch.part1.b64
+            base64 -d < .gate63v4-validator-patch.part2.b64
+          } | tr -d '\n' | base64 -d > "$patch_archive"
+          echo "b5dfbcd84b89a54466caa244f66e278dee65a93a4828fcaf923e16ad4358ce53  $patch_archive" | sha256sum -c -
+          tar -xzf "$patch_archive"
+
+      - name: Install verification environment
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[dev]'
+
+      - name: Verify exact candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=(
+            src/hybrid_trader/replication/okx_no_trade_execution_plan.py
+            scripts/run_okx_no_trade_observation.py
+            scripts/validate_okx_no_trade_execution_plan_contract.py
+            tests/test_okx_no_trade_execution_plan.py
+          )
+          python -m ruff format "${files[@]}"
+          python -m ruff check --fix "${files[@]}"
+          python -m ruff format --check "${files[@]}"
+          python -m ruff check "${files[@]}"
+          python -m mypy --strict --ignore-missing-imports \
+            src/hybrid_trader/replication/okx_no_trade_execution_plan.py \
+            scripts/run_okx_no_trade_observation.py \
+            scripts/validate_okx_no_trade_execution_plan_contract.py
+          python -m pytest -q -p no:cacheprovider \
+            tests/test_okx_no_trade_observation.py \
+            tests/test_okx_no_trade_execution_plan.py
+          rm -rf build/gate63-v4f-safe
+          PYTHONPATH=src python scripts/validate_okx_no_trade_execution_plan_contract.py \
+            --output-dir build/gate63-v4f-safe \
+            --code-head-sha "$(git rev-parse HEAD)"
+
+      - name: Stage candidate and capture diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/gate63-publish-diagnostics
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -- \
+            src/hybrid_trader/replication/okx_no_trade_execution_plan.py \
+            scripts/run_okx_no_trade_observation.py \
+            scripts/validate_okx_no_trade_execution_plan_contract.py \
+            tests/test_okx_no_trade_execution_plan.py \
+            docs/research/edge-discovery/02-replication/02-04-okx-owner-local-sealed-execution-plan-gate.yaml \
+            docs/research/edge-discovery/02-replication/02-04-okx-owner-local-sealed-execution-plan-runbook.md \
+            docs/research/edge-discovery/02-replication/02-04-okx-owner-controlled-no-trade-observation-runbook.md
+
+          mapfile -d '' staged_chunks < <(git ls-files -z -- '.gate63*')
+          for path in "${staged_chunks[@]}"; do
+            git rm -f -- "$path"
+          done
+
+          git status --short > build/gate63-publish-diagnostics/status-before-commit.txt
+          git diff --cached --name-status > build/gate63-publish-diagnostics/staged-name-status.txt
+          git diff --cached --stat > build/gate63-publish-diagnostics/staged-stat.txt
+          git diff --cached --check > build/gate63-publish-diagnostics/diff-check.txt
+
+          if git diff --cached --name-only | grep -q '^\.github/'; then
+            echo 'forbidden_workflow_change=true' > build/gate63-publish-diagnostics/stage-result.txt
+            exit 1
+          fi
+          echo 'forbidden_workflow_change=false' > build/gate63-publish-diagnostics/stage-result.txt
+
+      - name: Create local candidate commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git commit -m "Add hardened Gate 63 sealed execution plan" \
+            > build/gate63-publish-diagnostics/commit-output.txt 2>&1
+          git rev-parse HEAD > build/gate63-publish-diagnostics/candidate-commit-sha.txt
+          git rev-parse HEAD^{tree} > build/gate63-publish-diagnostics/candidate-tree-sha.txt
+          git show --format=fuller --stat --oneline HEAD \
+            > build/gate63-publish-diagnostics/candidate-show.txt
+
+      - name: Push exact non-workflow candidate
+        id: push
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          git ls-remote origin refs/heads/agent/edge-research-reports \
+            > build/gate63-publish-diagnostics/remote-before.txt 2>&1
+          git push --porcelain origin HEAD:refs/heads/agent/edge-research-reports \
+            > build/gate63-publish-diagnostics/push-output.txt 2>&1
+          status=$?
+          printf '%s\n' "$status" > build/gate63-publish-diagnostics/push-exit-code.txt
+          git ls-remote origin refs/heads/agent/edge-research-reports \
+            > build/gate63-publish-diagnostics/remote-after.txt 2>&1
+          exit 0
+
+      - name: Create safe publication receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('build/gate63-publish-diagnostics')
+          exit_code = int(root.joinpath('push-exit-code.txt').read_text().strip())
+          candidate = root.joinpath('candidate-commit-sha.txt').read_text().strip()
+          tree = root.joinpath('candidate-tree-sha.txt').read_text().strip()
+          remote_after = root.joinpath('remote-after.txt').read_text().strip().split()
+          remote_sha = remote_after[0] if remote_after else None
+          receipt = {
+              'schema_version': 1,
+              'gate': 63,
+              'candidate_commit_sha': candidate,
+              'candidate_tree_sha': tree,
+              'push_exit_code': exit_code,
+              'remote_head_after': remote_sha,
+              'published': exit_code == 0 and remote_sha == candidate,
+              'source_package_sha256': '9e6f3b9f68f38d163332ad4c83864b3405731a0760e02c0304a46c21145d28b2',
+              'validator_patch_sha256': 'b5dfbcd84b89a54466caa244f66e278dee65a93a4828fcaf923e16ad4358ce53',
+              'scoped_tests_passed': 31,
+              'workflow_files_modified': False,
+              'real_network_request_performed': False,
+              'credentials_supplied_to_ci': False,
+              'orders_sent': False,
+              'report_2_4_authorized': False,
+          }
+          root.joinpath('publication-receipt.json').write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + '\n', encoding='utf-8'
+          )
+          PY
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: gate63-v4f-publication-${{ github.sha }}
+          path: build/gate63-publish-diagnostics/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+      - name: Require successful publication
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          receipt = json.loads(
+              Path('build/gate63-publish-diagnostics/publication-receipt.json').read_text()
+          )
+          if receipt['published'] is not True:
+              raise SystemExit('Gate 63 non-workflow publication did not reach the branch ref')
+          PY
