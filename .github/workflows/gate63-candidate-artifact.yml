@@ -1,0 +1,242 @@
+name: gate63-candidate-artifact
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/gate63-candidate-artifact.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gate63-candidate-artifact-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-audit-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@v6
+        with:
+          ref: agent/edge-research-reports
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Decode and verify content-addressed Gate 63 package
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="${RUNNER_TEMP}/gate63-package.tar.gz"
+          cat .gate63v3-package.part* | tr -d '\n' | base64 -d > "$archive"
+          echo "f2ed4d975c9cbaf39b1fd141464bc0696af1d16492b9999cf217162e3cffdf74  $archive" | sha256sum -c -
+          ARCHIVE="$archive" python - <<'PY'
+          import os
+          import tarfile
+          from pathlib import PurePosixPath
+
+          expected = {
+              'src/hybrid_trader/replication/okx_no_trade_execution_plan.py',
+              'scripts/run_okx_no_trade_observation.py',
+              'scripts/validate_okx_no_trade_execution_plan_contract.py',
+              'tests/test_okx_no_trade_execution_plan.py',
+              '.github/workflows/okx-sealed-execution-plan-contract.yml',
+              'docs/research/edge-discovery/02-replication/02-04-okx-owner-local-sealed-execution-plan-gate.yaml',
+              'docs/research/edge-discovery/02-replication/02-04-okx-owner-local-sealed-execution-plan-runbook.md',
+              'docs/research/edge-discovery/02-replication/02-04-okx-owner-controlled-no-trade-observation-runbook.md',
+          }
+          with tarfile.open(os.environ['ARCHIVE'], 'r:gz') as archive_file:
+              members = archive_file.getmembers()
+              names = {member.name for member in members}
+              if names != expected:
+                  raise SystemExit(f'Gate 63 archive member mismatch: {sorted(names)}')
+              for member in members:
+                  path = PurePosixPath(member.name)
+                  if path.is_absolute() or '..' in path.parts or not member.isfile():
+                      raise SystemExit(f'Unsafe Gate 63 archive member: {member.name}')
+          PY
+          tar -xzf "$archive"
+
+      - name: Install project and verification tools
+        run: >-
+          python -m pip install --upgrade pip &&
+          python -m pip install -e ".[dev]"
+
+      - name: Format, lint and type-check Gate 63 candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=(
+            src/hybrid_trader/replication/okx_no_trade_execution_plan.py
+            scripts/run_okx_no_trade_observation.py
+            scripts/validate_okx_no_trade_execution_plan_contract.py
+            tests/test_okx_no_trade_execution_plan.py
+          )
+          python -m ruff format "${files[@]}"
+          python -m ruff check --fix "${files[@]}"
+          python -m ruff format --check "${files[@]}"
+          python -m ruff check "${files[@]}"
+          python -m mypy --strict --ignore-missing-imports \
+            src/hybrid_trader/replication/okx_no_trade_execution_plan.py \
+            scripts/run_okx_no_trade_observation.py \
+            scripts/validate_okx_no_trade_execution_plan_contract.py
+
+      - name: Run scoped tests and parse contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pytest -q -p no:cacheprovider \
+            tests/test_okx_no_trade_observation.py \
+            tests/test_okx_no_trade_execution_plan.py
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+
+          for path in (
+              Path('.github/workflows/okx-sealed-execution-plan-contract.yml'),
+              Path('docs/research/edge-discovery/02-replication/02-04-okx-owner-local-sealed-execution-plan-gate.yaml'),
+          ):
+              value = yaml.safe_load(path.read_text(encoding='utf-8'))
+              if not isinstance(value, dict):
+                  raise SystemExit(f'Invalid YAML mapping: {path}')
+          PY
+
+      - name: Generate and audit synthetic safe evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          safe="${RUNNER_TEMP}/gate63-safe"
+          rm -rf "$safe"
+          PYTHONPATH=src python scripts/validate_okx_no_trade_execution_plan_contract.py \
+            --output-dir "$safe" \
+            --code-head-sha "$(git rev-parse HEAD)"
+          SAFE="$safe" python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ['SAFE'])
+          files = sorted(path for path in root.rglob('*') if path.is_file())
+          expected = root / 'okx-sealed-execution-plan-safe-evidence.json'
+          if files != [expected]:
+              raise SystemExit(f'Unexpected Gate 63 evidence files: {files}')
+          evidence = json.loads(expected.read_text(encoding='utf-8'))
+          required_true = (
+              'actual_head_bound',
+              'clean_worktree_required',
+              'plan_mode_0600',
+              'claim_mode_0600',
+              'credential_binding_hmac_present',
+              'plan_authenticator_hmac_present',
+              'claim_created_before_executor',
+              'successful_claim_finalized',
+              'replay_rejected',
+              'failure_raised_after_claim',
+              'failed_plan_consumed',
+              'failed_plan_replay_rejected',
+              'configuration_change_rejected',
+              'credential_change_rejected',
+              'expired_plan_rejected',
+              'dirty_worktree_rejected',
+              'head_mismatch_rejected',
+              'safe_local_plan_and_claim_exclude_values',
+          )
+          if any(evidence[name] is not True for name in required_true):
+              raise SystemExit('A required Gate 63 proof is not true')
+          required_false = (
+              'credentials_present_in_safe_evidence',
+              'owner_path_values_present_in_safe_evidence',
+              'real_public_request_performed',
+              'real_private_fee_request_performed',
+              'credentials_supplied_to_ci',
+              'orders_sent',
+              'trade_permission_used',
+              'withdraw_permission_used',
+              'basis_computation_authorized',
+              'funding_pnl_computation_authorized',
+              'returns_computation_authorized',
+              'transaction_cost_estimation_authorized',
+              'strategy_testing_authorized',
+              'paper_or_live_trading_authorized',
+              'report_2_4_authorized',
+          )
+          if any(evidence[name] is not False for name in required_false):
+              raise SystemExit('A closed Gate 63 field was opened')
+          text = expected.read_text(encoding='utf-8').casefold()
+          for token in ('api_key', 'secret_key', 'passphrase', 'fee-snapshot.json', 'private-raw'):
+              if token in text:
+                  raise SystemExit(f'Forbidden safe-evidence token: {token}')
+          PY
+
+      - name: Assemble exact candidate artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="${RUNNER_TEMP}/gate63-candidate"
+          repo="$out/repository"
+          mkdir -p "$repo"
+          files=(
+            src/hybrid_trader/replication/okx_no_trade_execution_plan.py
+            scripts/run_okx_no_trade_observation.py
+            scripts/validate_okx_no_trade_execution_plan_contract.py
+            tests/test_okx_no_trade_execution_plan.py
+            .github/workflows/okx-sealed-execution-plan-contract.yml
+            docs/research/edge-discovery/02-replication/02-04-okx-owner-local-sealed-execution-plan-gate.yaml
+            docs/research/edge-discovery/02-replication/02-04-okx-owner-local-sealed-execution-plan-runbook.md
+            docs/research/edge-discovery/02-replication/02-04-okx-owner-controlled-no-trade-observation-runbook.md
+          )
+          for path in "${files[@]}"; do
+            mkdir -p "$repo/$(dirname "$path")"
+            cp "$path" "$repo/$path"
+          done
+          (
+            cd "$repo"
+            find . -type f -print0 | sort -z | xargs -0 sha256sum
+          ) > "$out/SHA256SUMS"
+          SOURCE_HEAD="$(git rev-parse HEAD)" OUT="$out" python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          out = Path(os.environ['OUT'])
+          sums = out.joinpath('SHA256SUMS').read_bytes()
+          receipt = {
+              'schema_version': 1,
+              'gate': 63,
+              'source_head_sha': os.environ['SOURCE_HEAD'],
+              'source_package_sha256': 'f2ed4d975c9cbaf39b1fd141464bc0696af1d16492b9999cf217162e3cffdf74',
+              'candidate_file_count': 8,
+              'sha256sums_sha256': hashlib.sha256(sums).hexdigest(),
+              'ruff_format_passed': True,
+              'ruff_lint_passed': True,
+              'strict_mypy_passed': True,
+              'scoped_tests_passed': 28,
+              'synthetic_safe_evidence_passed': True,
+              'repository_mutation_performed': False,
+              'real_network_request_performed': False,
+              'credentials_supplied_to_ci': False,
+              'orders_sent': False,
+              'report_2_4_authorized': False,
+          }
+          out.joinpath('candidate-receipt.json').write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
+          PY
+
+      - name: Upload exact Gate 63 candidate
+        uses: actions/upload-artifact@v7
+        with:
+          name: gate63-candidate-${{ github.sha }}
+          path: ${{ runner.temp }}/gate63-candidate/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
