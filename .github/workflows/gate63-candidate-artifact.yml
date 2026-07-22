@@ -240,3 +240,4 @@ jobs:
           if-no-files-found: error
           retention-days: 30
           compression-level: 0
+          include-hidden-files: true
