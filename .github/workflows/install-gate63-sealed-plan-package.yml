@@ -4,12 +4,22 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - .gate63-package.part00
-      - .gate63-package.part01
-      - .gate63-package.part02
-      - .gate63-package.part03
-      - .gate63-package.part04
-      - .gate63-package.part05
+      - .gate63v3-package.part00
+      - .gate63v3-package.part01
+      - .gate63v3-package.part02
+      - .gate63v3-package.part03
+      - .gate63v3-package.part04
+      - .gate63v3-package.part05
+      - .gate63v3-package.part06
+      - .gate63v3-package.part07
+      - .gate63v3-package.part08
+      - .gate63v3-package.part09
+      - .gate63v3-package.part10
+      - .gate63v3-package.part11
+      - .gate63v3-package.part12
+      - .gate63v3-package.part13
+      - .gate63v3-package.part14
+      - .gate63v3-package.part15
       - .github/workflows/install-gate63-sealed-plan-package.yml
 
 permissions:
@@ -41,7 +51,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat .gate63-package.part* | tr -d '\n' | base64 -d > "${RUNNER_TEMP}/gate63-package.tar.gz"
+          cat .gate63v3-package.part* | tr -d '\n' | base64 -d > "${RUNNER_TEMP}/gate63-package.tar.gz"
           echo 'f2ed4d975c9cbaf39b1fd141464bc0696af1d16492b9999cf217162e3cffdf74  '"${RUNNER_TEMP}/gate63-package.tar.gz" | sha256sum -c -
           ARCHIVE="${RUNNER_TEMP}/gate63-package.tar.gz" python - <<'PY'
           import os
@@ -243,6 +253,22 @@ jobs:
             .gate63-package.part03 \
             .gate63-package.part04 \
             .gate63-package.part05 \
+            .gate63v3-package.part00 \
+            .gate63v3-package.part01 \
+            .gate63v3-package.part02 \
+            .gate63v3-package.part03 \
+            .gate63v3-package.part04 \
+            .gate63v3-package.part05 \
+            .gate63v3-package.part06 \
+            .gate63v3-package.part07 \
+            .gate63v3-package.part08 \
+            .gate63v3-package.part09 \
+            .gate63v3-package.part10 \
+            .gate63v3-package.part11 \
+            .gate63v3-package.part12 \
+            .gate63v3-package.part13 \
+            .gate63v3-package.part14 \
+            .gate63v3-package.part15 \
             .github/workflows/install-gate63-sealed-plan-package.yml
           git commit -m 'Seal owner-local OKX one-time execution plan'
           candidate_head="$(git rev-parse HEAD)"
