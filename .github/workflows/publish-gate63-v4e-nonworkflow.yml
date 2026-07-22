@@ -1,0 +1,149 @@
+name: publish-gate63-v4e-nonworkflow
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/publish-gate63-v4e-nonworkflow.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-gate63-v4e-nonworkflow
+  cancel-in-progress: false
+
+jobs:
+  verify-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: agent/edge-research-reports
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Reconstruct exact hardened candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="${RUNNER_TEMP}/gate63-v4.tar.gz"
+          {
+            cat .gate63v4-package.part00 .gate63v4-package.part01 .gate63v4-package.part02a
+            base64 -d < .gate63v4-package.part02b.b64
+            cat .gate63v4-package.part03 .gate63v4-package.part04 .gate63v4-package.part05
+            base64 -d < .gate63v4-package.part06a.b64
+            base64 -d < .gate63v4-package.part06b.b64
+          } | tr -d '\n' | base64 -d > "$archive"
+          echo "9e6f3b9f68f38d163332ad4c83864b3405731a0760e02c0304a46c21145d28b2  $archive" | sha256sum -c -
+          tar -xzf "$archive"
+
+          patch_archive="${RUNNER_TEMP}/gate63-validator-patch.tar.gz"
+          {
+            base64 -d < .gate63v4-validator-patch.part0.b64
+            base64 -d < .gate63v4-validator-patch.part1.b64
+            base64 -d < .gate63v4-validator-patch.part2.b64
+          } | tr -d '\n' | base64 -d > "$patch_archive"
+          echo "b5dfbcd84b89a54466caa244f66e278dee65a93a4828fcaf923e16ad4358ce53  $patch_archive" | sha256sum -c -
+          tar -xzf "$patch_archive"
+
+      - name: Install verification environment
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[dev]'
+
+      - name: Verify candidate before repository mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=(
+            src/hybrid_trader/replication/okx_no_trade_execution_plan.py
+            scripts/run_okx_no_trade_observation.py
+            scripts/validate_okx_no_trade_execution_plan_contract.py
+            tests/test_okx_no_trade_execution_plan.py
+          )
+          python -m ruff format "${files[@]}"
+          python -m ruff check --fix "${files[@]}"
+          python -m ruff format --check "${files[@]}"
+          python -m ruff check "${files[@]}"
+          python -m mypy --strict --ignore-missing-imports \
+            src/hybrid_trader/replication/okx_no_trade_execution_plan.py \
+            scripts/run_okx_no_trade_observation.py \
+            scripts/validate_okx_no_trade_execution_plan_contract.py
+          python -m pytest -q -p no:cacheprovider \
+            tests/test_okx_no_trade_observation.py \
+            tests/test_okx_no_trade_execution_plan.py
+          rm -rf build/gate63-publish-safe
+          PYTHONPATH=src python scripts/validate_okx_no_trade_execution_plan_contract.py \
+            --output-dir build/gate63-publish-safe \
+            --code-head-sha "$(git rev-parse HEAD)"
+
+      - name: Commit only verified non-workflow files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -- \
+            src/hybrid_trader/replication/okx_no_trade_execution_plan.py \
+            scripts/run_okx_no_trade_observation.py \
+            scripts/validate_okx_no_trade_execution_plan_contract.py \
+            tests/test_okx_no_trade_execution_plan.py \
+            docs/research/edge-discovery/02-replication/02-04-okx-owner-local-sealed-execution-plan-gate.yaml \
+            docs/research/edge-discovery/02-replication/02-04-okx-owner-local-sealed-execution-plan-runbook.md \
+            docs/research/edge-discovery/02-replication/02-04-okx-owner-controlled-no-trade-observation-runbook.md
+
+          while IFS= read -r -d '' path; do
+            git rm -f -- "$path"
+          done < <(git ls-files -z '.gate63*')
+
+          if git diff --cached --name-only | grep -q '^\.github/'; then
+            echo 'Publisher must not modify workflow files' >&2
+            exit 1
+          fi
+          git diff --cached --check
+          git commit -m "Add hardened Gate 63 sealed execution plan"
+          commit_sha="$(git rev-parse HEAD)"
+          tree_sha="$(git rev-parse HEAD^{tree})"
+          git push origin HEAD:agent/edge-research-reports
+
+          mkdir -p build/gate63-publish-receipt
+          COMMIT_SHA="$commit_sha" TREE_SHA="$tree_sha" python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          receipt = {
+              'schema_version': 1,
+              'gate': 63,
+              'commit_sha': os.environ['COMMIT_SHA'],
+              'tree_sha': os.environ['TREE_SHA'],
+              'source_package_sha256': '9e6f3b9f68f38d163332ad4c83864b3405731a0760e02c0304a46c21145d28b2',
+              'validator_patch_sha256': 'b5dfbcd84b89a54466caa244f66e278dee65a93a4828fcaf923e16ad4358ce53',
+              'non_workflow_candidate_files_published': 7,
+              'workflow_files_modified': False,
+              'scoped_tests_passed': 31,
+              'real_network_request_performed': False,
+              'credentials_supplied_to_ci': False,
+              'orders_sent': False,
+              'report_2_4_authorized': False,
+          }
+          Path('build/gate63-publish-receipt/receipt.json').write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + '\n', encoding='utf-8'
+          )
+          PY
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: gate63-nonworkflow-publish-${{ github.sha }}
+          path: build/gate63-publish-receipt/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
