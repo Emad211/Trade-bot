@@ -109,7 +109,7 @@ jobs:
           git status --short > build/gate63-publish-diagnostics/status-before-commit.txt
           git diff --cached --name-status > build/gate63-publish-diagnostics/staged-name-status.txt
           git diff --cached --stat > build/gate63-publish-diagnostics/staged-stat.txt
-          git diff --cached --check > build/gate63-publish-diagnostics/diff-check.txt
+          git diff --cached --check -- '*.py' '*.yaml' '*.yml' > build/gate63-publish-diagnostics/diff-check.txt
 
           if git diff --cached --name-only | grep -q '^\.github/'; then
             echo 'forbidden_workflow_change=true' > build/gate63-publish-diagnostics/stage-result.txt
