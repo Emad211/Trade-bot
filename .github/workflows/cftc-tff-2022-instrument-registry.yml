@@ -1,0 +1,127 @@
+name: CFTC TFF 2022 Instrument Registry
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/cftc-tff-2022-instrument-registry.yml
+      - src/hybrid_trader/replication/cftc_historical_ingestion.py
+      - src/hybrid_trader/replication/cftc_historical_parser.py
+      - src/hybrid_trader/replication/cftc_instrument_mapping.py
+      - scripts/ingest_cftc_tff_historical_2022.py
+      - scripts/derive_cftc_tff_2022_pilot.py
+      - scripts/build_cftc_tff_2022_instrument_registry.py
+      - tests/test_cftc_instrument_mapping.py
+      - docs/research/edge-discovery/02-replication/02-03-cftc-tff-2022-instrument-map-contract.csv.gz.b64
+      - docs/research/edge-discovery/02-replication/02-03-cftc-tff-instrument-mapping-sources.json
+  push:
+    branches: [agent/edge-research-reports]
+    paths:
+      - .github/workflows/cftc-tff-2022-instrument-registry.yml
+      - src/hybrid_trader/replication/cftc_historical_ingestion.py
+      - src/hybrid_trader/replication/cftc_historical_parser.py
+      - src/hybrid_trader/replication/cftc_instrument_mapping.py
+      - scripts/ingest_cftc_tff_historical_2022.py
+      - scripts/derive_cftc_tff_2022_pilot.py
+      - scripts/build_cftc_tff_2022_instrument_registry.py
+      - tests/test_cftc_instrument_mapping.py
+      - docs/research/edge-discovery/02-replication/02-03-cftc-tff-2022-instrument-map-contract.csv.gz.b64
+      - docs/research/edge-discovery/02-replication/02-03-cftc-tff-instrument-mapping-sources.json
+
+permissions:
+  contents: read
+
+jobs:
+  acquire-derive-map-verify-and-stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install project and verification tools
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev,replication]"
+      - name: Run project lint rules
+        run: python -m ruff check src/hybrid_trader/replication/cftc_instrument_mapping.py scripts/build_cftc_tff_2022_instrument_registry.py tests/test_cftc_instrument_mapping.py
+      - name: Run strict typing
+        run: python -m mypy --strict --ignore-missing-imports src/hybrid_trader/replication/cftc_instrument_mapping.py
+      - name: Run mapping unit tests
+        run: python -m pytest -q tests/test_cftc_instrument_mapping.py
+      - name: Acquire official archive
+        run: python scripts/ingest_cftc_tff_historical_2022.py --output-dir build/source
+      - name: Derive frozen pilot
+        run: python scripts/derive_cftc_tff_2022_pilot.py --archive build/source/fut_fin_txt_2022.zip --report-date 2022-09-13 --output-dir build/pilot
+      - name: Decode mapping contract
+        run: |
+          python - <<'PY'
+          import base64, gzip, hashlib
+          from pathlib import Path
+          src=Path('docs/research/edge-discovery/02-replication/02-03-cftc-tff-2022-instrument-map-contract.csv.gz.b64')
+          raw=gzip.decompress(base64.b64decode(src.read_text().strip()))
+          assert hashlib.sha256(raw).hexdigest()=='4dd92e493f9752371cdfaef5f6bc90edf72b235cd0f4d444aa96aa9e628251c2'
+          Path('build/map.csv').write_bytes(raw)
+          PY
+      - name: Build instrument registry
+        run: python scripts/build_cftc_tff_2022_instrument_registry.py --pilot build/pilot/tff_futures_only_2022-09-13.canonical.csv --mapping-contract build/map.csv --source-registry docs/research/edge-discovery/02-replication/02-03-cftc-tff-instrument-mapping-sources.json --output-dir build/registry
+      - name: Verify fail-closed registry
+        run: |
+          python - <<'PY'
+          import csv,hashlib,json
+          from pathlib import Path
+          p=Path('build/registry/cftc_tff_2022-09-13_instrument_registry.csv')
+          raw=p.read_bytes(); rows=list(csv.DictReader(raw.decode().splitlines()))
+          m=json.loads(Path('build/registry/instrument-registry-manifest.json').read_text())
+          expected='70a8e89db716cfc8b1285f3b627188294abaae920c2b99b193f4501a7e525c74'
+          assert hashlib.sha256(raw).hexdigest()==expected==m['registry_sha256']
+          assert len(rows)==54==len({r['cftc_contract_market_code'] for r in rows})
+          by={r['cftc_contract_market_code']:r for r in rows}
+          for code in ('12460+','13874+','20974+'):
+              assert by[code]['mapping_class']=='NON_TRADABLE_CONSOLIDATED_AGGREGATE'
+              assert not by[code]['exchange_product_code']
+          assert by['132741']['exchange_product_code']=='GE'
+          assert by['157741']['exchange_product_code']=='BSB'
+          assert by['157741']['exchange_order_entry_symbol']=='BW'
+          assert by['13874W']['exchange_security_group']=='0B'
+          assert by['240743']['exchange_product_code']=='NIY'
+          assert all(r['price_linkage_authorized']=='false' for r in rows)
+          assert all(not r['provider_contract_id'] for r in rows)
+          assert m['global_price_linkage_authorized'] is False
+          assert m['returns_authorized'] is False
+          assert m['economic_edge_verdict']=='INCONCLUSIVE'
+          PY
+      - name: Upload staged bundle
+        id: upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: cftc-tff-2022-instrument-registry-${{ github.sha }}
+          path: |
+            build/source/
+            build/pilot/
+            build/registry/
+          retention-days: 90
+          compression-level: 0
+      - name: Create receipt
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+          ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
+          ARTIFACT_DIGEST: ${{ steps.upload.outputs.artifact-digest }}
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          receipt={
+            'schema_version':'1.0','run_id':os.environ['GITHUB_RUN_ID'],'commit_sha':os.environ['GITHUB_SHA'],
+            'artifact_id':os.environ['ARTIFACT_ID'],'artifact_url':os.environ['ARTIFACT_URL'],'artifact_digest':os.environ['ARTIFACT_DIGEST'],
+            'registry_sha256':'70a8e89db716cfc8b1285f3b627188294abaae920c2b99b193f4501a7e525c74','registry_rows':54,
+            'storage_state':'ACTIONS_ARTIFACT_STAGED_RETENTION_90_DAYS','price_linkage_authorized':False,'returns_authorized':False,
+            'paper_replication_pass':False,'economic_edge_verdict':'INCONCLUSIVE'}
+          Path('build/receipt.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
+          PY
+      - uses: actions/upload-artifact@v7
+        with:
+          name: cftc-tff-2022-instrument-registry-receipt-${{ github.sha }}
+          path: build/receipt.json
+          retention-days: 90

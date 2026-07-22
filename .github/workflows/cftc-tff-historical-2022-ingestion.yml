@@ -1,0 +1,221 @@
+name: CFTC TFF Historical 2022 Ingestion
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/cftc-tff-historical-2022-ingestion.yml
+      - src/hybrid_trader/replication/cftc_historical_ingestion.py
+      - scripts/ingest_cftc_tff_historical_2022.py
+      - tests/test_cftc_historical_ingestion.py
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - .github/workflows/cftc-tff-historical-2022-ingestion.yml
+      - src/hybrid_trader/replication/cftc_historical_ingestion.py
+      - scripts/ingest_cftc_tff_historical_2022.py
+      - tests/test_cftc_historical_ingestion.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cftc-tff-historical-2022-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  acquire-validate-and-stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out the triggering commit
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install the project and verification tools
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev,replication]"
+
+      - name: Run project lint rules for historical ingestion
+        run: >-
+          python -m ruff check
+          src/hybrid_trader/replication/cftc_historical_ingestion.py
+          scripts/ingest_cftc_tff_historical_2022.py
+          tests/test_cftc_historical_ingestion.py
+
+      - name: Run strict typing for historical ingestion
+        run: >-
+          python -m mypy --strict --ignore-missing-imports
+          src/hybrid_trader/replication/cftc_historical_ingestion.py
+
+      - name: Run historical ingestion tests
+        run: python -m pytest -q tests/test_cftc_historical_ingestion.py
+
+      - name: Capture official archive acquisition diagnostics
+        id: acquire
+        shell: bash
+        run: |
+          mkdir -p build/diagnostics
+          : > build/diagnostics/historical-acquisition.txt
+          code=1
+          set +e
+          for attempt in 1 2 3 4 5; do
+            attempt_log="build/diagnostics/historical-attempt-${attempt}.txt"
+            echo "=== attempt ${attempt} ===" | tee -a build/diagnostics/historical-acquisition.txt
+            python scripts/ingest_cftc_tff_historical_2022.py \
+              --output-dir build/cftc-tff-historical-2022 \
+              > "$attempt_log" 2>&1
+            code=$?
+            cat "$attempt_log" | tee -a build/diagnostics/historical-acquisition.txt
+            if [[ $code -eq 0 ]]; then
+              break
+            fi
+            if grep -Eq "HTTP Error (429|500|502|503|504)|URLError|timed out|Temporary failure" "$attempt_log"; then
+              if [[ $attempt -lt 5 ]]; then
+                delay=$((attempt * 3))
+                echo "Transient archive failure; retrying after ${delay}s" \
+                  | tee -a build/diagnostics/historical-acquisition.txt
+                sleep "$delay"
+                continue
+              fi
+            fi
+            break
+          done
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload historical acquisition diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cftc-tff-historical-2022-diagnostics-${{ github.sha }}
+          path: |
+            build/diagnostics/historical*.txt
+            build/cftc-tff-historical-2022/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+      - name: Enforce acquisition result
+        if: ${{ steps.acquire.outputs.exit_code != '0' }}
+        run: exit 1
+
+      - name: Independently verify ZIP and member hashes
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import zipfile
+          from pathlib import Path
+
+          root = Path("build/cftc-tff-historical-2022")
+          raw_path = root / "fut_fin_txt_2022.zip"
+          inventory_path = root / "zip-inventory.json"
+          manifest_path = root / "acquisition-manifest.json"
+          for path in (raw_path, inventory_path, manifest_path):
+              if not path.is_file() or path.stat().st_size == 0:
+                  raise SystemExit(f"Missing or empty output: {path}")
+          raw = raw_path.read_bytes()
+          inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          if hashlib.sha256(raw).hexdigest() != manifest["raw_sha256"]:
+              raise SystemExit("Historical ZIP SHA-256 mismatch")
+          if len(raw) != manifest["raw_byte_count"]:
+              raise SystemExit("Historical ZIP byte-count mismatch")
+          with zipfile.ZipFile(raw_path) as archive:
+              if archive.testzip() is not None:
+                  raise SystemExit("Historical ZIP CRC verification failed")
+              evidence = {member["name"]: member for member in inventory["members"]}
+              for name, member in evidence.items():
+                  digest = hashlib.sha256(archive.read(name)).hexdigest()
+                  if digest != member["sha256"]:
+                      raise SystemExit(f"Member SHA-256 mismatch: {name}")
+          if inventory["text_member_count"] <= 0:
+              raise SystemExit("Historical ZIP contains no text members")
+          if manifest["artifact_audit_pass"] is not False:
+              raise SystemExit("Acquisition must not self-promote to artifact audit pass")
+          print(json.dumps(manifest, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload the official historical bundle
+        id: upload_bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: cftc-tff-historical-2022-${{ github.sha }}
+          path: build/cftc-tff-historical-2022/
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+      - name: Create the Actions staging receipt
+        env:
+          BUNDLE_ARTIFACT_ID: ${{ steps.upload_bundle.outputs.artifact-id }}
+          BUNDLE_ARTIFACT_URL: ${{ steps.upload_bundle.outputs.artifact-url }}
+          BUNDLE_ARTIFACT_DIGEST: ${{ steps.upload_bundle.outputs.artifact-digest }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+          artifact_id = os.environ.get("BUNDLE_ARTIFACT_ID", "").strip()
+          artifact_url = os.environ.get("BUNDLE_ARTIFACT_URL", "").strip()
+          artifact_digest = os.environ.get("BUNDLE_ARTIFACT_DIGEST", "").strip()
+          if not artifact_id or not artifact_url or not artifact_digest:
+              raise SystemExit("Upload action did not return complete artifact evidence")
+          receipt = {
+              "schema_version": "1.0",
+              "repository": os.environ["GITHUB_REPOSITORY"],
+              "commit_sha": os.environ["GITHUB_SHA"],
+              "workflow": os.environ["GITHUB_WORKFLOW"],
+              "run_id": os.environ["GITHUB_RUN_ID"],
+              "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
+              "created_at": datetime.now(UTC).isoformat(),
+              "bundle_artifact_id": artifact_id,
+              "bundle_artifact_url": artifact_url,
+              "bundle_artifact_digest": artifact_digest,
+              "storage_state": "ACTIONS_ARTIFACT_STAGED_RETENTION_90_DAYS",
+              "immutable_long_term_ingestion": False,
+              "artifact_audit_pass": False,
+              "paper_replication_pass": False,
+              "economic_edge_verdict": "INCONCLUSIVE",
+          }
+          destination = Path("build/cftc-tff-historical-2022-receipt.json")
+          destination.write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(receipt, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload the staging receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: cftc-tff-historical-2022-receipt-${{ github.sha }}
+          path: build/cftc-tff-historical-2022-receipt.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Record the non-promotional workflow summary
+        run: |
+          {
+            echo "## CFTC TFF historical 2022 ingestion"
+            echo
+            echo "- Source: official CFTC historical compressed Text archive"
+            echo "- Report family: TFF Futures Only"
+            echo "- Raw ZIP and member SHA-256 values: generated and independently rechecked"
+            echo "- Actions artifact: staged for 90 days"
+            echo "- PRE API cross-check: still pending"
+            echo "- Long-term immutable ingestion: no"
+            echo "- Paper replication: no"
+            echo "- Economic edge: not established"
+          } >> "$GITHUB_STEP_SUMMARY"

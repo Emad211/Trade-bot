@@ -1,0 +1,329 @@
+schema_version: "1.1"
+gate_id: OKX_BTC_USDT_SWAP_2022_INSTRUMENT_VERSION_AND_ARCHIVE_AVAILABILITY_V1
+issue_number: 51
+status: OPEN
+status_date: "2026-07-21"
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+parent_gate:
+  issue_number: 50
+  outcome: GO_PRIVATE_REVOCABLE_2022_FUNDING_PILOT
+  bounded_partition: "2022-03"
+  archive_filename: BTC-USDT-SWAP-fundingrates-2022-03.zip
+  archive_sha256: ce4fe9aaf1dfdee16e1d11cdabcbb405eb348966902950db1ca862dc86779013
+  member_filename: BTC-USDT-SWAP-fundingrates-2022-03.csv
+  member_sha256: 508195adcc2fd9e9a1978926d8da89af4054d79de4675268cbfb2ac9539e73da
+  row_count: 93
+  unique_timestamp_count: 93
+  minimum_timestamp_utc: "2022-02-28T16:00:00Z"
+  maximum_timestamp_utc: "2022-03-31T08:00:00Z"
+  observed_interval_milliseconds: 28800000
+  raw_public_retention: false
+
+objective: >-
+  Reconstruct the historically effective BTC-USDT-SWAP instrument contract and
+  the earliest defensible availability time of the March 2022 monthly funding
+  archive without projecting current metadata backward.
+
+hypothesis_dependencies:
+  - EDGE-CRYPTO-BASIS-001
+  - EDGE-CRYPTO-RV-001
+
+verified_source_audit:
+  workflow_name: OKX 2022 Instrument Version Source Audit
+  workflow_run_id: 29819157464
+  conclusion: SUCCESS
+  triggering_head_sha: d47f36a7d823df5e130a0e929b4f35a1ee87e33e
+  merge_sha: 3f1d4fdb455ef01e755009425bb5a96649cea6d3
+  ruff_format: PASS
+  ruff_lint: PASS
+  mypy: PASS
+  scoped_tests_passed: 21
+  bounded_network_audit: PASS
+  independent_safe_evidence_verifier: PASS
+  safe_artifact_id: 8490609657
+  safe_artifact_digest: sha256:1a047568482057b68254d02589e79154980a6b13ea693e05a179d490ac7023cc
+  evidence_filename: okx-2022-instrument-source-audit.json
+  evidence_byte_count: 10783
+  evidence_sha256: 5ef88fc780ec9280f0e7bf109e00743c50114a60e1aa353f3183f17ea7ab26df
+  evidence_manifest: 02-03-okx-2022-instrument-source-audit-evidence.yaml
+  raw_html_retained: false
+  raw_api_response_retained: false
+  market_rows_requested: false
+  market_rows_retained: false
+
+source_registry:
+  - source_id: OKX_BTCUSDT_SWAP_LAUNCH_2019_12_16
+    source_class: OFFICIAL_DATED_EFFECTIVE_NOTICE
+    url: https://www.okx.com/en-us/help/usdt-margined-perpetual-swap-now-available
+    publication_date: "2019-12-16"
+    byte_count: 67267
+    sha256: 36c11f44cb93c03a8351fd91aeca44418280018c50c3a75e2d4e7911b70154f3
+    claims_observed:
+      public_live_time_utc: "2019-12-16T06:00:00Z"
+      underlying: BTC_USDT_INDEX
+      settlement_currency: USDT
+      initial_contract_face_value: "0.0001 BTC"
+      tick_size: "0.1"
+      trading_hours: 24_7
+    source_identity_verified: true
+    historical_fields_promoted_by_identity_audit: false
+
+  - source_id: OKX_BTCUSDT_FACE_VALUE_2020_03_04
+    source_class: OFFICIAL_DATED_EFFECTIVE_NOTICE
+    url: https://www.okx.com/en-gb/help/adjustment-of-face-value-for-usdt-margined-perpetual-swap-futures-trading
+    publication_date: "2020-03-04"
+    byte_count: 80702
+    sha256: 1362081470574b644b7ac9e0f61837fdbb576493bc229b8f88a795530583bd02
+    claims_observed:
+      field: contract_face_value
+      before: "0.0001 BTC"
+      after: "0.01 BTC"
+      scheduled_effective_window_utc: "2020-03-20T08:00:00Z/2020-03-20T08:30:00Z"
+    source_identity_verified: true
+    historical_fields_promoted_by_identity_audit: false
+    evidence_limitations:
+      - Does not prove that no later specification change occurred before March 2022.
+
+  - source_id: OKX_BTC_FUNDING_RULES_2020_10_14
+    source_class: OFFICIAL_DATED_EFFECTIVE_NOTICE
+    url: https://www.okx.com/en-us/help/adjustment-of-price-limit-rules-for-futures-perpetual-swap-and-funding-rate-rules-for-perpetual-swap
+    publication_date: "2020-10-14"
+    byte_count: 74050
+    sha256: 4c280b1ee14b4615ed67991517fba5149982fbca3c00ba4d14fc87c665c9c7e5
+    claims_observed:
+      interest_component: "0"
+      btc_lower_clamp: "-0.375%"
+      btc_upper_clamp: "+0.375%"
+      formula_description: PREMIUM_INDEX_MOVING_AVERAGE_MINUS_INTEREST_THEN_CLAMP
+    source_identity_verified: true
+    historical_fields_promoted_by_identity_audit: false
+    evidence_limitations:
+      - A complete change-history search through March 2022 is still required.
+      - The exact moving-average window and all formula dependencies must be frozen separately.
+
+  - source_id: OKX_FACE_VALUE_POSTPONEMENT_2021_05_08
+    source_class: OFFICIAL_DATED_POSTPONEMENT
+    url: https://www.okx.com/help/postponement-of-face-value-adjustment
+    publication_date: "2021-05-08"
+    byte_count: 83683
+    sha256: f9a688937a38c20db3d07ff1fec46aa1dbb84149cb56288a08a779d87213f820
+    proposed_change:
+      field: contract_face_value
+      current_value_in_notice: "0.01 BTC"
+      proposed_value: "0.001 BTC"
+      original_scheduled_time_utc: "2021-05-25T09:00:00Z"
+      implementation_status: POSTPONED_NEW_TIME_NOT_PROVIDED
+    source_identity_verified: true
+    historical_use_authorized: false
+    official_search_status:
+      english_completion_notice_found: false
+      chinese_completion_notice_found: false
+      absence_treated_as_proof_of_no_change: false
+
+  - source_id: OKX_PERPETUAL_GUIDE_2022_06_20_CURRENTLY_REVISED
+    source_class: OFFICIAL_DATED_GUIDE_CURRENTLY_REVISED
+    url: https://www.okx.com/en-gb/help/i-perpetual-swaps
+    publication_date: "2022-06-20"
+    byte_count: 80112
+    sha256: 8850988584350fac87031f34570af6edec87903d1d113b511fabdc836e4d8ef2
+    claims_visible_on_current_page:
+      instrument_label: BTCUSDT_PERPETUAL
+      underlying: BTC_USDT_INDEX
+      settlement_currency: USDT
+      contract_size: "0.01 BTC"
+      tick_size: "0.1"
+      funding_times_utc:
+        - "00:00"
+        - "08:00"
+        - "16:00"
+    source_identity_verified: true
+    historical_use_authorized: false
+    evidence_limitations:
+      - The live page has been revised after its original publication.
+      - Publication is later than the March 2022 partition.
+      - It is a nearby later-state negative control, not a frozen March 2022 vintage.
+
+  - source_id: OKX_HISTORICAL_DATA_TERMS_2023_10_26
+    source_class: OFFICIAL_DATED_SERVICE_TERMS
+    url: https://www.okx.com/en-us/help/historicaldata-terms-and-conditions
+    publication_date: "2023-10-26"
+    byte_count: 65778
+    sha256: 002e37e1084dee2155efc1ebaeacc41243a2173e269a293d5a3473fd0bb12e97
+    availability_claim:
+      scope: SERVICE
+      available_by_utc: "2023-10-26T00:00:00Z"
+      specific_file_promoted: false
+    source_identity_verified: true
+
+  - source_id: OKX_HISTORICAL_DATA_CATALOG_CURRENT
+    source_class: OFFICIAL_CURRENT_PAGE
+    url: https://www.okx.com/historical-data
+    byte_count: 61139
+    sha256: 2d198cb05f57310acbf833554d9a63bb13c72735b698edc1052758a3879a1ec4
+    claims_visible_on_current_page:
+      funding_archive_start_label: "March 2022 onwards"
+    source_identity_verified: true
+    historical_publication_time_verified: false
+    current_downloadability_may_be_backdated: false
+
+  - source_id: OKX_API_CHANGELOG_2025_09_02
+    source_class: OFFICIAL_DATED_CHANGELOG
+    url: https://www.okx.com/docs-v5/log_en/
+    publication_date: "2025-09-02"
+    byte_count: 1123260
+    sha256: d9c2f9748de42824d400db7bdd272f0e0482d8e97432c5af07862d3caa95d305
+    availability_claim:
+      scope: MODULE
+      module_id: HISTORICAL_MARKET_DATA_BATCH_API
+      available_by_utc: "2025-09-02T00:00:00Z"
+      daily_and_monthly_aggregation: true
+      funding_rate_supported: true
+      specific_file_promoted: false
+    source_identity_verified: true
+
+  - source_id: OKX_CURRENT_BTC_USDT_SWAP_INSTRUMENT_API
+    source_class: OFFICIAL_CURRENT_API_NEGATIVE_CONTROL
+    url: https://www.okx.com/api/v5/public/instruments?instType=SWAP&instId=BTC-USDT-SWAP
+    response_byte_count: 1079
+    response_sha256: 1ad06f4d8d48b1523e622701762de0a42586072b6f01d98b9e75e8d9b7edb9ec
+    field_count: 53
+    selected_fields:
+      instId: BTC-USDT-SWAP
+      instFamily: BTC-USDT
+      instType: SWAP
+      ctType: linear
+      ctVal: "0.01"
+      ctValCcy: BTC
+      ctMult: "1"
+      settleCcy: USDT
+      tickSz: "0.1"
+      lotSz: "0.01"
+      minSz: "0.01"
+      listTime_ms: "1573557408000"
+      listTime_utc: "2019-11-12T11:16:48Z"
+      contTdSwTime_ms: "1611916860000"
+      contTdSwTime_utc: "2021-01-29T10:41:00Z"
+      state: live
+    historical_use_authorized: false
+    semantic_negative_control:
+      official_public_live_time_utc: "2019-12-16T06:00:00Z"
+      current_api_list_time_matches_public_live_time: false
+      current_api_continuous_trading_time_matches_public_live_time: false
+      conclusion: CURRENT_TIME_FIELDS_ARE_NOT_ASSUMED_TO_BE_HISTORICAL_LISTING_SEMANTICS
+
+  - source_id: VERIFIED_MARCH_2022_FUNDING_ARCHIVE
+    source_class: VERIFIED_PROVIDER_ARTIFACT
+    archive_sha256: ce4fe9aaf1dfdee16e1d11cdabcbb405eb348966902950db1ca862dc86779013
+    member_sha256: 508195adcc2fd9e9a1978926d8da89af4054d79de4675268cbfb2ac9539e73da
+    empirical_timing_claims:
+      row_count: 93
+      unique_timestamp_count: 93
+      minimum_timestamp_utc: "2022-02-28T16:00:00Z"
+      maximum_timestamp_utc: "2022-03-31T08:00:00Z"
+      constant_interval_milliseconds: 28800000
+      observed_schedule_class: EIGHT_HOUR_SETTLEMENT_GRID
+    evidence_limitations:
+      - Timestamps establish observed settlements, not the full funding formula.
+      - File contents do not establish the archive publication time.
+
+availability_scope_contract:
+  service_availability:
+    verified_available_by_utc: "2023-10-26T00:00:00Z"
+    specific_file_promoted: false
+  historical_batch_api_module_availability:
+    verified_available_by_utc: "2025-09-02T00:00:00Z"
+    specific_file_promoted: false
+  march_2022_specific_file_availability:
+    current_retrieval_verified: true
+    historical_publication_time_verified: false
+    available_by_utc_from_source_audit: null
+    current_retrieval_may_be_backdated: false
+    earliest_defensible_available_at_policy: CURRENT_VERIFIED_RETRIEVAL_ONLY
+
+preliminary_findings:
+  instrument_identity:
+    canonical_current_id: BTC-USDT-SWAP
+    delivered_archive_identity: BTC-USDT-SWAP
+    instrument_type: SWAP
+    settlement_currency_historically_observed_at_launch: USDT
+    current_contract_type: linear
+    current_contract_value: "0.01 BTC"
+    march_2022_identity_fully_verified: false
+
+  contract_face_value:
+    last_confirmed_effective_change_before_open_gap: "0.01 BTC"
+    effective_source_window: "2020-03-20T08:00:00Z/2020-03-20T08:30:00Z"
+    later_proposal: "0.001 BTC"
+    later_proposal_status: POSTPONED
+    official_completion_or_replacement_notice_found: false
+    absence_of_notice_used_as_continuity_proof: false
+    march_2022_value_verdict: UNRESOLVED_REQUIRES_CHANGE_HISTORY_CLOSURE
+
+  tick_size:
+    launch_value: "0.1"
+    nearby_later_guide_current_value: "0.1"
+    btcusdt_specific_intervening_change_found: false
+    absence_of_change_notice_used_as_continuity_proof: false
+    march_2022_value_verdict: UNRESOLVED_REQUIRES_CHANGE_HISTORY_CLOSURE
+
+  funding_interval:
+    march_2022_observed_interval: 8h
+    observed_from_verified_archive: true
+    observed_settlement_times_utc:
+      - "00:00"
+      - "08:00"
+      - "16:00"
+    formula_change_source_2020_identity_verified: true
+    formula_version_fully_frozen_for_march_2022: false
+    cap_floor_history_fully_frozen_for_march_2022: false
+
+  archive_availability:
+    provider_partition_label: "2022-03"
+    current_catalog_lower_bound_label: "March 2022 onwards"
+    current_retrieval_verified: true
+    service_existence_verified_by: "2023-10-26"
+    batch_api_module_verified_by: "2025-09-02"
+    contemporaneous_2022_publication_verified: false
+    later_backfill_excluded: false
+    earliest_defensible_available_at_policy: CURRENT_VERIFIED_RETRIEVAL_ONLY
+
+provisional_blockers:
+  primary: BLOCKED_INSTRUMENT_VERSION_HISTORY
+  secondary: BLOCKED_ARCHIVE_AVAILABILITY_TIMING
+  explanation:
+    - The postponed 2021 face-value proposal has no located official completion, cancellation, or replacement notice.
+    - No frozen March 2022 instrument specification has yet closed every required field interval.
+    - Service-level and module-level availability cannot establish specific-file publication time.
+
+required_next_evidence:
+  - Official completion, cancellation, or replacement history for the postponed 2021 face-value adjustment.
+  - Official March 2022 or earlier instrument specification containing contract value, tick size, lot size, minimum order size, settlement currency, and linear/inverse status.
+  - Full official funding formula and cap/floor rule version effective during March 2022.
+  - Complete official change history for funding intervals and formulas through March 2022.
+  - Archive object publication metadata, dated announcement, version history, or other evidence establishing when the March 2022 file became downloadable.
+  - A fail-closed version registry binding each accepted claim to effective_from, effective_to, retrieval time, and source hash.
+
+hard_prohibitions:
+  bulk_acquisition: false
+  public_raw_artifact: false
+  redistribution: false
+  basis_computation: false
+  funding_pnl_computation: false
+  returns_computation: false
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_testing: false
+  paper_trading: false
+  live_trading: false
+  capital_deployment: false
+  report_2_4_authorized: false
+
+allowed_outcomes:
+  - GO_OKX_2022_POINT_IN_TIME_INSTRUMENT_CONTRACT
+  - BLOCKED_INSTRUMENT_VERSION_HISTORY
+  - BLOCKED_ARCHIVE_AVAILABILITY_TIMING
+
+current_outcome: null
+paper_replication_pass: false
+economic_edge_verdict: INCONCLUSIVE

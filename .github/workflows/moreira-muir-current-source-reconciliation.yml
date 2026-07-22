@@ -1,0 +1,229 @@
+name: Moreira Muir Current Source Reconciliation
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/moreira-muir-current-source-reconciliation.yml
+      - src/hybrid_trader/replication/moreira_muir_reconciliation.py
+      - scripts/reconcile_moreira_muir_current_sources.py
+      - tests/test_moreira_muir_reconciliation.py
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - .github/workflows/moreira-muir-current-source-reconciliation.yml
+      - src/hybrid_trader/replication/moreira_muir_reconciliation.py
+      - scripts/reconcile_moreira_muir_current_sources.py
+      - tests/test_moreira_muir_reconciliation.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: moreira-muir-current-source-reconciliation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  acquire-reconcile-and-stage-safe-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install project and verification tools
+        run: >-
+          python -m pip install --upgrade pip &&
+          python -m pip install -e ".[dev,replication]"
+
+      - name: Run project lint rules
+        run: >-
+          python -m ruff check
+          src/hybrid_trader/replication/moreira_muir_reconciliation.py
+          scripts/reconcile_moreira_muir_current_sources.py
+          tests/test_moreira_muir_reconciliation.py
+
+      - name: Run strict typing
+        run: >-
+          python -m mypy --strict --ignore-missing-imports
+          src/hybrid_trader/replication/moreira_muir_reconciliation.py
+          scripts/reconcile_moreira_muir_current_sources.py
+
+      - name: Run source reconciliation tests
+        run: python -m pytest -q tests/test_moreira_muir_reconciliation.py
+
+      - name: Acquire exact official author and Dartmouth files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/mm-source-reconciliation/raw
+          curl --fail-with-body --location --retry 8 --retry-all-errors \
+            --connect-timeout 20 --max-time 180 \
+            --output build/mm-source-reconciliation/raw/author-data.html \
+            'https://tylersmuir.com/data.html'
+          curl --fail-with-body --location --retry 8 --retry-all-errors \
+            --connect-timeout 20 --max-time 180 \
+            --output build/mm-source-reconciliation/raw/VolManagedFactors.csv \
+            'https://tylersmuir.com/data/VolManagedFactors.csv'
+          base='https://mba.tuck.dartmouth.edu/pages/faculty/ken.french'
+          curl --fail-with-body --location --retry 8 --retry-all-errors \
+            --connect-timeout 20 --max-time 180 \
+            --output build/mm-source-reconciliation/raw/data_library.html \
+            "$base/data_library.html"
+          for name in \
+            F-F_Research_Data_Factors_CSV.zip \
+            F-F_Research_Data_5_Factors_2x3_CSV.zip \
+            F-F_Momentum_Factor_CSV.zip; do
+            curl --fail-with-body --location --retry 8 --retry-all-errors \
+              --connect-timeout 20 --max-time 180 \
+              --output "build/mm-source-reconciliation/raw/$name" \
+              "$base/ftp/$name"
+          done
+
+      - name: Reconcile current official monthly sources twice
+        shell: bash
+        run: |
+          set -euo pipefail
+          for run in run1 run2; do
+            python scripts/reconcile_moreira_muir_current_sources.py \
+              --author-csv build/mm-source-reconciliation/raw/VolManagedFactors.csv \
+              --author-page build/mm-source-reconciliation/raw/author-data.html \
+              --data-library build/mm-source-reconciliation/raw/data_library.html \
+              --ff3 build/mm-source-reconciliation/raw/F-F_Research_Data_Factors_CSV.zip \
+              --ff5 build/mm-source-reconciliation/raw/F-F_Research_Data_5_Factors_2x3_CSV.zip \
+              --mom build/mm-source-reconciliation/raw/F-F_Momentum_Factor_CSV.zip \
+              --output-dir "build/mm-source-reconciliation/$run"
+          done
+          cmp \
+            build/mm-source-reconciliation/run1/safe-source-reconciliation-evidence.json \
+            build/mm-source-reconciliation/run2/safe-source-reconciliation-evidence.json
+          cmp \
+            build/mm-source-reconciliation/run1/safe-source-reconciliation-summary.json \
+            build/mm-source-reconciliation/run2/safe-source-reconciliation-summary.json
+          mkdir -p build/mm-source-reconciliation/safe
+          cp build/mm-source-reconciliation/run1/*.json \
+            build/mm-source-reconciliation/safe/
+
+      - name: Verify factor coverage and closed gates
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path('build/mm-source-reconciliation/safe')
+          evidence_path = root / 'safe-source-reconciliation-evidence.json'
+          summary_path = root / 'safe-source-reconciliation-summary.json'
+          evidence = json.loads(evidence_path.read_text(encoding='utf-8'))
+          summary = json.loads(summary_path.read_text(encoding='utf-8'))
+          expected_factors = ['Mkt-RF', 'SMB', 'HML', 'Mom', 'RMW', 'CMA', 'RF']
+          factors = [item['factor'] for item in evidence['factor_results']]
+          if factors != expected_factors:
+              raise SystemExit(f'Reconciliation factor order changed: {factors}')
+          if evidence['factor_count'] != 7:
+              raise SystemExit('Expected seven source reconciliation factors')
+          if evidence['gate'] not in {
+              'EXACT_CURRENT_SOURCE_MATCH',
+              'CURRENT_SOURCE_REVISION_DIFFERENCES_RETAINED',
+          }:
+              raise SystemExit(f'Unexpected reconciliation gate: {evidence["gate"]}')
+          for item in evidence['factor_results']:
+              if item['overlap_count'] <= 0:
+                  raise SystemExit(f'Empty overlap for {item["factor"]}')
+              if len(item['difference_vector_sha256']) != 64:
+                  raise SystemExit(f'Invalid difference hash for {item["factor"]}')
+          forbidden_true = {
+              'row_level_data_uploaded': evidence['row_level_data_uploaded'],
+              'performance_calculated': evidence['performance_calculated'],
+              'annualized_return_calculated': evidence['annualized_return_calculated'],
+              'sharpe_calculated': evidence['sharpe_calculated'],
+              'alpha_calculated': evidence['alpha_calculated'],
+              'paper_replication_pass': evidence['paper_replication_pass'],
+          }
+          if any(forbidden_true.values()):
+              raise SystemExit(f'Closed reconciliation gate violated: {forbidden_true}')
+          if summary['safe_evidence_sha256'] != hashlib.sha256(evidence_path.read_bytes()).hexdigest():
+              raise SystemExit('Safe reconciliation evidence hash mismatch')
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          PY
+
+      - name: Remove raw and row-level source content
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build/mm-source-reconciliation/raw
+          rm -rf build/mm-source-reconciliation/run1
+          rm -rf build/mm-source-reconciliation/run2
+          if find build/mm-source-reconciliation -type f \
+            \( -name '*.zip' -o -name '*.csv' -o -name '*.html' \) | grep -q .; then
+            echo 'Raw or row-level source content remains before safe upload' >&2
+            exit 1
+          fi
+
+      - name: Upload safe source reconciliation evidence
+        id: upload_evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: moreira-muir-current-source-safe-reconciliation-${{ github.sha }}
+          path: build/mm-source-reconciliation/safe/
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+      - name: Create safe receipt
+        env:
+          ARTIFACT_ID: ${{ steps.upload_evidence.outputs.artifact-id }}
+          ARTIFACT_URL: ${{ steps.upload_evidence.outputs.artifact-url }}
+          ARTIFACT_DIGEST: ${{ steps.upload_evidence.outputs.artifact-digest }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+          evidence = json.loads(
+              Path('build/mm-source-reconciliation/safe/safe-source-reconciliation-evidence.json')
+              .read_text(encoding='utf-8')
+          )
+          receipt = {
+              'schema_version': '1.0',
+              'repository': os.environ['GITHUB_REPOSITORY'],
+              'commit_sha': os.environ['GITHUB_SHA'],
+              'workflow': os.environ['GITHUB_WORKFLOW'],
+              'run_id': os.environ['GITHUB_RUN_ID'],
+              'run_attempt': os.environ['GITHUB_RUN_ATTEMPT'],
+              'created_at': datetime.now(UTC).isoformat(),
+              'artifact_id': os.environ['ARTIFACT_ID'],
+              'artifact_url': os.environ['ARTIFACT_URL'],
+              'artifact_digest': os.environ['ARTIFACT_DIGEST'],
+              'storage_state': 'ACTIONS_SAFE_EVIDENCE_ONLY_RETENTION_90_DAYS',
+              'reconciliation_gate': evidence['gate'],
+              'factor_count': evidence['factor_count'],
+              'exact_match_factor_count': evidence['exact_match_factor_count'],
+              'mismatch_factor_count': evidence['mismatch_factor_count'],
+              'row_level_data_uploaded': False,
+              'performance_calculated': False,
+              'paper_replication_pass': False,
+              'economic_edge_verdict': 'INCONCLUSIVE',
+          }
+          Path('build/mm-source-reconciliation-receipt.json').write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
+          PY
+
+      - name: Upload safe receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: moreira-muir-current-source-safe-reconciliation-receipt-${{ github.sha }}
+          path: build/mm-source-reconciliation-receipt.json
+          if-no-files-found: error
+          retention-days: 90

@@ -1,0 +1,237 @@
+schema_version: "1.0"
+record_id: BINANCE_BTCUSDT_PUBLIC_EPHEMERAL_PILOT_2024_01
+program: EDGE_DISCOVERY_RESEARCH_PROGRAM
+section: 2
+report: 2.3J
+evidence_date: "2026-07-20"
+status: OFFICIAL_ARCHIVES_CHECKSUM_VERIFIED_EPHEMERALLY_SAFE_METADATA_ONLY_STAGED
+
+scope:
+  provider: BINANCE
+  official_host: data.binance.vision
+  official_repository: binance/binance-public-data
+  official_readme_blob_sha: 311354cd82a76bcaaec588e6818e6c12644abef0
+  official_readme_license_statement: MIT
+  symbol: BTCUSDT
+  calendar_month: "2024-01"
+  timestamp_unit: MILLISECONDS
+  source_count: 6
+
+workflow:
+  name: Binance BTCUSDT Public Ephemeral Pilot
+  run_id: 29761078615
+  conclusion: SUCCESS
+  head_branch: agent/edge-research-reports
+  head_commit: 26eb72a85427889502a4c761b30486ad6f7c0fed
+  pull_request_merge_commit_in_receipt: 4df4d6b86e1b2fdc0f864d8ef5c3e62369f6830f
+  python: "3.11"
+  ruff: PASS
+  mypy_strict: PASS
+  unit_tests:
+    count: 12
+    verdict: PASS
+  ephemeral_official_data_validation: PASS
+  independent_safe_evidence_verification: PASS
+  no_raw_or_derived_file_proof: PASS
+
+artifacts:
+  safe_evidence:
+    artifact_id: 8468794862
+    name: binance-btcusdt-public-safe-evidence-4df4d6b86e1b2fdc0f864d8ef5c3e62369f6830f
+    archive_sha256: 575cc1a07f299dd52f8c1a889c78df4ba3989976e7d4ff33b11d0b38ac3ad344
+    expires_at: "2026-10-18T16:47:15Z"
+    members:
+      - filename: binance-btcusdt-public-ephemeral-pilot-evidence.json
+        byte_count: 8448
+        sha256: 93b8c06ba836a3d61b9fa0fba1b4b377f3518841b2c72db36b96ee6196fede7b
+        encrypted: false
+  receipt:
+    artifact_id: 8468795317
+    name: binance-btcusdt-public-safe-receipt-4df4d6b86e1b2fdc0f864d8ef5c3e62369f6830f
+    archive_sha256: 3bcfc1a5a14170fe1bb636ab1603640a5dfaa222c91bf750c3404c9ca47eaf9c
+    expires_at: "2026-10-18T16:47:15Z"
+    members:
+      - filename: binance-btcusdt-public-safe-receipt.json
+        byte_count: 923
+        sha256: a0654baa54c25fb0f840ef31422e7108f2b9ead4347544fd24ab94f436da3f64
+        encrypted: false
+  content_audit:
+    expected_json_member_count: 2
+    csv_members: 0
+    source_zip_members: 0
+    html_members: 0
+    raw_market_rows: 0
+    derived_price_rows: 0
+    forbidden_market_value_key_scan: PASS
+
+sources:
+  - source_id: SPOT_KLINES
+    market: SPOT
+    data_type: klines
+    interval: 1h
+    zip_byte_count: 43482
+    zip_sha256: cf873a185bd5b24b8e00034e49583fcb49928e0c3a45c6fc27a632a683655417
+    provider_checksum_sha256: cf873a185bd5b24b8e00034e49583fcb49928e0c3a45c6fc27a632a683655417
+    member_filename: BTCUSDT-1h-2024-01.csv
+    member_byte_count: 118568
+    member_sha256: 17546488eeffe16aa3ee02c12c1662f0d5c1bc33b4686db8da72a92fe5928cbe
+    header_present: false
+    schema_field_count: 12
+    schema_sha256: 6b3a48dd8da4061dd7bbc0aeb9b957b1cc4b275459e20963cd09a7f20f3f34cf
+    row_count: 744
+    first_ms: 1704067200000
+    last_ms: 1706742000000
+    cadence_ms: 3600000
+    cadence_breaks: 0
+    exact_cadence_deviation_count: 0
+    max_abs_cadence_jitter_ms: 0
+  - source_id: UM_KLINES
+    market: USD_M_FUTURES
+    data_type: klines
+    interval: 1h
+    zip_byte_count: 38890
+    zip_sha256: bf673f3d10804a951e8bac56dd2473486f113025971d43ebe5258ec40f9bfeb3
+    provider_checksum_sha256: bf673f3d10804a951e8bac56dd2473486f113025971d43ebe5258ec40f9bfeb3
+    member_filename: BTCUSDT-1h-2024-01.csv
+    member_byte_count: 91706
+    member_sha256: ac2f326bd322c623e6060233597646ba40ce609d86dc4faeabe2196dc36f20c0
+    header_present: true
+    schema_field_count: 12
+    schema_sha256: 6b3a48dd8da4061dd7bbc0aeb9b957b1cc4b275459e20963cd09a7f20f3f34cf
+    row_count: 744
+    first_ms: 1704067200000
+    last_ms: 1706742000000
+    cadence_ms: 3600000
+    cadence_breaks: 0
+    exact_cadence_deviation_count: 0
+    max_abs_cadence_jitter_ms: 0
+  - source_id: UM_MARK
+    market: USD_M_FUTURES
+    data_type: markPriceKlines
+    interval: 1h
+    zip_byte_count: 23278
+    zip_sha256: 759f86a22dadb455c87a3f90f6a9134c73d24a55a7596f0b96e193b5d45cdb49
+    provider_checksum_sha256: 759f86a22dadb455c87a3f90f6a9134c73d24a55a7596f0b96e193b5d45cdb49
+    member_filename: BTCUSDT-1h-2024-01.csv
+    member_byte_count: 75189
+    member_sha256: 72308856b3a79bc8ce55eb08b195e232fc989a09c18d7cb1696fb1a07f951911
+    header_present: true
+    schema_field_count: 12
+    schema_sha256: 6b3a48dd8da4061dd7bbc0aeb9b957b1cc4b275459e20963cd09a7f20f3f34cf
+    row_count: 744
+    first_ms: 1704067200000
+    last_ms: 1706742000000
+    cadence_ms: 3600000
+    cadence_breaks: 0
+    exact_cadence_deviation_count: 0
+    max_abs_cadence_jitter_ms: 0
+  - source_id: UM_INDEX
+    market: USD_M_FUTURES
+    data_type: indexPriceKlines
+    interval: 1h
+    zip_byte_count: 22067
+    zip_sha256: 31288538f992393fbaa31e3a2a55149330de4658fdafca7bebfb51faf6b3023d
+    provider_checksum_sha256: 31288538f992393fbaa31e3a2a55149330de4658fdafca7bebfb51faf6b3023d
+    member_filename: BTCUSDT-1h-2024-01.csv
+    member_byte_count: 76746
+    member_sha256: 2bfbcad584eb6cbd24fa2b156926b204a292b23169fd0c621a4f2f1f9219c60d
+    header_present: true
+    schema_field_count: 12
+    schema_sha256: 6b3a48dd8da4061dd7bbc0aeb9b957b1cc4b275459e20963cd09a7f20f3f34cf
+    row_count: 744
+    first_ms: 1704067200000
+    last_ms: 1706742000000
+    cadence_ms: 3600000
+    cadence_breaks: 0
+    exact_cadence_deviation_count: 0
+    max_abs_cadence_jitter_ms: 0
+  - source_id: UM_PREMIUM
+    market: USD_M_FUTURES
+    data_type: premiumIndexKlines
+    interval: 1h
+    zip_byte_count: 16935
+    zip_sha256: 169a55033751ee31d3873ad5402aac9c5323ca7481a4345cbd11e0111a30aa48
+    provider_checksum_sha256: 169a55033751ee31d3873ad5402aac9c5323ca7481a4345cbd11e0111a30aa48
+    member_filename: BTCUSDT-1h-2024-01.csv
+    member_byte_count: 65462
+    member_sha256: 01aec7865b1a9bdd76ae01c2b57364012d79d3c835308901ceb8e20f9c5e623c
+    header_present: true
+    schema_field_count: 12
+    schema_sha256: 6b3a48dd8da4061dd7bbc0aeb9b957b1cc4b275459e20963cd09a7f20f3f34cf
+    row_count: 744
+    first_ms: 1704067200000
+    last_ms: 1706742000000
+    cadence_ms: 3600000
+    cadence_breaks: 0
+    exact_cadence_deviation_count: 0
+    max_abs_cadence_jitter_ms: 0
+  - source_id: UM_FUNDING
+    market: USD_M_FUTURES
+    data_type: fundingRate
+    interval: null
+    zip_byte_count: 696
+    zip_sha256: 3e0d30870672aa8f0f937881056e3cfd55913ae5c780cd50b33f2763aa0ba58e
+    provider_checksum_sha256: 3e0d30870672aa8f0f937881056e3cfd55913ae5c780cd50b33f2763aa0ba58e
+    member_filename: BTCUSDT-fundingRate-2024-01.csv
+    member_byte_count: 2562
+    member_sha256: 232a13d92487efef8ce0d645301abe611f56eacb70023194b97c038d7a8a2c9b
+    header_present: true
+    schema_field_count: 3
+    schema_sha256: 72939a3c139771592367cd4891e53d9fb997c04d8c3f7f1399cbc77c88e5a8e1
+    row_count: 93
+    first_ms: 1704067200000
+    last_ms: 1706716800000
+    cadence_ms: 28800000
+    cadence_breaks: 0
+    exact_cadence_deviation_count: 15
+    max_abs_cadence_jitter_ms: 3
+
+cross_source_checks:
+  five_hourly_grids_exactly_aligned: true
+  hourly_row_count_each: 744
+  funding_row_count: 93
+  funding_declared_interval_hours: 8
+  funding_grid_tolerance_ms: 3
+  funding_timestamps_normalized_or_rewritten: false
+  spot_microsecond_transition_not_applicable: true
+
+retention_and_permission:
+  raw_bytes_written_to_disk_by_validation_program: false
+  raw_bytes_uploaded: false
+  derived_market_rows_uploaded: false
+  safe_hash_profile_only: true
+  raw_retention_authorized: false
+  raw_redistribution_authorized: false
+  formal_data_terms_review: PENDING
+  historical_archive_available_at_complete: false
+  point_in_time_instrument_metadata_complete: false
+
+authorization:
+  continued_public_source_metadata_review: true
+  recheck_same_six_checksums: true
+  safe_hash_and_schema_profile_retention: true
+  formal_terms_and_retention_review: true
+  point_in_time_instrument_metadata_design: true
+  historical_archive_availability_research: true
+  persistent_raw_archive_retention: false
+  raw_redistribution: false
+  basis_computation: false
+  funding_pnl_computation: false
+  return_computation: false
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_tournament: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  report_2_4_full_authorization: false
+
+verdicts:
+  technical_archive_validation: PASS
+  raw_artifact_ingestion: NOT_PERFORMED
+  paper_replication: NOT_COMPLETE
+  edge_crypto_basis_001: INCONCLUSIVE
+  edge_crypto_rv_001: INCONCLUSIVE
+  economic_edge: NOT_ESTABLISHED
+  report_2_4: BLOCKED

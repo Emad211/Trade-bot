@@ -1,0 +1,99 @@
+schema_version: '1.0'
+evidence:
+  id: OKX-PUBLIC-FUNDING-METADATA-PILOT-2026-07-20
+  date: '2026-07-20'
+  status: PUBLIC_ENDPOINT_AND_SAFE_METADATA_PIPELINE_VERIFIED
+source:
+  venue: OKX
+  official_host: www.okx.com
+  endpoint_path: /api/v5/public/funding-rate-history
+  instrument_id: BTC-USDT-SWAP
+  instrument_type: SWAP
+  authentication_used: false
+  requested_limit: 100
+hosted_run:
+  workflow: OKX Public Funding Metadata Pilot
+  run_id: 29760010859
+  conclusion: SUCCESS
+  python: '3.11'
+  ruff: PASS
+  mypy_strict: PASS
+  unit_tests: 6
+  official_probe: PASS
+  safe_evidence_verification: PASS
+response:
+  http_status: 200
+  api_code: '0'
+  content_type: application/json;charset=UTF-8
+  byte_count: 19568
+  sha256: 34996b90d7f1157024861e63a9a8666d08e08a31705390a53d0b98338541605c
+  row_count: 100
+  unique_funding_times: 100
+  timestamp_order: DESCENDING
+  observed_intervals_seconds:
+    '28800': 99
+schema:
+  field_count: 7
+  fields:
+    - formulaType
+    - fundingRate
+    - fundingTime
+    - instId
+    - instType
+    - method
+    - realizedRate
+  sha256: 9e8a8e8502b0af8cf3a4d5645b786888906ee9c2de0a9d4a03133aa9297322bb
+artifact:
+  artifact_id: 8468365676
+  name: okx-public-funding-safe-evidence-d20eb8d94e146f0270ec8da0e7c69618f36ca3d1
+  digest: 872710f6a4b306d4f1113aaecbcfbab460f2b4ef5cad909187c9b1e4a60116c3
+  expires_at: '2026-10-18'
+  independently_downloaded_and_inspected: true
+  files:
+    - name: okx-funding-probe-evidence.json
+      byte_count: 1214
+      sha256: ea1deaff4e31ce2de38638752ae518309342dcdc46c722391e158f8dc0764131
+    - name: safe-evidence-receipt.json
+      byte_count: 543
+      sha256: 4ad7f74d011561001d120394d00b83be020e3d12995f09a82084b0c877b61b66
+safe_handling:
+  raw_rows_persisted: false
+  raw_rows_uploaded: false
+  funding_values_published: false
+  credentials_used: false
+  returns_computed: false
+license:
+  personal_possession_and_retention_language_verified: true
+  own_strategy_development_language_verified: true
+  redistribution_allowed: false
+  sublicensing_allowed: false
+  revocable: true
+  deletion_on_revocation_or_expiry_required: true
+limitations:
+  public_endpoint_history_horizon: UP_TO_THREE_MONTHS
+  historical_2022_funding_acquired: false
+  historical_instrument_vintage_verified: false
+  mark_index_spot_alignment_complete: false
+  funding_cashflow_complete: false
+  basis_dataset_complete: false
+authorization:
+  okx_public_endpoint_access: true
+  okx_bounded_metadata_validation: true
+  okx_safe_evidence_retention: true
+  okx_historical_download_delivery_probe: true
+  okx_raw_publication: false
+  okx_bulk_raw_retention: false
+  okx_2022_dataset_admission: false
+  basis_computation: false
+  funding_pnl_computation: false
+  returns_computation: false
+  empirical_fitting: false
+  paper_trading: false
+  live_trading: false
+  capital_deployment: false
+  report_2_4_full_authorization: false
+verdicts:
+  EDGE-CRYPTO-BASIS-001: INCONCLUSIVE
+  EDGE-CRYPTO-RV-001: INCONCLUSIVE
+  paper_replication: NOT_COMPLETE
+  economic_edge: NOT_ESTABLISHED

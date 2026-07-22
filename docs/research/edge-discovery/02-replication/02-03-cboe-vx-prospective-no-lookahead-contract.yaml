@@ -1,0 +1,151 @@
+schema_version: "1.0"
+contract_id: CBOE_VX_PROSPECTIVE_NO_LOOKAHEAD_CONTRACT_V1
+status_date: "2026-07-19"
+status: DESIGNED_BLOCKED_PENDING_WRITTEN_PERMISSION
+
+scope:
+  hypothesis_id: EDGE-FUT-POSITION-001
+  source_authority: Cboe Futures Exchange
+  product_root: VX
+  mode: prospective_only_after_written_permission
+
+hard_preconditions:
+  written_cboe_permission_or_executed_license: false
+  approved_private_storage: false
+  canonical_price_linkage_review: false
+  return_computation_authorized: false
+
+clocks:
+  cftc:
+    report_as_of_weekday: Tuesday
+    scheduled_release_local_time: "15:30:00"
+    scheduled_release_timezone: America/New_York
+    actual_release_time_required_when_available: true
+  cboe_vx:
+    daily_settlement_event_local_time: "15:00:00"
+    daily_settlement_timezone: America/Chicago
+    historical_publication_delay_verified: false
+    historical_publication_timestamp: null
+  frozen_example:
+    cftc_report_date: "2022-09-13"
+    cftc_scheduled_release_utc: "2022-09-16T19:30:00Z"
+    vx_same_day_settlement_event_utc: "2022-09-16T20:00:00Z"
+    difference_minutes: 30
+    same_day_settlement_available_at_cftc_release: false
+
+availability_rules:
+  historical_mode:
+    authorized: false
+    reason: historical publication timestamp and license are unresolved
+    available_at: null
+  prospective_mode_after_permission:
+    observation_available_at: retrieval_completed_at
+    required_conditions:
+      - official Cboe HTTPS source
+      - successful HTTP response
+      - exact schema validation
+      - exact contract identity validation
+      - source-response SHA-256 and byte count
+      - retrieval-start and retrieval-completion timestamps
+      - applicable permission or license identity
+      - approved private storage identity
+    no_backdating: true
+    event_time_not_equal_available_at: true
+
+cftc_release_reaction_mode:
+  decision_time: actual_cftc_release_time_or_conservative_release_time
+  eligible_settlement_observation:
+    rule: latest verified settlement with available_at less_than_or_equal_to decision_time
+    same_friday_settlement: prohibited
+    usual_result: previous_trading_day_settlement_or_earlier
+  execution:
+    same_settlement_fill: prohibited
+    price_contract: unresolved
+
+post_settlement_prospective_mode:
+  decision_time:
+    rule: no_earlier_than_verified_cboe_retrieval_completed_at
+  eligible_settlement_observation:
+    same_day_settlement: conditionally_eligible_after_verified_retrieval
+  execution:
+    same_settlement_fill: prohibited
+    earliest_execution: subsequent_executable_timestamp_under_separate_execution_contract
+  current_authorization: false
+
+maturity_representation:
+  cftc_reporting_row_is_maturity_specific: false
+  anchor_complete_return_replication_class: EXACT_LICENSED
+  exact_anchor_price_source: Thomson_Reuters_Datastream
+  current_public_cboe_route_class: CONSTRUCTIVE_ENGINEERING_ONLY
+  selected_representation: null
+  status: UNRESOLVED_MODEL_CHOICE
+  prohibited_shortcuts:
+    - assign nearest VX contract by symbol resemblance
+    - choose second month after observing better performance
+    - splice contracts into continuous return
+    - count roll gap as cash PnL
+    - use back-adjusted prices as executable returns
+  predeclared_candidate_designs_for_future_review:
+    - id: FRONT_STANDARD_MONTHLY_PROXY
+      classification: constructive_proxy
+      current_authorization: false
+    - id: SECOND_STANDARD_MONTHLY_PROXY
+      classification: constructive_proxy
+      current_authorization: false
+    - id: START_OF_INTERVAL_OPEN_INTEREST_WEIGHTED_SAME_CONTRACT_BASKET
+      classification: constructive_aggregate_proxy
+      current_authorization: false
+  trial_ledger_consequence:
+    candidate_count: 3
+    performance_based_selection_prohibited: true
+    all_candidates_must_be_reported_if_ever_tested: true
+
+return_rules:
+  return_computation_authorized: false
+  same_contract_only: true
+  cross_contract_price_difference_as_return: prohibited
+  roll_gap_pnl: prohibited
+  settlement_field_required: true
+  close_as_settlement_substitute: prohibited
+  interval_crossing_expiration:
+    default: invalid_observation
+    alternative_requires_separate_frozen_roll_contract: true
+
+storage_and_publication:
+  raw_public_repository: prohibited
+  raw_public_artifact: prohibited
+  derived_price_rows_publication: prohibited
+  public_safe_evidence:
+    - source URL
+    - source hash
+    - byte count
+    - schema hash
+    - contract identity
+    - retrieval timestamps
+    - license identity
+    - aggregate non-price validation results
+  private_retention: blocked_pending_permission
+
+current_authorization:
+  timing_contract_maintenance: true
+  synthetic_testing: true
+  permission_request: true
+  prospective_collector_implementation_without_live_data: true
+  live_prospective_collection: false
+  historical_backtest: false
+  price_linkage: false
+  returns: false
+  empirical_fitting: false
+  parameter_tuning: false
+  paper_trading: false
+  live_trading: false
+  capital_deployment: false
+
+final_status:
+  license_gate: BLOCKED
+  historical_availability_gate: BLOCKED
+  same_day_friday_settlement_at_release: LOOKAHEAD
+  maturity_representation_gate: UNRESOLVED
+  prospective_path: DESIGNED_PENDING_PERMISSION
+  edge_fut_position_001: INCONCLUSIVE
+  report_2_4: BLOCKED

@@ -1,0 +1,127 @@
+schema_version: "1.0"
+evidence_id: OKX_OWNER_CONTROLLED_PRIVATE_SAMPLING_CONTRACT_EVIDENCE_V1
+issue_number: 54
+status_date: "2026-07-21"
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+
+workflow:
+  name: OKX Private Synchronized Sampling Contract
+  run_id: 29830415024
+  conclusion: SUCCESS
+  triggering_head_sha: c0514d688dcd87ed1a6c17a90ef3e386f39670c7
+  permissions: CONTENTS_READ_ONLY
+  real_okx_request_performed: false
+  synthetic_validation_only: true
+  format: PASS
+  lint: PASS
+  mypy: PASS
+  private_sampling_tests: 10_PASS
+  revocable_retention_tests: PASS
+  synthetic_lifecycle: PASS
+  independent_safe_evidence_verifier: PASS
+
+artifact:
+  artifact_id: 8495050218
+  artifact_name: okx-private-sampling-contract-safe-evidence-c067b673fb9f5420887a9340625bf1124cd8880a
+  artifact_digest: sha256:a0af175026ebf1f3e0ca3574b0432062616023e99b6abb42dea362ce78cefd95
+  artifact_expires_at: "2026-10-19"
+  evidence_filename: okx-private-sampling-contract-evidence.json
+  evidence_byte_count: 7852
+  evidence_sha256: 44a96f43fb903a941a5a961b66011e6a4d4690801c5bfea381e8cee09b088523
+  durable_evidence: 02-03-okx-private-sampling-contract-evidence.json
+  synthetic_raw_values_present: false
+  real_market_values_present: false
+
+contract_outcome: GO_OWNER_CONTROLLED_PRIVATE_OKX_SAMPLING_CONTRACT
+real_execution_status: NOT_EXECUTED_REQUIRES_OWNER_PRIVATE_STORAGE_AND_KEYS
+
+synthetic_batch:
+  contract_id: OKX_PRIVATE_SYNCHRONIZED_PRICE_SAMPLING_V1
+  batch_id: sha256-ff6aaf21ac9a18d2b15c138fba361d54203dba852cdcc9baa4e19da291bd1598
+  execution_mode: SYNTHETIC_VALIDATION
+  source_count: 4
+  source_order:
+    - OKX_SPOT_BTC_USDT_TICKER
+    - OKX_SWAP_BTC_USDT_SWAP_TICKER
+    - OKX_SWAP_BTC_USDT_SWAP_MARK_PRICE
+    - OKX_BTC_USDT_INDEX_TICKER
+  total_byte_count: 431
+  requested_retention_days: 2
+  registry_committed_at: "2026-07-21T12:32:34.381522+00:00"
+  policy_id: OKX_LIVE_PRIVATE_SAMPLING_V1
+  license_snapshot_id: OKX_API_AGREEMENT_2026-03-26_REVIEWED_2026-07-21_V1
+  owner_controlled_private_storage_attested: false
+  owner_controlled_encryption_keys_attested: false
+  real_raw_sampling_executed: false
+  public_manifest_contains_market_values: false
+
+active_compliance:
+  compliant: true
+  active_artifact_count: 4
+  raw_file_mode: "0600"
+  lease_file_mode: "0600"
+  storage_directory_mode: "0700"
+
+deletion:
+  reason: SYNTHETIC_VALIDATION_COMPLETE
+  deleted_at_utc: "2026-07-21T13:32:33.381522+00:00"
+  source_count: 4
+  all_raw_deleted: true
+  all_leases_deleted: true
+  integrity_matched_before_delete_for_all_sources: true
+  secure_erase_claimed: false
+
+post_delete_compliance:
+  compliant: true
+  active_artifact_count: 0
+
+verified_controls:
+  exact_four_source_set: PASS
+  content_addressed_artifacts: PASS
+  deterministic_batch_identity: PASS
+  per_source_byte_guard: PASS
+  total_batch_byte_guard: PASS
+  retention_lease_guard: PASS
+  clock_order_guard: PASS
+  provider_future_skew_guard: PASS
+  nonmonotonic_provider_timestamp_preservation: PASS
+  mid_batch_failure_rollback: PASS
+  owner_only_permissions: PASS
+  active_compliance_snapshot: PASS
+  full_batch_deletion: PASS
+  safe_deletion_receipts: PASS
+  synthetic_value_leak_scan: PASS
+
+terms_boundary:
+  public_market_data_subject_to_api_agreement: true
+  personal_noncommercial_internal_use_only: true
+  redistribution_allowed: false
+  unreasonable_or_large_scale_extraction_allowed: false
+  conservative_internal_revocable_lease_used: true
+  internal_deletion_policy_claimed_as_explicit_live_api_legal_requirement: false
+
+authorization:
+  contract_implementation: true
+  synthetic_validation: true
+  owner_side_real_execution_contract: true
+  real_raw_sampling_executed: false
+  real_raw_sampling_in_github_actions: false
+  public_raw_artifact: false
+  redistribution: false
+  historical_backfill: false
+  basis_computation: false
+  funding_pnl_computation: false
+  returns_computation: false
+  transaction_cost_estimation: false
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_testing: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  report_2_4_full_authorization: false
+
+paper_replication_pass: false
+economic_edge_verdict: INCONCLUSIVE

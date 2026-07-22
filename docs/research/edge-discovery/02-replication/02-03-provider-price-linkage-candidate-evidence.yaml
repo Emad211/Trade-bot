@@ -1,0 +1,179 @@
+schema_version: "1.0"
+evidence_id: "CFTC_TFF_2022_09_13_PROVIDER_PRICE_LINKAGE_CANDIDATE_EVIDENCE_V1"
+evidence_date: "2026-07-19"
+status: "PRIMARY_INTEGRATION_CANDIDATE_SELECTED_AUTHENTICATED_ACCEPTANCE_NOT_COMPLETE"
+
+inputs:
+  instrument_registry:
+    version: "CFTC_TFF_2022_09_13_INSTRUMENT_REGISTRY_V1"
+    row_count: 54
+    sha256: "70a8e89db716cfc8b1285f3b627188294abaae920c2b99b193f4501a7e525c74"
+    durable_file: "02-03-cftc-tff-2022-instrument-registry.csv.gz.b64"
+  provider_candidate_contract:
+    id: "CFTC_TFF_2022_09_13_PROVIDER_PRICE_LINKAGE_CANDIDATE_V1"
+    file: "02-03-provider-price-linkage-candidate-contract.yaml"
+    sha256: "8614c71dc7a6db2aebaf08db0b8d5b4566d92c69d31bbe424fc2e73780fa9832"
+  official_source_registry:
+    file: "02-03-provider-price-linkage-official-sources.json"
+    sha256: "68b73fdb5f3c83b90606fb51c8a7378dc9a1e23a1df4260c94ed0cd439903770"
+
+provider_decision:
+  primary_integration_candidate: "DATABENTO"
+  accepted_provider: null
+  authenticated_probe_executed: false
+  purchase_authorized: false
+  maximum_authorized_cost_usd: 0.0
+  rationale:
+    - "Common candidate interface across CME/CBOT, ICE Futures U.S., and CFE."
+    - "Point-in-time definitions, historical symbology, and official settlement statistics can be tested."
+    - "Authenticated entitlement, condition, symbology, cost, and license evidence remains mandatory."
+
+candidate_plan:
+  version: "CFTC_TFF_2022_09_13_DATABENTO_CANDIDATE_PLAN_V1"
+  filename: "databento-provider-candidate-plan.csv"
+  durable_file: "02-03-provider-candidate-plan.csv.gz.b64"
+  row_count: 54
+  unique_cftc_codes: 54
+  byte_count: 28918
+  sha256: "cd2430c7fdd0b3a68a1093925d755c242081372fbe41668cc53436893c274062"
+  compressed_gzip:
+    byte_count: 2216
+    sha256: "875dbcafa91c06234163dfdab1c37c4b0983cc34c749472f59adada101a47e08"
+  committed_base64:
+    byte_count: 2957
+    sha256: "7df59daeb615a4cf5692729703ba41da32f96780116966c1fb367f0284e7e624"
+
+coverage:
+  ordinary_screen_tradable_candidates: 47
+  datasets:
+    GLBX.MDP3:
+      rows: 43
+      exchanges: ["CME", "CBOT"]
+    IFUS.IMPACT:
+      rows: 3
+      exchanges: ["ICE Futures U.S."]
+    XCBF.PITCH:
+      rows: 1
+      exchanges: ["CFE"]
+  excluded_or_special:
+    non_tradable_consolidated_aggregates: 3
+    historical_later_delisted: 2
+    nonstandard_execution: 1
+    technical_symbol_pending: 1
+
+aggregate_exclusions:
+  - code: "12460+"
+    name: "DJIA Consolidated"
+  - code: "13874+"
+    name: "S&P 500 Consolidated"
+  - code: "20974+"
+    name: "NASDAQ-100 Consolidated"
+
+representative_probe:
+  filename: "authenticated-probe-request.json"
+  byte_count: 3382
+  sha256: "04ee25ae4f7ff9f09b6e50e2526d5282e9a6202601fb281028f86a52c1c269be"
+  execution_status: "BLOCKED_MISSING_AUTHENTICATED_ACCOUNT_AND_EXPLICIT_COST_APPROVAL"
+  authentication_secret_name: "DATABENTO_API_KEY"
+  roots:
+    - root: "ZN"
+      dataset: "GLBX.MDP3"
+      parent_symbol: "ZN.FUT"
+    - root: "ES"
+      dataset: "GLBX.MDP3"
+      parent_symbol: "ES.FUT"
+    - root: "NIY"
+      dataset: "GLBX.MDP3"
+      parent_symbol: "NIY.FUT"
+    - root: "DX"
+      dataset: "IFUS.IMPACT"
+      parent_symbol: "DX.FUT"
+    - root: "VX"
+      dataset: "XCBF.PITCH"
+      parent_symbol: "VX.FUT"
+  required_metadata_operations:
+    - "list_datasets"
+    - "list_schemas"
+    - "get_dataset_range"
+    - "get_dataset_condition"
+    - "get_cost"
+    - "symbology.resolve"
+  required_schemas: ["definition", "statistics"]
+  settlement_contract:
+    statistics_stat_type: 3
+    final_required: true
+    actual_required: true
+    ohlcv_substitution_allowed: false
+
+manifest:
+  filename: "provider-candidate-manifest.json"
+  byte_count: 5003
+  sha256: "7f8c69a1b0866f8540999d6d47f7399791e84937d00754d7a17c4576ea930698"
+
+hosted_verification:
+  workflow: "CFTC TFF 2022 Provider Candidate Plan"
+  run_id: 29687144619
+  conclusion: "SUCCESS"
+  job_id: 88193353364
+  branch_head_sha: "e0b8e25a2cc5b84596e9a6f058505c878cf4d960"
+  pull_request_merge_test_sha: "bd318c6cb4480a9bbe11bbe0c0d81478c89dfa82"
+  passed_steps:
+    - "Ruff"
+    - "strict mypy"
+    - "seven unit tests"
+    - "deterministic candidate-plan construction"
+    - "independent contract and source hash verification"
+    - "coverage and special-case verification"
+    - "bundle upload"
+    - "receipt generation and upload"
+
+artifacts:
+  candidate_plan_bundle:
+    id: 8442435407
+    digest: "d23721a77dc1c16e434df6cb4fdf4491ab1c9f3698be344d26182662dac0b5cc"
+    expires_on: "2026-10-17"
+  receipt:
+    id: 8442435528
+    digest: "9084ecc59f80dbe23d063e9f8fdd957c202cb568a1de6b999fd73182718d5465"
+    expires_on: "2026-10-17"
+  storage_state: "ACTIONS_ARTIFACT_STAGED_RETENTION_90_DAYS"
+  independently_rehashed_outside_runner: true
+
+exchange_native_audit_sources:
+  CME_CBOT: "CME DataMine and CME Reference Data"
+  CFE: "Cboe historical data and Cboe DataShop"
+  ICE_FUTURES_US: "ICE Report Center and ICE Data Services"
+
+authorization:
+  provider_accepted: false
+  authenticated_provider_probe: false
+  provider_dataset_entitlements_verified: false
+  provider_dataset_2022_conditions_verified: false
+  point_in_time_parent_resolution_verified: false
+  definition_records_acquired: false
+  final_actual_settlements_acquired: false
+  cost_quote_acquired: false
+  license_snapshot_acquired: false
+  provider_contract_identifiers: 0
+  price_linkage_authorized_rows: 0
+  returns_computation: false
+  purchase: false
+  empirical_fitting: false
+  strategy_tournament: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+
+final_verdict:
+  provider_requirements_contract: "CONFIRMED"
+  primary_technical_candidate: "SELECTED_NOT_ACCEPTED"
+  theoretical_ordinary_root_coverage: "CONFIRMED_47"
+  authenticated_provider_evidence: "NOT_ACQUIRED"
+  provider_contract_chain: "NOT_VERIFIED"
+  provider_settlement_evidence: "NOT_ACQUIRED"
+  price_linkage_authorization: "ZERO_ROWS"
+  returns_authorization: "NOT_GRANTED"
+  paper_replication_pass: "NOT_GRANTED"
+  economic_edge: "NOT_ESTABLISHED"
+  edge_fut_position_001: "INCONCLUSIVE"

@@ -1,0 +1,131 @@
+schema_version: "1.0"
+evidence_id: OKX_OWNER_SIDE_ONE_BATCH_RUNNER_EVIDENCE_V1
+issue_number: 55
+status_date: "2026-07-21"
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+
+workflow:
+  name: OKX Owner-Side One-Batch Runner
+  run_id: 29832572073
+  conclusion: SUCCESS
+  triggering_head_sha: 16c245f05cb5f173185aaed0fb49ef4c0af0e14d
+  permissions: CONTENTS_READ_ONLY
+  real_okx_request_performed: false
+  execution_mode: SYNTHETIC_INJECTED
+  format: PASS
+  lint: PASS
+  mypy: PASS
+  combined_tests: 28_PASS
+  cli_help_only: PASS
+  synthetic_retain_delete_lifecycle: PASS
+  independent_safe_evidence_verifier: PASS
+
+normalization:
+  bot_commit: 43c82fe69cc05e910cd4a5a42a05740cc9e2ae28
+  clock_guard: research_available_at_is_max_of_now_and_response_received_at
+  one_shot_workflow_removed: true
+  ruff_exact_output_committed: true
+
+artifact:
+  artifact_id: 8495921479
+  artifact_name: okx-owner-sampling-runner-safe-evidence-d6c9256e4dbeb56217259dcf22a9b6e5f3a789f6
+  artifact_digest: sha256:e9179034da965c270ebfe5c40e966aceb5f6822c0a09c1888a4739c7f4b50670
+  artifact_expires_at: "2026-10-19"
+  evidence_filename: okx-owner-sampling-runner-evidence.json
+  evidence_byte_count: 8770
+  evidence_sha256: e5757753519bf0f8ff15311e1090095a5af24b4868c6ec788f0519211e4ccc30
+  durable_evidence: 02-03-okx-owner-side-one-batch-runner-evidence.json
+  fake_market_values_present: false
+  real_market_values_present: false
+
+runner_outcome: GO_OWNER_SIDE_OKX_ONE_BATCH_RUNNER_READY
+real_execution_status: NOT_EXECUTED_REQUIRES_OWNER_PRIVATE_STORAGE_AND_KEYS
+
+activation_contract:
+  real_confirmation_phrase: I_CONFIRM_OWNER_CONTROLLED_PRIVATE_OKX_RAW_SAMPLING
+  synthetic_confirmation_phrase: I_CONFIRM_SYNTHETIC_INJECTED_RESPONSES_ONLY
+  deletion_confirmation_phrase: I_CONFIRM_DELETE_OWNER_CONTROLLED_OKX_RAW_BATCH
+  enable_real_network_fetch_flag_required: true
+  exact_confirmation_required: true
+  safe_manifest_output_required: true
+  safe_manifest_must_be_json: true
+  safe_manifest_must_be_outside_private_raw_tree: true
+  safe_manifest_overwrite_allowed: false
+
+verified_runner_behavior:
+  frozen_urls_requested_in_order: true
+  frozen_urls:
+    - https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT
+    - https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT-SWAP
+    - https://www.okx.com/api/v5/public/mark-price?instType=SWAP&instId=BTC-USDT-SWAP
+    - https://www.okx.com/api/v5/market/index-tickers?instId=BTC-USDT
+  all_fetches_validate_before_retention: true
+  fetch_failure_retains_nothing: true
+  safe_manifest_write_failure_rolls_back_batch: true
+  official_fetcher_forbidden_in_synthetic_mode: true
+  real_executor_rejects_synthetic_configuration: true
+  separate_delete_command_verified: true
+  safe_manifest_mode: "0600"
+  private_artifacts_before_delete: 4
+  leases_before_delete: 4
+  private_artifacts_after_delete: 0
+  leases_after_delete: 0
+  safe_manifest_contains_fake_market_value: false
+  safe_deletion_contains_fake_market_value: false
+
+synthetic_batch:
+  batch_id: sha256-7f51997b9783ae1bbf6427550a45a8fd82c0ffda2c941b3485627da9f8c9f7a2
+  execution_mode: SYNTHETIC_VALIDATION
+  source_count: 4
+  total_byte_count: 1051
+  requested_retention_days: 2
+  safe_manifest_byte_count: 4909
+  safe_manifest_sha256: 4c201942468115f31591f77f7c561b03c04bfc575df82339ae70cba3a2dced2a
+  private_artifact_count_before_delete: 4
+  all_raw_deleted: true
+  all_leases_deleted: true
+  deletion_integrity_matched_for_all_sources: true
+  secure_erase_claimed: false
+
+real_execution_requirements:
+  - exact_real_confirmation_phrase
+  - enable_real_network_fetch_flag
+  - terms_reviewed
+  - personal_noncommercial_use
+  - reasonable_rate_and_scale
+  - redistribution_disabled
+  - encryption_at_rest
+  - owner_only_access
+  - backup_and_sync_excluded
+  - public_artifact_upload_disabled
+  - owner_controlled_private_storage
+  - owner_controlled_encryption_keys
+  - real_execution_owner_confirmed
+  - private_path_outside_repository
+  - safe_manifest_output_outside_private_raw_tree
+  - retention_days_between_1_and_7
+
+authorization:
+  disabled_by_default_owner_side_runner: true
+  synthetic_injected_validation: true
+  owner_side_real_execution_capability_after_inputs: true
+  real_okx_request_executed: false
+  real_raw_sampling_executed: false
+  historical_backfill: false
+  public_raw_artifact: false
+  basis_computation: false
+  funding_pnl_computation: false
+  returns_computation: false
+  transaction_cost_estimation: false
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_testing: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  report_2_4_full_authorization: false
+
+paper_replication_pass: false
+economic_edge_verdict: INCONCLUSIVE

@@ -1,0 +1,122 @@
+schema_version: "1.0"
+evidence_id: OKX_FEE_FILL_FUNDING_ACCOUNTING_CONTRACT_EVIDENCE_V1
+issue_number: 56
+status_date: "2026-07-21"
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+outcome: GO_OKX_FEE_AND_FUNDING_ACCOUNTING_CONTRACT
+secondary_blocker: BLOCKED_ACCOUNT_SPECIFIC_FEE_SNAPSHOT
+
+workflow:
+  name: OKX Fee and Funding Accounting Contract
+  run_id: 29838156447
+  conclusion: SUCCESS
+  triggering_head_sha: c2a8141b630b79641555d7868efe45f7eaa30d67
+  permissions: CONTENTS_READ_ONLY
+
+verification:
+  ruff_format: PASS
+  ruff_lint: PASS
+  mypy_strict: PASS
+  scoped_tests:
+    passed: 11
+    failed: 0
+  safe_evidence_generator: PASS
+  independent_safe_evidence_verifier: PASS
+  real_account_request_performed: false
+
+safe_artifact:
+  artifact_id: 8498218083
+  artifact_digest: sha256:f2e130d28a154be8428d4aa105b10cf808a78fcf9a6cb3d936546bf1d241cb13
+  evidence_filename: okx-fee-accounting-contract-safe-evidence.json
+  evidence_byte_count: 3655
+  evidence_sha256: 726268d913d2e6e5ae27b04295bac08e8f1a1e4a21a7b71e7cba6d4c7014c2c6
+  expires_at: "2026-10-19"
+  durable_repository_copy: 02-03-okx-fee-and-funding-accounting-contract-evidence.json
+  account_values_present: false
+  credentials_present: false
+
+account_fee_findings:
+  endpoint: /api/v5/account/trade-fee
+  authenticated_read_required: true
+  owner_account_specific: true
+  spot_query_names: [instId, instType]
+  swap_query_names: [instFamily, instType]
+  positive_fee_rate_semantics: REBATE
+  negative_fee_rate_semantics: COMMISSION
+  generic_lv1_example_is_owner_snapshot: false
+  zero_fee_exceptions_reflected_by_open_api: false
+  owner_snapshot_status: BLOCKED_OWNER_READ_ONLY_CREDENTIALS
+  assumed_fee_rate_allowed: false
+
+fill_findings:
+  aggregation_level: PER_FILL
+  chronology_field: fillTime
+  record_generation_field: ts
+  ts_replaces_fillTime: false
+  fee_currency_explicit: true
+  fee_currency_inferred: false
+  spot_fee_rate_required_when_present_in_contract: true
+  swap_fee_rate_inferred_from_fill: false
+
+funding_bill_findings:
+  aggregation_level: PER_BILL
+  expense_subtype: 173
+  income_subtype: 174
+  provider_sign_rewritten: false
+  merged_with_trading_fee: false
+  merged_with_fill_pnl: false
+
+position_findings:
+  aggregation_level: POSITION_AGGREGATE
+  provider_reconciliation: realizedPnl=pnl+fee+fundingFee+liqPenalty+settledPnl
+  readd_fill_fee: false
+  readd_funding_bill: false
+  mixed_levels_without_transform: REJECT
+  duplicate_reconciliation_keys: REJECT
+  mixed_currencies_without_conversion: REJECT
+
+funding_formula_findings:
+  formula_id: OKX_PERPETUAL_FUNDING_8_OVER_N_2026_V1
+  source_publication: "2026-05-29T00:00:00Z"
+  migration_start: "2026-06-01T00:00:00Z"
+  conservative_admission: "2026-06-04T00:00:00Z"
+  interval_factor: 8/N
+  fixed_interest_rate_decimal: "0.0001"
+  allowed_interval_hours: [1, 2, 4, 8]
+  backdated_to_march_2022: false
+
+synthetic_checks:
+  exact_spot_and_swap_fee_queries: PASS
+  fee_sign_preservation: PASS
+  fee_currency_non_inference: PASS
+  fill_time_chronology: PASS
+  funding_bill_subtype_separation: PASS
+  position_reconciliation: PASS
+  double_count_rejection: PASS
+  formula_version_boundary: PASS
+
+owner_execution_boundary:
+  real_account_snapshot_executed: false
+  required_future_inputs:
+    - owner_read_only_credentials
+    - withdrawal_permission_disabled
+    - trading_permission_disabled
+    - owner_secret_storage
+    - regional_endpoint_confirmation
+    - explicit_owner_confirmation
+
+non_authorization:
+  account_fee_snapshot: false
+  basis_computation: false
+  funding_pnl_computation: false
+  returns_computation: false
+  transaction_cost_estimation: false
+  empirical_fitting: false
+  strategy_testing: false
+  paper_trading: false
+  live_trading: false
+  capital_deployment: false
+  report_2_4: false
+
+economic_edge_verdict: INCONCLUSIVE

@@ -1,0 +1,96 @@
+name: OKX Fee and Funding Accounting Contract
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/okx-fee-accounting-contract.yml
+      - src/hybrid_trader/replication/okx_fee_accounting.py
+      - scripts/validate_okx_fee_accounting_contract.py
+      - tests/test_okx_fee_accounting.py
+      - docs/research/edge-discovery/02-replication/02-03-okx-fee-and-funding-accounting-contract-gate.yaml
+  push:
+    branches: [agent/edge-research-reports]
+    paths:
+      - .github/workflows/okx-fee-accounting-contract.yml
+      - src/hybrid_trader/replication/okx_fee_accounting.py
+      - scripts/validate_okx_fee_accounting_contract.py
+      - tests/test_okx_fee_accounting.py
+      - docs/research/edge-discovery/02-replication/02-03-okx-fee-and-funding-accounting-contract-gate.yaml
+
+permissions:
+  contents: read
+
+jobs:
+  validate-synthetic-accounting-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install verification dependencies
+        run: python -m pip install -e '.[dev,replication]'
+      - name: Verify implementation and accounting tests
+        run: |
+          files=(
+            src/hybrid_trader/replication/okx_fee_accounting.py
+            scripts/validate_okx_fee_accounting_contract.py
+            tests/test_okx_fee_accounting.py
+          )
+          ruff format --check "${files[@]}"
+          ruff check "${files[@]}"
+          mypy \
+            src/hybrid_trader/replication/okx_fee_accounting.py \
+            scripts/validate_okx_fee_accounting_contract.py
+          pytest -q tests/test_okx_fee_accounting.py
+      - name: Generate safe synthetic contract evidence
+        run: |
+          python scripts/validate_okx_fee_accounting_contract.py \
+            --output-dir build/okx-fee-accounting
+      - name: Independently verify safe evidence and zero account access
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('build/okx-fee-accounting')
+          files = sorted(path.name for path in root.iterdir() if path.is_file())
+          assert files == ['okx-fee-accounting-contract-safe-evidence.json'], files
+          evidence = json.loads((root / files[0]).read_text(encoding='utf-8'))
+
+          assert evidence['gate_id'] == 'OKX_FEE_FILL_FUNDING_ACCOUNTING_CONTRACT_V1'
+          assert evidence['issue_number'] == 56
+          assert evidence['validation_mode'] == 'SYNTHETIC_ACCOUNT_RESPONSES_ONLY'
+          assert evidence['real_account_request_performed'] is False
+          assert evidence['owner_account_fee_snapshot_status'] == 'BLOCKED_OWNER_READ_ONLY_CREDENTIALS'
+          assert evidence['public_evidence_contains_account_values'] is False
+          assert evidence['public_evidence_contains_credentials'] is False
+          assert evidence['economic_edge_verdict'] == 'INCONCLUSIVE'
+          assert evidence['chronology_rules']['trade_chronology_field'] == 'fillTime'
+          assert evidence['chronology_rules']['ts_replaces_fillTime'] is False
+          assert evidence['funding_bill_rules']['173'] == 'FUNDING_EXPENSE'
+          assert evidence['funding_bill_rules']['174'] == 'FUNDING_INCOME'
+          assert evidence['aggregation_rules']['position_aggregate_readds_fill_fee_or_funding_bill'] is False
+          assert evidence['funding_formula_version']['projected_backward_to_2022'] is False
+          assert all(value is False for value in evidence['authorizations'].values())
+
+          text = (root / files[0]).read_text(encoding='utf-8')
+          forbidden = (
+              'API_KEY', 'SECRET_KEY', 'PASSPHRASE',
+              'synthetic-order', 'synthetic-trade', 'synthetic-bill',
+              '-0.0008', '-0.001', '60000',
+          )
+          assert not any(value in text for value in forbidden)
+          assert not list(root.glob('*.csv'))
+          assert not list(root.glob('*.zip'))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: okx-fee-accounting-safe-evidence-${{ github.sha }}
+          path: build/okx-fee-accounting/okx-fee-accounting-contract-safe-evidence.json
+          if-no-files-found: error
+          retention-days: 90

@@ -1,0 +1,210 @@
+name: Databento Zero-Purchase Metadata Probe
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/databento-zero-purchase-metadata-probe.yml
+      - src/hybrid_trader/replication/databento_metadata_probe.py
+      - scripts/run_databento_zero_purchase_probe.py
+      - tests/test_databento_metadata_probe.py
+      - docs/research/edge-discovery/02-replication/02-03-provider-candidate-plan.csv.gz.b64
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - .github/workflows/databento-zero-purchase-metadata-probe.yml
+      - src/hybrid_trader/replication/databento_metadata_probe.py
+      - scripts/run_databento_zero_purchase_probe.py
+      - tests/test_databento_metadata_probe.py
+      - docs/research/edge-discovery/02-replication/02-03-provider-candidate-plan.csv.gz.b64
+
+permissions:
+  contents: read
+
+concurrency:
+  group: databento-zero-purchase-probe-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  evaluate-authenticated-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out the triggering commit
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install project, verification tools, and pinned Databento client
+        run: >-
+          python -m pip install --upgrade pip &&
+          python -m pip install -e ".[dev,replication]" &&
+          python -m pip install "databento==0.81.0"
+
+      - name: Run project lint rules
+        run: >-
+          python -m ruff check
+          src/hybrid_trader/replication/databento_metadata_probe.py
+          scripts/run_databento_zero_purchase_probe.py
+          tests/test_databento_metadata_probe.py
+
+      - name: Run strict typing
+        run: >-
+          python -m mypy --strict --ignore-missing-imports
+          src/hybrid_trader/replication/databento_metadata_probe.py
+
+      - name: Run zero-purchase probe tests
+        run: python -m pytest -q tests/test_databento_metadata_probe.py
+
+      - name: Evaluate the authenticated zero-purchase gate
+        env:
+          DATABENTO_API_KEY: ${{ secrets.DATABENTO_API_KEY }}
+        run: >-
+          python scripts/run_databento_zero_purchase_probe.py
+          --candidate-plan-b64
+          docs/research/edge-discovery/02-replication/02-03-provider-candidate-plan.csv.gz.b64
+          --output-dir build/databento-zero-purchase-probe
+
+      - name: Independently verify hashes and non-purchase invariants
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path("build/databento-zero-purchase-probe")
+          manifest = json.loads((root / "probe-manifest.json").read_text(encoding="utf-8"))
+          evidence = json.loads((root / "probe-evidence.json").read_text(encoding="utf-8"))
+          summary = json.loads((root / "probe-summary.json").read_text(encoding="utf-8"))
+          for filename, identity in manifest["files"].items():
+              content = (root / filename).read_bytes()
+              if len(content) != identity["byte_count"]:
+                  raise SystemExit(f"Byte-count mismatch: {filename}")
+              if hashlib.sha256(content).hexdigest() != identity["sha256"]:
+                  raise SystemExit(f"SHA-256 mismatch: {filename}")
+          forbidden_true = {
+              "provider_accepted": evidence["provider_accepted"],
+              "purchase_authorized": evidence["purchase_authorized"],
+              "global_price_linkage_authorized": evidence["global_price_linkage_authorized"],
+              "returns_authorized": evidence["returns_authorized"],
+              "time_series_download_executed": evidence["profile"]["time_series_download_executed"],
+              "batch_download_submitted": evidence["profile"]["batch_download_submitted"],
+          }
+          if any(forbidden_true.values()):
+              raise SystemExit(f"Zero-purchase invariant violated: {forbidden_true}")
+          if evidence["profile"]["provider_contract_id_count"] != 0:
+              raise SystemExit("Provider contract IDs must remain zero")
+          if evidence["profile"]["price_linkage_authorized_rows"] != 0:
+              raise SystemExit("Price-linkage authorization must remain zero")
+          allowed_statuses = {
+              "BLOCKED_MISSING_DATABENTO_API_KEY",
+              "BLOCKED_INVALID_API_KEY_FORMAT",
+              "AUTHENTICATION_OR_LIST_DATASETS_FAILURE",
+              "PROBE_CLIENT_INITIALIZATION_FAILURE",
+              "AUTHENTICATED_ZERO_PURCHASE_METADATA_PROBE_COMPLETED",
+          }
+          status = evidence["profile"]["execution_status"]
+          if status not in allowed_statuses:
+              raise SystemExit(f"Unexpected probe status: {status}")
+          if status == "AUTHENTICATED_ZERO_PURCHASE_METADATA_PROBE_COMPLETED":
+              if not evidence["authenticated_metadata_probe_executed"]:
+                  raise SystemExit("Authenticated completion lacks execution evidence")
+              if evidence["client"]["version"] != "0.81.0":
+                  raise SystemExit("Unexpected Databento client version")
+              if len(evidence["representative_probes"]) != 5:
+                  raise SystemExit("Expected five representative probes")
+          if summary["execution_status"] != status:
+              raise SystemExit("Summary/evidence status mismatch")
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload gate-evaluation bundle
+        id: upload_bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: databento-zero-purchase-probe-${{ github.sha }}
+          path: build/databento-zero-purchase-probe/
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+      - name: Create staging receipt
+        env:
+          BUNDLE_ARTIFACT_ID: ${{ steps.upload_bundle.outputs.artifact-id }}
+          BUNDLE_ARTIFACT_URL: ${{ steps.upload_bundle.outputs.artifact-url }}
+          BUNDLE_ARTIFACT_DIGEST: ${{ steps.upload_bundle.outputs.artifact-digest }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+          root = Path("build/databento-zero-purchase-probe")
+          evidence = json.loads((root / "probe-evidence.json").read_text(encoding="utf-8"))
+          receipt = {
+              "schema_version": "1.0",
+              "repository": os.environ["GITHUB_REPOSITORY"],
+              "commit_sha": os.environ["GITHUB_SHA"],
+              "workflow": os.environ["GITHUB_WORKFLOW"],
+              "run_id": os.environ["GITHUB_RUN_ID"],
+              "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
+              "created_at": datetime.now(UTC).isoformat(),
+              "execution_status": evidence["profile"]["execution_status"],
+              "authenticated": evidence["profile"]["authenticated"],
+              "bundle_artifact_id": os.environ["BUNDLE_ARTIFACT_ID"],
+              "bundle_artifact_url": os.environ["BUNDLE_ARTIFACT_URL"],
+              "bundle_artifact_digest": os.environ["BUNDLE_ARTIFACT_DIGEST"],
+              "storage_state": "ACTIONS_ARTIFACT_STAGED_RETENTION_90_DAYS",
+              "provider_accepted": False,
+              "purchase_authorized": False,
+              "price_linkage_authorized_rows": 0,
+              "returns_authorized": False,
+              "paper_replication_pass": False,
+              "economic_edge_verdict": "INCONCLUSIVE",
+          }
+          Path("build/databento-zero-purchase-probe-receipt.json").write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(receipt, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload staging receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: databento-zero-purchase-probe-receipt-${{ github.sha }}
+          path: build/databento-zero-purchase-probe-receipt.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Record non-promotional gate summary
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+
+          evidence = json.loads(
+              Path("build/databento-zero-purchase-probe/probe-evidence.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          print("## Databento zero-purchase metadata gate")
+          print()
+          print(f"- Execution status: `{evidence['profile']['execution_status']}`")
+          print(f"- Authenticated: `{str(evidence['profile']['authenticated']).lower()}`")
+          print("- Provider accepted: `false`")
+          print("- Purchase authorized: `false`")
+          print("- Time-series download executed: `false`")
+          print("- Price-linkage-authorized rows: `0`")
+          print("- Returns authorized: `false`")
+          print("- Economic edge: `INCONCLUSIVE`")
+          PY

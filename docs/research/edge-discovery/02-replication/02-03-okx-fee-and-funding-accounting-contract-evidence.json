@@ -1,0 +1,116 @@
+{
+  "aggregation_rules": {
+    "duplicate_reconciliation_keys_allowed": false,
+    "mixed_currencies_summable_without_conversion": false,
+    "mixed_levels_summable_without_transform": false,
+    "position_aggregate_readds_fill_fee_or_funding_bill": false
+  },
+  "authorizations": {
+    "account_fee_snapshot": false,
+    "basis_computation": false,
+    "capital_deployment": false,
+    "empirical_fitting": false,
+    "funding_pnl_computation": false,
+    "live_trading": false,
+    "paper_trading": false,
+    "report_2_4": false,
+    "returns_computation": false,
+    "strategy_testing": false,
+    "transaction_cost_estimation": false
+  },
+  "chronology_rules": {
+    "record_generation_field": "ts",
+    "trade_chronology_field": "fillTime",
+    "ts_replaces_fillTime": false
+  },
+  "economic_edge_verdict": "INCONCLUSIVE",
+  "endpoints": {
+    "account_fee_rate": {
+      "account_specific": true,
+      "authentication_required": true,
+      "generic_lv1_is_owner_snapshot": false,
+      "path": "/api/v5/account/trade-fee",
+      "permission": "Read",
+      "spot_query_names": [
+        "instId",
+        "instType"
+      ],
+      "swap_query_names": [
+        "instFamily",
+        "instType"
+      ],
+      "zero_fee_exceptions_reflected_by_open_api": false
+    },
+    "bills": {
+      "aggregation_level": "PER_BILL",
+      "authentication_required": true,
+      "paths": [
+        "/api/v5/account/bills",
+        "/api/v5/account/bills-archive",
+        "/api/v5/account/bills-history-archive"
+      ]
+    },
+    "fills": {
+      "aggregation_level": "PER_FILL",
+      "authentication_required": true,
+      "chronology_field": "fillTime",
+      "paths": [
+        "/api/v5/trade/fills",
+        "/api/v5/trade/fills-history"
+      ],
+      "record_generation_field": "ts"
+    },
+    "positions": {
+      "aggregation_level": "POSITION_AGGREGATE",
+      "authentication_required": true,
+      "path": "/api/v5/account/positions"
+    }
+  },
+  "funding_bill_rules": {
+    "173": "FUNDING_EXPENSE",
+    "174": "FUNDING_INCOME",
+    "funding_cashflow_merged_with_trading_fee": false,
+    "provider_amount_sign_rewritten": false
+  },
+  "funding_formula_version": {
+    "allowed_interval_hours": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "conservative_admission": "2026-06-04T00:00:00+00:00",
+    "fixed_interest_rate_decimal": "0.0001",
+    "formula_id": "OKX_PERPETUAL_FUNDING_8_OVER_N_2026_V1",
+    "interval_factor": "8/N",
+    "migration_start": "2026-06-01T00:00:00+00:00",
+    "projected_backward_to_2022": false,
+    "source_publication": "2026-05-29T00:00:00+00:00"
+  },
+  "gate_id": "OKX_FEE_FILL_FUNDING_ACCOUNTING_CONTRACT_V1",
+  "issue_number": 56,
+  "owner_account_fee_snapshot_status": "BLOCKED_OWNER_READ_ONLY_CREDENTIALS",
+  "position_reconciliation_rule": "realizedPnl=pnl+fee+fundingFee+liqPenalty+settledPnl",
+  "public_evidence_contains_account_values": false,
+  "public_evidence_contains_credentials": false,
+  "real_account_request_performed": false,
+  "schema_version": "1.0",
+  "sign_and_currency_rules": {
+    "fee_currency_explicit": true,
+    "fee_currency_inferred_from_quote_currency": false,
+    "negative_fee": "COMMISSION_CHARGE",
+    "positive_fee": "REBATE",
+    "swap_fee_rate_inferred_from_fill": false
+  },
+  "synthetic_checks": {
+    "double_count_rejection": true,
+    "exact_spot_and_swap_fee_queries": true,
+    "fee_currency_non_inference": true,
+    "fee_sign_preservation": true,
+    "fill_time_chronology": true,
+    "formula_version_boundary": true,
+    "funding_bill_subtype_separation": true,
+    "position_reconciliation": true
+  },
+  "validation_mode": "SYNTHETIC_ACCOUNT_RESPONSES_ONLY"
+}

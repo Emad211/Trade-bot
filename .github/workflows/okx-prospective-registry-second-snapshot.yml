@@ -1,0 +1,188 @@
+name: OKX Prospective Registry Second Snapshot
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/okx-prospective-registry-second-snapshot.yml
+      - src/hybrid_trader/replication/okx_prospective_registry.py
+      - scripts/build_okx_prospective_registry_snapshot.py
+      - scripts/append_okx_prospective_registry_snapshot.py
+      - tests/test_okx_prospective_registry.py
+      - tests/test_okx_prospective_registry_append.py
+      - docs/research/edge-discovery/02-replication/02-03-okx-prospective-registry-initial-snapshot.json
+  push:
+    branches: [agent/edge-research-reports]
+    paths:
+      - .github/workflows/okx-prospective-registry-second-snapshot.yml
+      - src/hybrid_trader/replication/okx_prospective_registry.py
+      - scripts/build_okx_prospective_registry_snapshot.py
+      - scripts/append_okx_prospective_registry_snapshot.py
+      - tests/test_okx_prospective_registry.py
+      - tests/test_okx_prospective_registry_append.py
+      - docs/research/edge-discovery/02-replication/02-03-okx-prospective-registry-initial-snapshot.json
+
+permissions:
+  contents: read
+
+concurrency:
+  group: okx-prospective-registry-second-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  append-safe-second-snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install verification dependencies
+        run: python -m pip install -e '.[dev,replication]'
+
+      - name: Verify append-only implementation
+        run: |
+          ruff format --check \
+            src/hybrid_trader/replication/okx_prospective_registry.py \
+            scripts/build_okx_prospective_registry_snapshot.py \
+            scripts/append_okx_prospective_registry_snapshot.py \
+            tests/test_okx_prospective_registry.py \
+            tests/test_okx_prospective_registry_append.py
+          ruff check \
+            src/hybrid_trader/replication/okx_prospective_registry.py \
+            scripts/build_okx_prospective_registry_snapshot.py \
+            scripts/append_okx_prospective_registry_snapshot.py \
+            tests/test_okx_prospective_registry.py \
+            tests/test_okx_prospective_registry_append.py
+          mypy \
+            src/hybrid_trader/replication/okx_prospective_registry.py \
+            scripts/build_okx_prospective_registry_snapshot.py \
+            scripts/append_okx_prospective_registry_snapshot.py
+          pytest -q \
+            tests/test_okx_prospective_registry.py \
+            tests/test_okx_prospective_registry_append.py
+
+      - name: Append second prospective observation
+        run: |
+          python scripts/append_okx_prospective_registry_snapshot.py \
+            --previous-snapshot \
+              docs/research/edge-discovery/02-replication/02-03-okx-prospective-registry-initial-snapshot.json \
+            --output-dir build/okx-prospective-registry-second
+
+      - name: Independently verify predecessor chain and safe diff
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from datetime import datetime
+          from pathlib import Path
+
+          previous_path = Path(
+              'docs/research/edge-discovery/02-replication/'
+              '02-03-okx-prospective-registry-initial-snapshot.json'
+          )
+          output_root = Path('build/okx-prospective-registry-second')
+          files = sorted(path.name for path in output_root.iterdir() if path.is_file())
+          assert files == ['okx-prospective-registry-second-snapshot.json'], files
+          evidence = json.loads((output_root / files[0]).read_text(encoding='utf-8'))
+          previous = json.loads(previous_path.read_text(encoding='utf-8'))
+          previous_sha256 = hashlib.sha256(previous_path.read_bytes()).hexdigest()
+
+          assert previous_sha256 == (
+              '729dfb417385a6ccdb9efbb39c0b856eb86a69db89f5c47044080920b2593a75'
+          )
+          assert evidence['registry_id'] == 'OKX_BTC_USDT_SWAP_PROSPECTIVE_REGISTRY_V1'
+          assert evidence['collection_mode'] == 'PROSPECTIVE_ONLY'
+          assert evidence['snapshot_sequence'] == 2
+          assert evidence['previous_snapshot_sha256'] == previous_sha256
+          assert evidence['collection_started_at_utc'] == previous['collection_started_at_utc']
+          assert evidence['registry_verdict'] == 'PROSPECTIVE_APPEND_SNAPSHOT'
+          assert evidence['issue_52_outcome'] is None
+          assert evidence['economic_edge_verdict'] == 'INCONCLUSIVE'
+          assert len(evidence['observations']) == 4
+          assert evidence['observations'][:2] == previous['observations']
+
+          first_instrument_id = (
+              '66c27d62616ce0f25355e3acd5e0fd2dcdbcde0a13fa7db1bcf20d34cfa104f4'
+          )
+          first_funding_id = (
+              '122a88bbc72fefb3b43a20ffd5212b91856d9a1b6f2f2fd7a6cc54c09fd1e234'
+          )
+          instrument = evidence['observations'][2]
+          funding = evidence['observations'][3]
+          assert instrument['content_kind'] == 'INSTRUMENT'
+          assert funding['content_kind'] == 'FUNDING_SOURCE'
+          assert instrument['previous_observation_id'] == first_instrument_id
+          assert funding['previous_observation_id'] == first_funding_id
+          assert instrument['observation_id'] not in {
+              first_instrument_id, first_funding_id
+          }
+          assert funding['observation_id'] not in {
+              first_instrument_id, first_funding_id, instrument['observation_id']
+          }
+          assert len(instrument['observation_id']) == 64
+          assert len(funding['observation_id']) == 64
+
+          previous_instrument_time = datetime.fromisoformat(
+              previous['observations'][0]['observation_clock']['registry_committed_at']
+              .replace('Z', '+00:00')
+          )
+          previous_funding_time = datetime.fromisoformat(
+              previous['observations'][1]['observation_clock']['registry_committed_at']
+              .replace('Z', '+00:00')
+          )
+          instrument_time = datetime.fromisoformat(
+              instrument['observation_clock']['registry_committed_at']
+              .replace('Z', '+00:00')
+          )
+          funding_time = datetime.fromisoformat(
+              funding['observation_clock']['registry_committed_at']
+              .replace('Z', '+00:00')
+          )
+          assert instrument_time > previous_instrument_time
+          assert funding_time > previous_funding_time
+          assert instrument['observation_clock']['provider_timestamp'] is None
+          assert funding['observation_clock']['provider_timestamp'] is None
+
+          summary = evidence['source_change_summary']
+          for key, observation in (
+              ('instrument', instrument),
+              ('funding_source', funding),
+          ):
+              item = summary[key]
+              changed_fields = item['changed_fields']
+              assert changed_fields == sorted(set(changed_fields))
+              assert observation['changed_fields'] == changed_fields
+              assert item['content_version_changed'] == bool(changed_fields)
+              assert item['current_content_version_id'] == observation['content_version_id']
+              assert len(item['previous_content_version_id']) == 64
+              assert len(item['current_content_version_id']) == 64
+
+          assert evidence['version_ids']['instrument'] == instrument['content_version_id']
+          assert evidence['version_ids']['funding_source'] == funding['content_version_id']
+          assert evidence['provider_timestamp_policy'] == previous['provider_timestamp_policy']
+          assert all(value is False for value in evidence['retention_state'].values())
+          assert all(value is False for value in evidence['historical_state'].values())
+          assert all(value is False for value in evidence['authorization'].values())
+          for observation in (instrument, funding):
+              assert observation['historical_backfill'] is False
+              assert observation['historical_effective_time_inferred'] is False
+              assert observation['source_health']['status'] == 'SUCCESS'
+              assert observation['source_health']['http_status'] == 200
+              assert observation['source_health']['raw_error_retained'] is False
+
+          assert not list(output_root.glob('*.html'))
+          assert not list(output_root.glob('*.csv'))
+          assert not list(output_root.glob('*.zip'))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: okx-prospective-registry-second-safe-snapshot-${{ github.sha }}
+          path: build/okx-prospective-registry-second/okx-prospective-registry-second-snapshot.json
+          if-no-files-found: error
+          retention-days: 90

@@ -1,0 +1,216 @@
+schema_version: "1.0"
+evidence_id: MOREIRA_MUIR_OFFICIAL_FACTOR_CONTRACT_EVIDENCE_V1
+status_date: "2026-07-19"
+status: OFFICIAL_SNAPSHOT_AND_SCALING_CONTRACT_VERIFIED
+
+hypothesis:
+  id: EDGE-RISK-POLICY-001
+  report_2_1_replication_class: NEAR_EXACT_PUBLIC
+
+source:
+  authority: Tyler Muir author data page
+  author_page_url: https://tylersmuir.com/data.html
+  csv_url: https://tylersmuir.com/data/VolManagedFactors.csv
+  snapshot_id: MOREIRA_MUIR_VOL_MANAGED_FACTORS_2026_01_V1
+  csv_byte_count: 113060
+  csv_sha256: e9d92955e6ef2154aa55d05eed7b9237a313b987aad9afb0fdffd2103a81a6ba
+  author_page_byte_count: 4783
+  author_page_sha256: 364b782f386b84f76039bc8d2d1814eced273b3f9d5505f0bd3a0d7af2d45633
+  raw_publication: false
+  raw_immutable_retention: false
+
+contract:
+  frequency: MONTHLY
+  return_unit: PERCENT
+  row_count: 1189
+  column_count: 14
+  first_month: "1927-01"
+  last_month: "2026-01"
+  duplicate_months: 0
+  missing_calendar_months: 0
+  header:
+    - Date
+    - Mkt-RF_VM
+    - SMB_VM
+    - HML_VM
+    - Mom_VM
+    - RMW_VM
+    - CMA_VM
+    - Mkt-RF
+    - SMB
+    - HML
+    - Mom
+    - RMW
+    - CMA
+    - RF
+  factor_pairs:
+    Mkt-RF: [Mkt-RF_VM, Mkt-RF]
+    SMB: [SMB_VM, SMB]
+    HML: [HML_VM, HML]
+    Mom: [Mom_VM, Mom]
+    RMW: [RMW_VM, RMW]
+    CMA: [CMA_VM, CMA]
+  missingness:
+    Mkt-RF_VM: 0
+    SMB_VM: 0
+    HML_VM: 0
+    Mom_VM: 0
+    RMW_VM: 439
+    CMA_VM: 439
+    Mkt-RF: 0
+    SMB: 0
+    HML: 0
+    Mom: 0
+    RMW: 439
+    CMA: 439
+    RF: 0
+
+scaling_gate:
+  definition: abs(managed_sd / unmanaged_sd - 1)
+  relative_tolerance: 0.025
+  result: VOLATILITY_SCALING_CONTRACT_MATCH
+  passed_pairs: 6
+  total_pairs: 6
+  maximum_relative_error: 0.000000515518
+  pairs:
+    - factor: Mkt-RF
+      overlap_count: 1189
+      first_overlap_month: "1927-01"
+      last_overlap_month: "2026-01"
+      managed_sd_percent: 5.316163621550
+      unmanaged_sd_percent: 5.316163387930
+      ratio: 1.000000043945
+      relative_error: 0.000000043945
+      correlation: 0.600289896654
+      pass: true
+    - factor: SMB
+      overlap_count: 1189
+      first_overlap_month: "1927-01"
+      last_overlap_month: "2026-01"
+      managed_sd_percent: 3.157752694636
+      unmanaged_sd_percent: 3.157752291497
+      ratio: 1.000000127666
+      relative_error: 0.000000127666
+      correlation: 0.606943208736
+      pass: true
+    - factor: HML
+      overlap_count: 1189
+      first_overlap_month: "1927-01"
+      last_overlap_month: "2026-01"
+      managed_sd_percent: 3.561157915821
+      unmanaged_sd_percent: 3.561157430844
+      ratio: 1.000000136185
+      relative_error: 0.000000136185
+      correlation: 0.539616302434
+      pass: true
+    - factor: Mom
+      overlap_count: 1189
+      first_overlap_month: "1927-01"
+      last_overlap_month: "2026-01"
+      managed_sd_percent: 4.681737529301
+      unmanaged_sd_percent: 4.681738807403
+      ratio: 0.999999727003
+      relative_error: 0.000000272997
+      correlation: 0.457477118359
+      pass: true
+    - factor: RMW
+      overlap_count: 750
+      first_overlap_month: "1963-08"
+      last_overlap_month: "2026-01"
+      managed_sd_percent: 2.222240666903
+      unmanaged_sd_percent: 2.222240492919
+      ratio: 1.000000078292
+      relative_error: 0.000000078292
+      correlation: 0.574381292241
+      pass: true
+    - factor: CMA
+      overlap_count: 750
+      first_overlap_month: "1963-08"
+      last_overlap_month: "2026-01"
+      managed_sd_percent: 2.063563216400
+      unmanaged_sd_percent: 2.063562152597
+      ratio: 1.000000515518
+      relative_error: 0.000000515518
+      correlation: 0.661664538866
+      pass: true
+
+implementation:
+  source_module: src/hybrid_trader/replication/moreira_muir.py
+  entrypoint: scripts/audit_moreira_muir_official_factors.py
+  tests: tests/test_moreira_muir.py
+  workflow: .github/workflows/moreira-muir-official-factor-contract-audit.yml
+  adversarial_test_count: 12
+  safe_metric_decimal_places: 12
+
+hosted_verification:
+  clean_head_commit: df419df4be6043d210d7608b15a2dfafe51d5b6d
+  runs:
+    - run_id: 29698955657
+      conclusion: success
+      safe_artifact_id: 8445867952
+      safe_artifact_digest: b042662c105029e1a5833a5cfec982f33db0ab2850fddc244ea2492787988dce
+      receipt_artifact_id: 8445868041
+      receipt_artifact_digest: 45b84c63d92bfe43c0ba065a60dfda6e514788e4a666cb504ff7535137761046
+    - run_id: 29698976996
+      conclusion: success
+      safe_artifact_id: 8445875126
+      safe_artifact_digest: 8ea6406e5949a0589ca5258f988913c264f32976808a5a7c83d722748d0ac47c
+      receipt_artifact_id: 8445875305
+      receipt_artifact_digest: ec0fa42adb61d90b55fc0305844bb7d3fdc81fc036b129bdc48688a90984489a
+  retention_expiry: "2026-10-17"
+  internal_files_identical_across_runs: true
+  internal_files:
+    safe-factor-contract-evidence.json:
+      byte_count: 5481
+      sha256: a254600f17ec665cede4a30a6dabb91d7664c3c420d7a338e0455d2765559ec6
+    safe-factor-contract-summary.json:
+      byte_count: 520
+      sha256: 5c967101beca0066d7fb964dee945f88a48ee85983cff45d9c5308bc6affe8cf
+    safe-scaling-gate.json:
+      byte_count: 924
+      sha256: 0f28fe871f757286fb2f774c70fd977da33b54a92466cd67bb0feefa5da3cce9
+  raw_or_row_level_content_present: false
+  storage_state: ACTIONS_SAFE_EVIDENCE_ONLY_RETENTION_90_DAYS
+
+closed_gates:
+  annualized_performance_calculated: false
+  sharpe_calculated: false
+  alpha_calculated: false
+  optimal_combination_calculated: false
+  turnover_or_cost_calculated: false
+  recursive_real_time_policy_constructed: false
+  empirical_verdict_issued: false
+  paper_replication_pass: false
+  economic_edge_established: false
+
+next_gate:
+  id: RECURSIVE_REAL_TIME_VOLATILITY_MANAGED_FACTOR_REPLICATION_CONTRACT
+  status: NOT_STARTED
+  requirements:
+    - public unmanaged factor source and exact vintages
+    - daily observations for prior-month variance
+    - explicit factor availability timing
+    - recursive scaling without full-sample leakage
+    - leverage cap
+    - managed-only and optimal-combination benchmarks
+    - turnover and cost assumptions
+    - fixed estimator and cap sensitivity families
+    - crisis utility and appraisal-ratio targets
+    - opposing evidence and modern update
+    - trial-ledger consequences
+    - kill criteria
+
+final_verdicts:
+  official_author_source: CONFIRMED
+  exact_snapshot_identity: CONFIRMED
+  schema_and_monthly_calendar: CONFIRMED
+  percent_return_unit: CONFIRMED
+  managed_unmanaged_pairs: CONFIRMED_6
+  unconditional_volatility_match: PASS_6_OF_6
+  safe_evidence_determinism: PASS_ACROSS_2_HOSTED_RUNS
+  raw_source_immutable_retention: INCOMPLETE
+  recursive_real_time_replication: NOT_STARTED
+  paper_replication: NOT_COMPLETE
+  economic_edge: NOT_ESTABLISHED
+  edge_risk_policy_001: INCONCLUSIVE
+  report_2_4: BLOCKED

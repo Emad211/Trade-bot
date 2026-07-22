@@ -1,0 +1,127 @@
+schema_version: "1.0"
+document:
+  id: "CFTC-TFF-2022-INSTRUMENT-REGISTRY-EVIDENCE"
+  date: "2026-07-19"
+  status: "REPORTING_AND_PRODUCT_IDENTITIES_VERSIONED_PRICE_LINKAGE_FAIL_CLOSED"
+  branch: "agent/edge-research-reports"
+  draft_pr: 41
+
+source_lineage:
+  pilot_report_date: "2022-09-13"
+  pilot_rows: 54
+  pilot_sha256: "1be0028ba872ed56c970f6cd67b76c480b3653b170762c6e55f39dc10c3d268b"
+  mapping_contract_sha256: "4dd92e493f9752371cdfaef5f6bc90edf72b235cd0f4d444aa96aa9e628251c2"
+  source_registry_sha256: "bc861dbe5a7da1f27060d87cb588a51acdd6466dbb27c889cafc5c3680cd6fff"
+
+hosted_verification:
+  workflow: "CFTC TFF 2022 Instrument Registry"
+  run_id: 29685511829
+  conclusion: "SUCCESS"
+  triggering_branch_head: "585b5b8a56cd0088bd696252b64f7925d0dabfcb"
+  pull_request_merge_test_commit: "2da604ef45fa0ef508cabcf15e3463d43c1b50b3"
+  passed_steps:
+    - "ruff"
+    - "strict_mypy"
+    - "seven_mapping_tests"
+    - "official_archive_acquisition"
+    - "frozen_pilot_derivation"
+    - "mapping_contract_decode_and_hash_verification"
+    - "instrument_registry_construction"
+    - "fail_closed_special_case_checks"
+    - "bundle_upload"
+    - "receipt_upload"
+
+registry:
+  version: "CFTC_TFF_2022_09_13_INSTRUMENT_REGISTRY_V1"
+  filename: "cftc_tff_2022-09-13_instrument_registry.csv"
+  byte_count: 38903
+  sha256: "70a8e89db716cfc8b1285f3b627188294abaae920c2b99b193f4501a7e525c74"
+  row_count: 54
+  unique_contract_market_codes: 54
+  mapping_class_counts:
+    HISTORICAL_SCREEN_TRADABLE_ROOT_VERIFIED: 47
+    NON_TRADABLE_CONSOLIDATED_AGGREGATE: 3
+    HISTORICAL_LATER_DELISTED_ROOT_VERIFIED: 2
+    NON_STANDARD_EXECUTION_PRODUCT: 1
+    PRODUCT_IDENTITY_VERIFIED_TECHNICAL_SYMBOL_PENDING: 1
+  price_linkage_status_counts:
+    BLOCKED_PENDING_PROVIDER_CONTRACT_CHAIN_AND_VINTAGE: 47
+    NOT_APPLICABLE_AGGREGATE_MUST_NEVER_RECEIVE_PRICE_SERIES: 3
+    BLOCKED_REQUIRES_EXPIRED_CONTRACT_HISTORY_AND_2022_PROVIDER_VINTAGE: 1
+    BLOCKED_REQUIRES_2022_HISTORICAL_PROVIDER_VINTAGE: 1
+    BLOCKED_NONSTANDARD_CLEARPORT_EFRP_AND_BTIC_PRICE_SEMANTICS: 1
+    BLOCKED_PENDING_PROVIDER_REFERENCE_DATA_AND_CONTRACT_CHAIN: 1
+
+special_cases:
+  consolidated_aggregates:
+    - code: "12460+"
+      market: "DJIA Consolidated"
+    - code: "13874+"
+      market: "S&P 500 Consolidated"
+    - code: "20974+"
+      market: "NASDAQ-100 Consolidated"
+  eurodollar:
+    code: "132741"
+    product_code: "GE"
+    class: "HISTORICAL_LATER_DELISTED_ROOT_VERIFIED"
+  bsby:
+    code: "157741"
+    product_code: "BSB"
+    order_entry_symbol: "BW"
+    security_group: "BW"
+    class: "HISTORICAL_LATER_DELISTED_ROOT_VERIFIED"
+  air_sp500_total_return:
+    code: "13874W"
+    product_code: "ASR"
+    security_group: "0B"
+    class: "NON_STANDARD_EXECUTION_PRODUCT"
+  nikkei_yen:
+    code: "240743"
+    product_code: "NIY"
+  micro_10_year_yield:
+    code: "04360Y"
+    product_code: "10Y"
+    class: "PRODUCT_IDENTITY_VERIFIED_TECHNICAL_SYMBOL_PENDING"
+
+fail_closed_authorization:
+  rows_with_price_linkage_authorized_true: 0
+  rows_with_provider_contract_id: 0
+  global_price_linkage_authorized: false
+  returns_authorized: false
+  empirical_fitting_authorized: false
+  paper_replication_pass: false
+  economic_edge_verdict: "INCONCLUSIVE"
+
+artifacts:
+  registry_bundle:
+    artifact_id: 8441940834
+    digest: "c0e68748e7d1b7266ee4e4b7a9de1ebd59bbea829641499618a349bae0b5457a"
+    expiry: "2026-10-17"
+  receipt:
+    artifact_id: 8441941004
+    digest: "7ee9d381ffc852b6e432592945ffa69bb35cfcf65557acd98da3b19ba4809796"
+    expiry: "2026-10-17"
+  storage_state: "ACTIONS_ARTIFACT_STAGED_RETENTION_90_DAYS"
+  long_term_immutable_storage: false
+  independent_artifact_rehash: true
+
+next_gate:
+  id: "PROVIDER_VINTAGE_CONTRACT_CHAIN_AND_POINT_IN_TIME_PRICE_SOURCE"
+  required:
+    - "provider_reference_data_source_and_license"
+    - "effective_dated_provider_contract_id"
+    - "listed_contract_month_chain"
+    - "expiration_first_notice_and_last_trade_dates"
+    - "historical_multiplier_tick_and_quote_currency"
+    - "settlement_field_definition"
+    - "same_contract_price_observation_contract"
+    - "provider_vintage_or_snapshot_identity"
+  prohibited_until_pass:
+    - "price_series_assignment"
+    - "continuous_futures_pnl"
+    - "positioning_return_computation"
+    - "signal_fitting"
+    - "report_2_4_full_authorization"
+    - "paper_trading"
+    - "live_trading"
+    - "capital_deployment"

@@ -1,0 +1,308 @@
+schema_version: '1.0'
+document:
+  id: LINEAGE-TIMING-SCHEMA-2.2
+  title: Lineage, Timing, Revision, and Quality-Test Schema
+  date: '2026-07-18'
+  status: FROZEN_FOR_IMPLEMENTATION
+  branch: agent/edge-research-reports
+temporal_fields:
+  required:
+  - event_time
+  - observation_start
+  - observation_end
+  - exchange_time
+  - report_as_of_time
+  - scheduled_release_time
+  - actual_release_time
+  - source_update_time
+  - retrieved_at
+  - ingested_at
+  - normalized_at
+  - available_at
+  execution_only:
+  - decision_time
+  - order_submit_time
+  - exchange_ack_time
+  - fill_time
+  - system_record_time
+  storage:
+    normalized_timezone: UTC
+    precision: nanoseconds
+    preserve_original_timestamp: true
+    preserve_original_timezone: true
+    preserve_raw_integer_timestamp: true
+availability_states:
+- VERIFIED_RELEASE
+- SCHEDULE_INFERRED_RELEASE
+- DATE_ONLY_RELEASE
+- UNKNOWN_RELEASE
+availability_rule:
+  expression: max(actual_release_time_or_conservative_proxy, minimum_feasible_retrieval_time, processing_complete_time)
+  confirmatory_allowed:
+  - VERIFIED_RELEASE
+  - SCHEDULE_INFERRED_RELEASE
+  conservative_delay_must_be_predeclared: true
+raw_artifact_schema:
+  primary_key: artifact_id
+  required_fields:
+  - artifact_id
+  - source_id
+  - source_object_key
+  - request_fingerprint
+  - retrieved_at
+  - media_type
+  - byte_size
+  - sha256
+  - license_snapshot_id
+  - parser_version
+  - schema_fingerprint
+  - retrieval_status
+  append_only: true
+  replacement_policy: new artifact with supersedes_artifact_id
+node_types:
+- RAW_ARTIFACT
+- RAW_RECORD
+- NORMALIZED_RECORD
+- INSTRUMENT_VERSION
+- UNIVERSE_STATE
+- CONTRACT_CHAIN_STATE
+- ROLL_EVENT
+- FEATURE
+- LABEL
+- PORTFOLIO_WEIGHT
+- COST_ESTIMATE
+- PNL_COMPONENT
+- EVIDENCE_TABLE
+- VERDICT
+edge_types:
+- PARSED_FROM
+- NORMALIZED_FROM
+- MAPPED_TO
+- AVAILABLE_AFTER
+- SELECTED_BY
+- ROLLED_TO
+- DERIVED_FROM
+- CORRECTED_BY
+- SUPERSEDES
+- AGGREGATED_FROM
+- VALIDATED_BY
+- EXCLUDED_BY
+formula_registry_schema:
+  required_fields:
+  - formula_id
+  - version
+  - expression
+  - implementation_commit
+  - input_schema_ids
+  - output_schema_id
+  - effective_from
+  - tests
+  version_bump_triggers:
+  - return type
+  - annualization
+  - risk-free rate
+  - roll rule
+  - funding formula or interval
+  - basis sign
+  - price reference
+  - volatility lookback
+  - missing-value handling
+  - outlier handling
+  - rank breakpoints
+  - timezone boundary
+  - collateral treatment
+specialized_records:
+  roll_event:
+    required_fields:
+    - product_id
+    - old_contract_key
+    - new_contract_key
+    - decision_time
+    - old_exit_price
+    - new_entry_price
+    - quantity_old
+    - quantity_new
+    - fees
+    - spread_cost
+    - slippage
+    - selection_rule_id
+    - source_lineage
+    cross_contract_gap_is_pnl: false
+  cot_release:
+    required_fields:
+    - report_type
+    - market_code
+    - report_as_of_date
+    - scheduled_release_time
+    - actual_release_time
+    - availability_state
+    - source_file_version
+    - revised
+    report_date_equals_availability: false
+  funding_record:
+    required_fields:
+    - venue_id
+    - instrument_id
+    - interval_start
+    - interval_end
+    - payment_timestamp
+    - announced_rate
+    - realized_rate
+    - formula_type
+    - premium_component
+    - interest_component
+    - cap
+    - floor
+    - interval_length
+    - position_notional
+    - settlement_currency
+    - payment_amount
+    - source_version
+    - formula_version
+    fixed_interval_assumption: false
+  crypto_instrument_version:
+    required_fields:
+    - venue_id
+    - instrument_id
+    - effective_from
+    - instrument_type
+    - base_currency
+    - quote_currency
+    - settlement_currency
+    - contract_value
+    - contract_multiplier
+    - contract_value_currency
+    - linearity
+    - tick_size
+    - lot_size
+    - minimum_order_size
+    - listing_time
+    - expiry_time
+    - funding_interval
+    - source_artifact_id
+  universe_member:
+    required_fields:
+    - experiment_id
+    - decision_time
+    - canonical_instrument_id
+    - eligible
+    - inclusion_reasons
+    - exclusion_reasons
+    - lookback_complete
+    - data_fresh
+    - source_lineage
+revision_policy:
+  raw_overwrite: false
+  provider_replacement: append revision
+  downstream_states:
+  - UNAFFECTED
+  - RECOMPUTE_REQUIRED
+  - VERDICT_INVALIDATED
+  recomputed_outputs_get_new_version: true
+quality_tests:
+  universal:
+  - duplicate_primary_keys
+  - out_of_order_timestamps
+  - non_monotonic_sequence
+  - timezone_roundtrip
+  - timestamp_unit_validation
+  - available_at_violation
+  - future_fill_detection
+  - schema_drift
+  - checksum_replacement
+  - implausible_values
+  - stale_repeats
+  - currency_consistency
+  - multiplier_consistency
+  - orphan_identifier
+  - row_count_drift
+  - lineage_complete
+  - parser_determinism
+  futures:
+  - same_contract_return
+  - roll_event_required
+  - no_artificial_roll_pnl
+  - notice_and_last_trade_guard
+  - maturity_order
+  - distinct_nearby_contracts
+  - no_future_liquidity_crossover
+  - generic_vs_contract_reconciliation
+  - specification_version
+  - settlement_finality
+  cftc:
+  - release_time_guard
+  - tuesday_friday_guard
+  - holiday_schedule
+  - shutdown_backlog
+  - report_family_separation
+  - market_code_mapping
+  - revision_retention
+  - category_total_consistency
+  crypto:
+  - timestamp_unit_by_epoch
+  - final_candle_only
+  - observed_funding_interval
+  - mark_last_index_separation
+  - effective_dated_metadata
+  - listing_trade_consistency
+  - archive_gap
+  - provider_replacement
+  - trade_id_uniqueness
+  - sequence_gap
+  - oi_validity
+  - settlement_currency
+  - contract_linearity
+  - funding_sign
+  - fill_time_ordering
+  - cross_venue_clock_alignment
+  - delisting_guard
+  - point_in_time_liquidity
+  - stablecoin_benchmark
+red_team_injections:
+- id: LEAK_FUTURE_SETTLEMENT
+  expected: REJECT
+- id: LEAK_CFTC_TUESDAY_AVAILABILITY
+  expected: REJECT
+- id: LEAK_INCOMPLETE_CANDLE
+  expected: REJECT
+- id: LEAK_FUTURE_LISTING_METADATA
+  expected: REJECT
+- id: ROLL_GAP_AS_PNL
+  expected: REJECT
+- id: RAW_FILE_SILENT_REPLACEMENT
+  expected: REJECT_AND_VERSION
+- id: FUNDING_INTERVAL_CHANGE
+  expected: REQUIRE_NEW_FORMULA_VERSION
+- id: CONTRACT_MULTIPLIER_CHANGE
+  expected: REQUIRE_NEW_INSTRUMENT_VERSION
+dataset_release_schema:
+  required_fields:
+  - dataset_id
+  - version
+  - experiment_ids
+  - created_at
+  - source_artifact_ids
+  - source_registry_hash
+  - license_registry_hash
+  - instrument_manifest_hash
+  - timing_schema_hash
+  - formula_registry_hash
+  - code_commit
+  - environment_lock_hash
+  - row_count
+  - min_event_time
+  - max_event_time
+  - min_available_at
+  - max_available_at
+  - quality_test_report
+  - known_limitations
+  - redistribution_class
+authorization:
+  acquisition: true
+  normalization: true
+  quality_testing: true
+  formula_unit_tests: true
+  empirical_fitting: false
+  parameter_search: false
+  paper_trading: false
+  live_trading: false

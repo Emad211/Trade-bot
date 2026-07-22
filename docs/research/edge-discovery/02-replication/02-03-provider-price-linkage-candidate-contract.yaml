@@ -1,0 +1,60 @@
+schema_version: "1.0"
+contract_id: "CFTC_TFF_2022_09_13_PROVIDER_PRICE_LINKAGE_CANDIDATE_V1"
+as_of_date: "2022-09-13"
+primary_integration_candidate:
+  provider: "DATABENTO"
+  accepted: false
+  purchase_authorized: false
+  authenticated_probe_executed: false
+  rationale:
+    - "One API candidate for CME/CBOT, ICE Futures U.S., and CFE datasets."
+    - "Point-in-time definition records and historical symbol preservation are required."
+    - "Statistics must supply official settlement records separately from OHLCV."
+coverage_contract:
+  ordinary_screen_tradable_rows: 47
+  datasets:
+    GLBX.MDP3:
+      exchanges: ["CME", "CBOT"]
+      expected_ordinary_roots: 43
+    IFUS.IMPACT:
+      exchanges: ["ICE Futures U.S."]
+      expected_ordinary_roots: 3
+    XCBF.PITCH:
+      exchanges: ["CFE"]
+      expected_ordinary_roots: 1
+required_schemas: ["definition", "statistics"]
+settlement_contract:
+  stat_type: 3
+  final_required: true
+  actual_required: true
+  ohlcv_substitution_allowed: false
+point_in_time_definition_contract:
+  parent_resolution_required: true
+  outright_future_only: true
+  spreads_excluded: true
+  raw_symbol_required: true
+  instrument_id_required: true
+  activation_or_listing_time_required: true
+  expiration_or_last_trade_time_required: true
+  minimum_price_increment_required: true
+  multiplier_or_unit_quantity_required: true
+  quote_currency_required: true
+metadata_contract:
+  dataset_range_required: true
+  dataset_condition_required_for_2022: true
+  cost_quote_required_before_download: true
+  license_snapshot_required: true
+  request_and_response_hashes_required: true
+exchange_native_audit_fallbacks:
+  CME_CBOT: "CME DataMine, CME Reference Data, and official settlement publications"
+  CFE: "Cboe historical data and Cboe DataShop"
+  ICE_FUTURES_US: "ICE Report Center and ICE Data Services"
+authorization:
+  provider_contract_ids: 0
+  price_linkage_authorized_rows: 0
+  returns_computation: false
+  purchase: false
+  empirical_fitting: false
+  paper_trading: false
+  live_trading: false
+  capital_deployment: false

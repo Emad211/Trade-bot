@@ -1,0 +1,86 @@
+schema_version: "1.0"
+document:
+  id: "CFTC-TFF-2022-RELEASE-LEDGER-EVIDENCE"
+  date: "2026-07-19"
+  status: "SCHEDULE_RECONSTRUCTED_AND_ACTIONS_STAGED_ACTUAL_TIMES_UNVERIFIED"
+  parent: "02-03-current-controlling-status.md"
+  human_report: "02-03-cftc-tff-2022-release-ledger-evidence.md"
+
+source_lineage:
+  source_id: "CFTC_TFF_FUTURES_ONLY_HISTORICAL_TEXT_2022"
+  archive_sha256: "94c9c1fdee9dfbe377a09923ddfe26b88d3460605dd076081f221ad367d88601"
+  member_name: "FinFutYY.txt"
+  member_sha256: "7c309cb76da8bf432e1a347e5bfde169bcac31cec4e9e33742cf3a078328bb3b"
+  schema_field_count: 87
+  schema_sha256: "fe0123051e8e5f5bb8f0cf4a870b451951bd4fa131777096eb5d028115545d42"
+
+sources:
+  cftc_release_rule: "https://www.cftc.gov/MarketReports/CommitmentsofTraders/AbouttheCOTReports/index.htm"
+  cftc_historical_viewable: "https://www.cftc.gov/MarketReports/CommitmentsofTraders/HistoricalViewable/index.htm"
+  cftc_special_announcements: "https://www.cftc.gov/MarketReports/CommitmentsofTraders/HistoricalSpecialAnnouncements/index.htm"
+  opm_2022_federal_holidays: "https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/"
+
+release_contract:
+  rule: "third federal business day after report date at 15:30 America/New_York"
+  parser_delay_seconds: 300
+  actual_release_time_policy: "null unless independently verified"
+  provisional_availability_policy: "scheduled release plus parser delay"
+  conservative_availability_policy: "next federal business day at 15:30 America/New_York"
+  actual_release_times_verified: false
+
+ledger:
+  report_count: 52
+  first_report_date: "2022-01-04"
+  last_report_date: "2022-12-27"
+  delayed_report_count: 2
+  delayed_report_dates:
+    - "2022-11-08"
+    - "2022-11-22"
+  actual_release_verified_count: 0
+  eastern_standard_time_rows: 18
+  eastern_daylight_time_rows: 34
+  byte_count: 16914
+  sha256: "4196c1444a6f9fe878c131f79d5bb4827100b5727baefd1b23333d29babccb40"
+
+holiday_delays:
+  - report_date: "2022-11-08"
+    holiday: "2022-11-11 Veterans Day"
+    scheduled_release_time_eastern: "2022-11-14T15:30:00-05:00"
+    scheduled_release_time_utc: "2022-11-14T20:30:00Z"
+  - report_date: "2022-11-22"
+    holiday: "2022-11-24 Thanksgiving Day"
+    scheduled_release_time_eastern: "2022-11-28T15:30:00-05:00"
+    scheduled_release_time_utc: "2022-11-28T20:30:00Z"
+
+pilot_2022_09_13:
+  scheduled_release_time_eastern: "2022-09-16T15:30:00-04:00"
+  scheduled_release_time_utc: "2022-09-16T19:30:00Z"
+  provisional_available_at_utc: "2022-09-16T19:35:00Z"
+  conservative_available_at_utc: "2022-09-19T19:30:00Z"
+  actual_release_time_utc: null
+  actual_release_verified: false
+
+hosted_verification:
+  workflow: "CFTC TFF 2022 Release Ledger"
+  run_id: 29683053593
+  conclusion: "SUCCESS"
+  branch_head_commit: "254eb75e37bfcd69bf2a51314254d7d72614198e"
+  pull_request_merge_test_commit: "1aefd0c4f2b892b626a407ae4cd9a2d2d774e4ac"
+  bundle_artifact_id: 8441186298
+  bundle_artifact_digest: "d71233533837dc367e2161293ec5e381f33a316e2e055a96bb89c3199ecf294c"
+  receipt_artifact_id: 8441186496
+  receipt_artifact_digest: "577ba3fffa7b8bfadb5ee4a9eacb9bd6aeb0f1126cab8a68e8c6fe8a149b6f2b"
+  retention_expiry: "2026-10-17"
+  independent_rehash: true
+
+storage:
+  state: "ACTIONS_ARTIFACT_STAGED_RETENTION_90_DAYS"
+  long_term_immutable_ingestion: false
+
+verdicts:
+  scheduled_release_reconstruction: "PASS"
+  actual_historical_release_verification: "NOT_COMPLETE"
+  artifact_audit_pass: false
+  paper_replication_pass: false
+  economic_edge_verdict: "INCONCLUSIVE"
+  report_2_4_authorized: false

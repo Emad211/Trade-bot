@@ -1,0 +1,287 @@
+schema_version: '1.0'
+report_id: REPORT_2_3_CLOSURE_MATRIX_V1
+issue_number: 60
+status_date: '2026-07-21'
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+status: COMPLETE_WITH_EXPLICIT_BLOCKERS
+target_outcome: COMPLETE_WITH_EXPLICIT_BLOCKERS
+report_2_4_authorized: false
+all_six_hypothesis_verdicts: INCONCLUSIVE
+paper_replication_pass: false
+economic_edge_established: false
+in_scope_gate_decisions:
+  '44': BLOCKED_LICENSE_OR_TIMING
+  '45': COMPLETED_PUBLISHED_TARGET_CONTRACT
+  '46': GO_MOREIRA_MUIR_RECURSIVE_CONTRACT_FROZEN
+  '50': GO_PRIVATE_REVOCABLE_2022_FUNDING_PILOT
+  '51':
+  - BLOCKED_INSTRUMENT_VERSION_HISTORY
+  - BLOCKED_ARCHIVE_AVAILABILITY_TIMING
+  '52': GO_PROSPECTIVE_OKX_POINT_IN_TIME_REGISTRY
+  '53': GO_PROSPECTIVE_OKX_PRICE_LINKAGE_METADATA_PILOT
+  '54': GO_OWNER_CONTROLLED_PRIVATE_OKX_SAMPLING_CONTRACT
+  '55': GO_OWNER_SIDE_OKX_ONE_BATCH_RUNNER_READY
+  '56':
+  - GO_OKX_FEE_AND_FUNDING_ACCOUNTING_CONTRACT
+  - BLOCKED_ACCOUNT_SPECIFIC_FEE_SNAPSHOT
+  '57':
+  - GO_OKX_EXECUTABLE_PRICE_AND_COST_SEMANTICS_CONTRACT
+  - BLOCKED_OWNER_FEE_OR_EXECUTION_INPUTS
+  '58': GO_OKX_SOURCE_HEALTH_AND_SAMPLING_ABORT_CONTRACT
+  '59':
+  - BLOCKED_BINANCE_DATA_RIGHTS_CHAIN
+  - BLOCKED_BINANCE_OBJECT_PUBLICATION_TIMING
+  - BLOCKED_BINANCE_INSTRUMENT_VERSION_HISTORY
+  '60': COMPLETE_WITH_EXPLICIT_BLOCKERS_CONDITIONAL_ON_EXACT_HEAD_CHECKS
+rows:
+- id: CFTC_2022_TFF_ACQUISITION
+  domain: CFTC 2022 TFF Futures Only acquisition and schema
+  status: VERIFIED
+  controlling:
+  - 02-03-cftc-tff-2022-acquisition-and-pilot-evidence.md
+  established: Official archive identity, exact 87-field parser, 2,719 unique annual rows, deterministic dated pilot.
+  not_established: Tradable return series, maturity-specific contract chain, paper replication, or economic edge.
+  reentry: Requires a separately admitted point-in-time price and contract-chain source before returns.
+- id: CFTC_RELEASE_LEDGER
+  domain: CFTC release ledger and availability timing
+  status: VERIFIED_BOUNDED
+  controlling:
+  - 02-03-cftc-tff-2022-release-ledger-evidence.md
+  established: A fail-closed 52-row release ledger with scheduled release identities and zero fabricated timestamps.
+  not_established: Actual historical website/API publication timestamps.
+  reentry: Immutable provider release receipts or contemporaneous timestamp evidence.
+- id: CFTC_INSTRUMENT_REGISTRY
+  domain: CFTC reporting-to-product registry
+  status: VERIFIED_BOUNDED
+  controlling:
+  - 02-03-cftc-tff-2022-instrument-registry-evidence.md
+  established: 54 reporting identities mapped to product-level research identities.
+  not_established: Provider contract IDs, maturity chains, roll rules, or authorized price linkage.
+  reentry: A licensed point-in-time provider contract registry and predeclared roll contract.
+- id: DATABENTO_ROUTE
+  domain: Databento traditional-futures route
+  status: BLOCKED
+  controlling:
+  - 02-03-databento-zero-purchase-probe-evidence.md
+  established: Zero-purchase metadata/access probe and owner-access constraints.
+  not_established: Owner-accessible licensed historical prices or contract chains.
+  reentry: Owner obtains an accessible licensed account/product route.
+- id: CBOE_VX_ROUTE
+  domain: Cboe VX historical price and return route
+  status: BLOCKED
+  controlling:
+  - 'Issue #44'
+  - 02-03-cboe-vx-license-and-historical-availability-decision.md
+  established: Parser engineering, settlement-event timing, permission request package, and no-lookahead boundary.
+  not_established: Private retention permission, exact historical publication time, or CFTC-to-VX contract linkage.
+  reentry: Written Cboe permission or executed license covering retention, combination, and derived internal returns.
+- id: CME_ROUTE
+  domain: CME historical settlements route
+  status: BLOCKED
+  controlling:
+  - 02-03-cme-public-access-and-license-gate.md
+  established: Access, order, fee, and license boundary documented.
+  not_established: Owner-accessible licensed historical settlement chain.
+  reentry: Owner login/order/license route with point-in-time contract data.
+- id: ICE_ROUTE
+  domain: ICE complete historical archive route
+  status: BLOCKED
+  controlling:
+  - Report 2.3 controlling records
+  established: Paid archive boundary documented.
+  not_established: Complete licensed historical archive in the research environment.
+  reentry: Owner-approved paid archive acquisition and license review.
+- id: MM_PUBLISHED_TARGET
+  domain: Moreira-Muir author-published target series
+  status: VERIFIED
+  controlling:
+  - 'Issue #45'
+  - 02-03-moreira-muir-official-factor-contract-evidence.md
+  established: Official target snapshot, schema, units, missingness, and six-pair volatility-scaling property.
+  not_established: Real-time implementability, recursive performance, costs, or economic edge.
+  reentry: No re-entry needed for the target contract; empirical use requires the recursive gate.
+- id: KF_DAILY_CURRENT
+  domain: Kenneth French current daily factor sources
+  status: VERIFIED_CURRENT_REVISED
+  controlling:
+  - Kenneth French Daily Factor Contract Audit run 29846542945
+  established: Three official daily source identities, hashes, schemas, units, date ranges, and factor mapping.
+  not_established: Exact paper-era vintage or historical publication timestamps.
+  reentry: Historical daily vintages and publication receipts for exact historical reconstruction.
+- id: KF_MONTHLY_CURRENT
+  domain: Kenneth French current monthly factor sources
+  status: VERIFIED_CURRENT_REVISED
+  controlling:
+  - Kenneth French Monthly Factor Contract Audit run 29846543065
+  established: Three official monthly source contracts and safe current-snapshot evidence.
+  not_established: Exact paper-era monthly vintage or row-level public redistribution rights.
+  reentry: Vintage-specific official archives and explicit data-rights review.
+- id: MM_SOURCE_RECONCILIATION
+  domain: Moreira-Muir current source reconciliation
+  status: VERIFIED_CURRENT_REVISED
+  controlling:
+  - Moreira Muir Current Source Reconciliation run 29846542979
+  established: Current daily/monthly factor mapping and revision differences retained as evidence.
+  not_established: Exact historical author input vintage.
+  reentry: Vintage evidence if exact historical replication is pursued.
+- id: MM_RECURSIVE_CONTRACT
+  domain: Moreira-Muir recursive real-time reconstruction contract
+  status: VERIFIED_CONTRACT_ONLY
+  controlling:
+  - 'Issue #46'
+  - 02-03-moreira-muir-recursive-real-time-replication-contract.yaml
+  - 02-03-moreira-muir-recursive-contract-closure-decision.md
+  established: Leakage-safe recursive policy, burn-in, variance definitions, leverage/cost sensitivity families,
+    trial ledger, and kill criteria frozen before performance.
+  not_established: Performance, Sharpe, alpha, utility, empirical paper replication, or edge.
+  reentry: A separately authorized empirical issue after exact availability, cost, and trial-governance checks.
+- id: OKX_2022_FUNDING
+  domain: OKX March 2022 funding archive identity
+  status: VERIFIED_BOUNDED
+  controlling:
+  - 'Issue #50'
+  established: Archive identity, 93 timestamps, 8-hour grid, private revocable retention/deletion controls.
+  not_established: Historical instrument specification, exact archive first-publication time, basis, PnL, or returns.
+  reentry: Historical version and publication evidence.
+- id: OKX_2022_INSTRUMENT
+  domain: OKX March 2022 instrument/version history
+  status: BLOCKED
+  controlling:
+  - 'Issue #51'
+  established: Known launch/change notices and explicit refusal to backdate current metadata.
+  not_established: Complete March 2022 contract specification.
+  reentry: Contemporaneous official instrument snapshot or versioned archive.
+- id: OKX_2022_AVAILABLE_AT
+  domain: OKX historical archive publication available_at
+  status: BLOCKED
+  controlling:
+  - 'Issue #51'
+  established: Current object identity and current modification evidence.
+  not_established: First-publication time of the March 2022 object.
+  reentry: Immutable provider publication ledger or contemporaneous receipt.
+- id: OKX_PROSPECTIVE_REGISTRY
+  domain: OKX prospective instrument and funding-source registry
+  status: VERIFIED_PROSPECTIVE_ONLY
+  controlling:
+  - 'Issue #52'
+  established: Two append-only content-addressed observations with predecessor and stream-tail checks.
+  not_established: Historical backfill or economic calculations.
+  reentry: Continue prospective observations under the same versioned contract.
+- id: OKX_PRICE_LINKAGE
+  domain: OKX spot/swap/mark/index source linkage
+  status: VERIFIED_METADATA_ONLY
+  controlling:
+  - 'Issue #53'
+  established: Exact public source identities, schema fingerprints, clocks, and non-monotonic cache diagnostic.
+  not_established: Retained prices, executable values, basis, or returns.
+  reentry: 'Owner-controlled raw batch under Issues #54/#55.'
+- id: OKX_PRIVATE_RETENTION
+  domain: OKX private synchronized raw-retention lifecycle
+  status: VERIFIED_CONTRACT_ONLY
+  controlling:
+  - 'Issue #54'
+  established: Owner-only permissions, leases, content addressing, rollback, deletion receipts, and zero public
+    raw leakage.
+  not_established: A real owner raw batch.
+  reentry: Owner-controlled private storage, encryption keys, and explicit confirmation.
+- id: OKX_OWNER_RUNNER
+  domain: OKX disabled owner-side one-batch runner
+  status: OWNER_INPUT_REQUIRED
+  controlling:
+  - 'Issue #55'
+  established: Fail-closed retain/delete runner and synthetic lifecycle.
+  not_established: Real network execution or retained real raw batch.
+  reentry: Owner supplies private path, keys, attestations, and exact confirmation.
+- id: OKX_ACCOUNTING
+  domain: OKX fee, fill, funding-bill, and position accounting
+  status: VERIFIED_SEMANTICS_ONLY
+  controlling:
+  - 'Issue #56'
+  established: Account-specific query identities, sign/currency rules, fill chronology, funding subtypes, and anti-double-counting
+    contract.
+  not_established: Owner-account fee rates or numerical costs.
+  reentry: Owner read-only credentials with trading/withdrawal disabled and safe metadata-only snapshot.
+- id: OKX_EXECUTION
+  domain: OKX executable-price, slippage, latency, and cost semantics
+  status: VERIFIED_SEMANTICS_ONLY
+  controlling:
+  - 'Issue #57'
+  established: Executable quote identities, fill lifecycle, partial fills, clocks, direction-aware slippage, and
+    non-overlapping cost components.
+  not_established: Real order/book/fill inputs or numerical transaction costs.
+  reentry: Separately authorized prospective execution experiment plus owner fee snapshot.
+- id: OKX_SOURCE_HEALTH
+  domain: OKX source health, sequence continuity, and sampling abort
+  status: VERIFIED_CONTRACT_ONLY
+  controlling:
+  - 'Issue #58'
+  established: 22 health states, explicit policy thresholds, REST error classification, seqId/prevSeqId continuity,
+    checksum-deprecation handling, quarantine, and no carry-forward.
+  not_established: Empirically selected thresholds or real execution use.
+  reentry: Versioned owner policy and separately admitted real sampling/execution context.
+- id: BINANCE_EPHEMERAL
+  domain: Binance BTCUSDT public archive integrity pilot
+  status: VERIFIED_EPHEMERAL_ONLY
+  controlling:
+  - 02-03-binance-btcusdt-public-ephemeral-pilot-evidence.md
+  - 'Issue #59'
+  established: Six official objects, provider checksums, ZIP safety, schemas, rows, and timestamp grids verified
+    ephemerally.
+  not_established: Persistent raw retention, exact historical available_at, instrument history, or returns.
+  reentry: Satisfy the three independent Binance blockers.
+- id: BINANCE_RIGHTS
+  domain: Binance persistent retention and redistribution rights
+  status: BLOCKED
+  controlling:
+  - 'Issue #59'
+  established: Public archive access and software-repository license identified.
+  not_established: Complete archive-data rights chain for retention, redistribution, public derivation, or commercial
+    reuse.
+  reentry: Explicit archive-data terms/license covering intended use.
+- id: BINANCE_AVAILABLE_AT
+  domain: Binance object-level historical publication time
+  status: BLOCKED
+  controlling:
+  - 'Issue #59'
+  established: General daily/monthly schedule and update-log mechanism.
+  not_established: Exact first-publication timestamp for each historical object.
+  reentry: Immutable object-level publication metadata or contemporaneous receipt.
+- id: BINANCE_INSTRUMENT_HISTORY
+  domain: Binance historical instrument/version identity
+  status: BLOCKED
+  controlling:
+  - 'Issue #59'
+  established: Archive path and symbol identity.
+  not_established: Complete point-in-time tick/lot/rule/funding/delisting version history.
+  reentry: Versioned official instrument archive for the target period.
+- id: NUMERICAL_EMPIRICAL_WORK
+  domain: Basis, funding PnL, returns, costs, and paper-level empirical replication
+  status: NOT_AUTHORIZED
+  controlling:
+  - 'Issue #60'
+  - Report 2.3 closure boundary
+  established: Prerequisite evidence, blocker map, accounting/execution/health contracts, and re-entry conditions.
+  not_established: Any hypothesis performance, paper replication pass, or economic edge.
+  reentry: Only through a new explicitly authorized gate after all required source/owner inputs pass.
+final_sync_verification:
+  verification_rule: 'General CI and Replication Integrity must both conclude success on the exact closure head
+    before Issue #60 is closed.'
+  exact_head_sha: TO_BE_RECORDED_IN_ISSUE_60_CLOSURE_COMMENT
+  general_ci: REQUIRED_SUCCESS
+  replication_integrity: REQUIRED_SUCCESS
+  durable_evidence: 'GitHub Actions runs and Issue #60 closure comment; no repository mutation after verification.'
+hard_non_authorizations:
+  basis_computation: false
+  funding_pnl_computation: false
+  returns_computation: false
+  transaction_cost_estimation: false
+  sharpe_or_alpha: false
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_testing: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  report_2_4_authorized: false

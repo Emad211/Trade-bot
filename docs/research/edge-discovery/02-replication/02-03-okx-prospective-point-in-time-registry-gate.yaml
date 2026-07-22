@@ -1,0 +1,209 @@
+schema_version: "1.2"
+gate_id: OKX_BTC_USDT_SWAP_PROSPECTIVE_POINT_IN_TIME_REGISTRY_V1
+issue_number: 52
+issue_state: CLOSED_COMPLETED
+status: GO_VERIFIED
+status_date: "2026-07-21"
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+current_outcome: GO_PROSPECTIVE_OKX_POINT_IN_TIME_REGISTRY
+supersedes_historical_repair: false
+
+predecessor_gate:
+  issue_number: 51
+  primary_outcome: BLOCKED_INSTRUMENT_VERSION_HISTORY
+  secondary_blocker: BLOCKED_ARCHIVE_AVAILABILITY_TIMING
+  historical_backfill_permitted: false
+
+objective: >-
+  Maintain an append-only, content-addressed, prospective registry for the
+  current BTC-USDT-SWAP instrument contract and the OKX public funding source
+  from the first verified observation forward, without projecting any current
+  value, timestamp, schema, source state, or file representation into the past.
+
+collection_boundary:
+  mode: PROSPECTIVE_ONLY
+  first_effective_semantics: FIRST_OBSERVED_NOT_PROVIDER_EFFECTIVE
+  start_time: "2026-07-21T10:30:16.294785Z"
+  start_time_source: FIRST_VERIFIED_INITIAL_SNAPSHOT_REQUEST
+  current_metadata_projected_backward: false
+  observation_gap_interpolation: false
+  continuity_across_observation_gaps_inferred: false
+
+required_clocks:
+  - request_started_at
+  - response_received_at
+  - provider_timestamp
+  - research_available_at
+  - registry_committed_at
+clock_rules:
+  ordering: request_started_at <= response_received_at <= research_available_at <= registry_committed_at
+  provider_timestamp_nullable: true
+  missing_provider_timestamp_preserved_as_null: true
+  provider_timestamp_may_be_inferred: false
+
+instrument_content_contract:
+  provider_id: BTC-USDT-SWAP
+  source_endpoint: /api/v5/public/instruments
+  required_identity_fields:
+    - instId
+    - instFamily
+    - instType
+    - ctType
+    - ctVal
+    - ctValCcy
+    - ctMult
+    - settleCcy
+    - tickSz
+    - lotSz
+    - minSz
+    - state
+  provider_time_fields_retained_without_reinterpretation:
+    - listTime
+    - contTdSwTime
+  required_lineage:
+    - official_host
+    - endpoint_path
+    - response_byte_count
+    - response_sha256
+    - schema_fields
+    - schema_sha256
+    - content_version_id
+  historical_effective_from_allowed: false
+
+funding_source_contract:
+  source_endpoint: /api/v5/public/funding-rate-history
+  instrument_id: BTC-USDT-SWAP
+  bounded_limit: 100
+  retained_safe_fields:
+    - official_host
+    - endpoint_path
+    - request_fingerprint_sha256
+    - response_byte_count
+    - response_sha256
+    - schema_fields
+    - schema_sha256
+    - row_count
+    - unique_provider_timestamps
+    - minimum_provider_timestamp_ms
+    - maximum_provider_timestamp_ms
+    - interval_seconds_counts
+  raw_response_retained: false
+  funding_rate_values_retained: false
+  realized_rate_values_retained: false
+  ordered_timestamp_series_retained: false
+  public_market_rows_retained: false
+
+versioning_contract:
+  content_addressed: true
+  content_hash_algorithm: SHA256
+  append_only: true
+  overwrite_previous_version: false
+  duplicate_observation: reject
+  registry_commit_time_monotonic: true
+  previous_observation_chain_required_after_first: true
+  stream_specific_predecessor_required: true
+  content_change_requires_field_diff: true
+  unchanged_content_requires_empty_diff: true
+  previous_version_deletion: false
+
+source_health_contract:
+  statuses:
+    - SUCCESS
+    - HTTP_ERROR
+    - TRANSPORT_ERROR
+    - CONTRACT_ERROR
+  successful_observation_requires:
+    - http_status_200
+    - response_sha256
+  failed_observation_requires:
+    - error_fingerprint_sha256
+  raw_error_retained: false
+  source_unavailability_is_market_null: false
+
+initial_snapshot:
+  status: VERIFIED
+  workflow_name: OKX Prospective Registry Initial Snapshot
+  workflow_run_id: 29822410788
+  triggering_head_sha: f56a151b3cc15b48d4627f36726d4d8e343b8e0a
+  artifact_id: 8491912580
+  artifact_digest: sha256:3d9c58788f5c1f07b83be906cd97b7780c125edad32306f4a1c14db3ef2b6407
+  artifact_expires_at: "2026-10-19"
+  evidence_filename: okx-prospective-registry-initial-snapshot.json
+  evidence_byte_count: 7366
+  evidence_sha256: 729dfb417385a6ccdb9efbb39c0b856eb86a69db89f5c47044080920b2593a75
+  durable_snapshot: 02-03-okx-prospective-registry-initial-snapshot.json
+  evidence_manifest: 02-03-okx-prospective-registry-initial-evidence.yaml
+  instrument_content_version_id: 90e429110215d9f4df991d9447b96a1bc31cccf54f88af63a7dd96702c480b3f
+  instrument_observation_id: 66c27d62616ce0f25355e3acd5e0fd2dcdbcde0a13fa7db1bcf20d34cfa104f4
+  funding_content_version_id: dcb752c70225b47c0e3aa9ff0ce89dca5154dbd95c24a5fb84ddbe126913ae4d
+  funding_observation_id: 122a88bbc72fefb3b43a20ffd5212b91856d9a1b6f2f2fd7a6cc54c09fd1e234
+  raw_or_market_values_retained: false
+
+second_snapshot:
+  status: VERIFIED
+  workflow_name: OKX Prospective Registry Second Snapshot
+  workflow_run_id: 29823341681
+  triggering_head_sha: c3dda81daa9fefbba8f7fe40c903c927d76c06e9
+  artifact_id: 8492272929
+  artifact_digest: sha256:8cf07b6b3de36514be49f8ff7bf654fb2f9c11d1a59b6cc0ffc71b5cc352269d
+  artifact_expires_at: "2026-10-19"
+  evidence_filename: okx-prospective-registry-second-snapshot.json
+  evidence_byte_count: 10827
+  evidence_sha256: e34c9931cdc5a263b5abfe263a76ff60e327989f91ec32050367370baf265c27
+  durable_snapshot: 02-03-okx-prospective-registry-second-snapshot.json
+  evidence_manifest: 02-03-okx-prospective-registry-second-evidence.yaml
+  previous_snapshot_sha256: 729dfb417385a6ccdb9efbb39c0b856eb86a69db89f5c47044080920b2593a75
+  registry_committed_at: "2026-07-21T10:44:35.402300Z"
+  predecessor_chain_valid: true
+  stream_tail_reference_valid: true
+  registry_commit_time_monotonic: true
+  observation_ids_unique: true
+  version_ids_content_addressed: true
+  gap_continuity_inferred: false
+  provider_timestamp_inferred: false
+  historical_backfill: false
+  instrument_stream:
+    previous_observation_id: 66c27d62616ce0f25355e3acd5e0fd2dcdbcde0a13fa7db1bcf20d34cfa104f4
+    current_observation_id: 96812116bee5dceae618714ad199f05b80609ba8b0bf6ab1ba908b6935a2a807
+    content_version_id: 90e429110215d9f4df991d9447b96a1bc31cccf54f88af63a7dd96702c480b3f
+    content_version_changed: false
+    changed_fields: []
+  funding_source_stream:
+    previous_observation_id: 122a88bbc72fefb3b43a20ffd5212b91856d9a1b6f2f2fd7a6cc54c09fd1e234
+    current_observation_id: c9d49d39fda12f75d0991c2cf3b31728918f1e51267845b9f5a8698edcb01b96
+    content_version_id: dcb752c70225b47c0e3aa9ff0ce89dca5154dbd95c24a5fb84ddbe126913ae4d
+    content_version_changed: false
+    changed_fields: []
+  raw_or_market_values_retained: false
+
+admitted_scope:
+  prospective_registry_collection: true
+  content_version_monitoring: true
+  append_only_observation_chaining: true
+  source_health_monitoring: true
+  schema_and_field_change_detection: true
+  safe_hash_and_metadata_retention: true
+
+hard_prohibitions:
+  historical_backfill: false
+  historical_repair: false
+  bulk_archive_acquisition: false
+  raw_redistribution: false
+  basis_computation: false
+  funding_pnl_computation: false
+  returns_computation: false
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_testing: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  report_2_4_authorized: false
+
+hypothesis_verdicts:
+  EDGE-CRYPTO-BASIS-001: INCONCLUSIVE
+  EDGE-CRYPTO-RV-001: INCONCLUSIVE
+paper_replication_pass: false
+economic_edge_verdict: INCONCLUSIVE

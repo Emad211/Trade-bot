@@ -1,0 +1,173 @@
+name: OKX Prospective Price Linkage Metadata Pilot
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/okx-prospective-price-linkage-metadata-pilot.yml
+      - src/hybrid_trader/replication/okx_price_linkage_probe.py
+      - scripts/audit_okx_prospective_price_linkage.py
+      - tests/test_okx_price_linkage_probe.py
+      - docs/research/edge-discovery/02-replication/02-03-okx-prospective-price-linkage-metadata-gate.yaml
+  push:
+    branches: [agent/edge-research-reports]
+    paths:
+      - .github/workflows/okx-prospective-price-linkage-metadata-pilot.yml
+      - src/hybrid_trader/replication/okx_price_linkage_probe.py
+      - scripts/audit_okx_prospective_price_linkage.py
+      - tests/test_okx_price_linkage_probe.py
+      - docs/research/edge-discovery/02-replication/02-03-okx-prospective-price-linkage-metadata-gate.yaml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: okx-prospective-price-linkage-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-safe-metadata-pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install verification dependencies
+        run: python -m pip install -e '.[dev,replication]'
+
+      - name: Run scoped diagnostics
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          mkdir -p build/okx-price-linkage-diagnostics
+          files=(
+            src/hybrid_trader/replication/okx_price_linkage_probe.py
+            scripts/audit_okx_prospective_price_linkage.py
+            tests/test_okx_price_linkage_probe.py
+          )
+
+          ruff format --check "${files[@]}" \
+            2>&1 | tee build/okx-price-linkage-diagnostics/format.log
+          format_status=${PIPESTATUS[0]}
+
+          ruff check "${files[@]}" \
+            2>&1 | tee build/okx-price-linkage-diagnostics/lint.log
+          lint_status=${PIPESTATUS[0]}
+
+          mypy \
+            src/hybrid_trader/replication/okx_price_linkage_probe.py \
+            scripts/audit_okx_prospective_price_linkage.py \
+            2>&1 | tee build/okx-price-linkage-diagnostics/mypy.log
+          mypy_status=${PIPESTATUS[0]}
+
+          pytest -q tests/test_okx_price_linkage_probe.py \
+            2>&1 | tee build/okx-price-linkage-diagnostics/pytest.log
+          pytest_status=${PIPESTATUS[0]}
+
+          cat > build/okx-price-linkage-diagnostics/status.json <<JSON
+          {
+            "format": ${format_status},
+            "lint": ${lint_status},
+            "mypy": ${mypy_status},
+            "pytest": ${pytest_status}
+          }
+          JSON
+
+          if (( format_status != 0 || lint_status != 0 || mypy_status != 0 || pytest_status != 0 )); then
+            exit 1
+          fi
+
+      - name: Upload scoped diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: okx-price-linkage-diagnostics-${{ github.sha }}
+          path: build/okx-price-linkage-diagnostics/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Run bounded prospective metadata pilot
+        run: |
+          python scripts/audit_okx_prospective_price_linkage.py \
+            --output-dir build/okx-prospective-price-linkage
+
+      - name: Independently verify safe evidence and prohibitions
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('build/okx-prospective-price-linkage')
+          files = sorted(path.name for path in root.iterdir() if path.is_file())
+          assert files == ['okx-prospective-price-linkage-metadata-evidence.json'], files
+          evidence = json.loads((root / files[0]).read_text(encoding='utf-8'))
+
+          assert evidence['schema_version'] == '1.0'
+          assert evidence['pilot_id'] == 'OKX_BTC_USDT_PROSPECTIVE_PRICE_LINKAGE_METADATA_V1'
+          assert evidence['collection_mode'] == 'PROSPECTIVE_ONLY'
+          assert evidence['source_count'] == 4
+          assert evidence['pilot_verdict'] == 'PROSPECTIVE_PRICE_LINKAGE_METADATA_PROFILE'
+          assert evidence['issue_53_outcome'] is None
+          assert evidence['economic_edge_verdict'] == 'INCONCLUSIVE'
+
+          expected = {
+              'OKX_SPOT_BTC_USDT_TICKER': ('SPOT_TICKER', '/api/v5/market/ticker', {'instType': 'SPOT', 'instId': 'BTC-USDT'}),
+              'OKX_SWAP_BTC_USDT_SWAP_TICKER': ('SWAP_TICKER', '/api/v5/market/ticker', {'instType': 'SWAP', 'instId': 'BTC-USDT-SWAP'}),
+              'OKX_SWAP_BTC_USDT_SWAP_MARK_PRICE': ('MARK_PRICE', '/api/v5/public/mark-price', {'instType': 'SWAP', 'instId': 'BTC-USDT-SWAP'}),
+              'OKX_BTC_USDT_INDEX_TICKER': ('INDEX_TICKER', '/api/v5/market/index-tickers', {'instId': 'BTC-USDT'}),
+          }
+          assert [source['source_id'] for source in evidence['sources']] == list(expected)
+          forbidden_keys = {
+              'last', 'lastSz', 'askPx', 'askSz', 'bidPx', 'bidSz',
+              'open24h', 'high24h', 'low24h', 'volCcy24h', 'vol24h',
+              'sodUtc0', 'sodUtc8', 'markPx', 'idxPx',
+          }
+          for source in evidence['sources']:
+              kind, path, identity = expected[source['source_id']]
+              assert source['source_kind'] == kind
+              assert source['official_host'] == 'www.okx.com'
+              assert source['endpoint_path'] == path
+              assert source['identity_fields'] == identity
+              assert source['http_status'] == 200
+              assert source['application_code'] == '0'
+              assert source['row_count'] == 1
+              assert source['response_byte_count'] > 0
+              assert len(source['response_sha256']) == 64
+              assert len(source['schema_sha256']) == 64
+              assert source['provider_timestamp_ms'] >= 10**12
+              assert source['source_health'] == 'SUCCESS'
+              assert source['raw_response_retained'] is False
+              assert source['market_values_retained'] is False
+              assert source['ordered_price_series_retained'] is False
+              assert source['historical_backfill'] is False
+              assert forbidden_keys.isdisjoint(source)
+
+          cache = evidence['provider_cache_contract']
+          assert cache == {
+              'cross_source_timestamp_monotonicity_required': False,
+              'later_request_may_return_earlier_provider_timestamp': True,
+              'multiple_independent_cache_services': True,
+              'request_order_is_provider_time_order': False,
+          }
+          assert isinstance(evidence['provider_timestamps_monotonic_in_request_order'], bool)
+          assert evidence['provider_timestamp_spread_ms'] >= 0
+          assert all(value is False for value in evidence['retention_state'].values())
+          assert all(value is False for value in evidence['authorization'].values())
+          assert evidence['identity_linkage']['calculation_authorized'] == 'false'
+          assert not list(root.glob('*.csv'))
+          assert not list(root.glob('*.zip'))
+          assert not list(root.glob('*.html'))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: okx-prospective-price-linkage-safe-evidence-${{ github.sha }}
+          path: build/okx-prospective-price-linkage/okx-prospective-price-linkage-metadata-evidence.json
+          if-no-files-found: error
+          retention-days: 90

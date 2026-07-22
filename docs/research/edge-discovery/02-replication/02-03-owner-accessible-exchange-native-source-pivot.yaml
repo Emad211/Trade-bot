@@ -1,0 +1,136 @@
+schema_version: "1.0"
+decision_date: "2026-07-19"
+program: EDGE_DISCOVERY_RESEARCH_PROGRAM
+section: RESEARCH_REPLICATION
+report_id: 02-03H
+status: DATABENTO_OPERATIONALLY_REJECTED_PUBLIC_EXCHANGE_NATIVE_PIVOT_AUTHORIZED
+
+owner_constraints:
+  foreign_payment_method_available: false
+  foreign_banking_access_available: false
+  false_identity_authorized: false
+  borrowed_payment_card_authorized: false
+  third_party_account_authorized: false
+  jurisdiction_circumvention_authorized: false
+  credential_sharing_authorized: false
+
+provider_decisions:
+  DATABENTO:
+    previous_role: PRIMARY_TECHNICAL_INTEGRATION_CANDIDATE
+    technical_quality_rejection: false
+    operational_accessibility: FAILED
+    final_status: OPERATIONALLY_REJECTED_OWNER_ACCESS_CONSTRAINT
+    provider_accepted: false
+    purchase_authorized: false
+    authenticated_probe_executed: false
+    provider_contract_ids: 0
+    price_linkage_authorized_rows: 0
+    returns_authorized: false
+    closed_issue: 42
+
+  CBOE_PUBLIC_CFE:
+    official_sources:
+      historical_contract_data: https://www.cboe.com/markets/us/futures/market-statistics/historical-data/futures
+      daily_settlements: https://www.cboe.com/markets/us/futures/market-statistics/settlement/futures/daily/
+      final_settlements: https://www.cboe.com/markets/us/futures/market-statistics/settlement/futures/final/
+    public_web_access_observed: true
+    payment_required_for_public_pages_observed: false
+    historical_contract_candidate: VX
+    status: GO_FOR_PUBLIC_VX_PILOT
+    exact_price_linkage_authorized: false
+
+  CME_PUBLIC_AND_DATAMINE:
+    official_sources:
+      daily_bulletin: https://www.cmegroup.com/market-data/daily-bulletin.html
+      settlement_access_faq: https://www.cmegroup.com/articles/faqs/access-to-cme-group-settlement-data-faq.html
+    delayed_product_page_settlements_public: true
+    historical_daily_bulletin_link_observed: true
+    historical_2022_owner_access_verified: false
+    login_or_ordering_path_documented: true
+    fee_documentation_conflict_requires_probe: true
+    status: CONDITIONAL_ACCESS_PROBE_REQUIRED
+    historical_price_linkage_authorized: false
+
+  ICE_REPORT_CENTER:
+    official_sources:
+      report_center: https://www.ice.com/report-center
+      subscription_information: https://www.ice.com/report-center/data-subscription
+    public_report_navigation_observed: true
+    complete_eod_subscription_documented: true
+    historical_eod_one_off_purchase_documented: true
+    owner_payment_accessible: false
+    status: BLOCKED_PAID_ARCHIVE
+    historical_price_linkage_authorized: false
+
+accessibility_gate:
+  required:
+    - OWNER_ACCESSIBLE_WITHOUT_FALSE_IDENTITY
+    - NO_UNAVAILABLE_FOREIGN_PAYMENT_METHOD_REQUIRED
+    - NO_SANCTIONS_OR_JURISDICTION_CIRCUMVENTION
+    - TERMS_AND_LICENSE_REVIEWED
+    - RAW_BYTES_ACQUIRABLE
+    - CHECKSUM_AND_LINEAGE_PRESERVABLE
+    - POINT_IN_TIME_CONTRACT_IDENTITY_AVAILABLE
+    - SETTLEMENT_SEMANTICS_EXPLICIT
+
+next_pilot:
+  id: CBOE_VX_PUBLIC_CONTRACT_LEVEL_PILOT_V1
+  source: CBOE_PUBLIC_CFE
+  product_root: VX
+  objective: VALIDATE_PUBLIC_EXCHANGE_NATIVE_ACQUISITION_SCHEMA_LINEAGE_SETTLEMENT_AND_SAME_CONTRACT_MECHANICS
+  exactness: CONSTRUCTIVE_OR_NEAR_EXACT_ENGINEERING_PILOT
+  paper_replication_claimed: false
+  economic_edge_tested: false
+  required_evidence:
+    - EXACT_CONTRACT_MONTH_SYMBOL
+    - TRADE_DATE
+    - OHLC_FIELDS_WHERE_AVAILABLE
+    - SETTLEMENT_FIELD
+    - EXPIRATION_IDENTITY
+    - RAW_SOURCE_URL
+    - RETRIEVAL_TIMESTAMP
+    - RAW_SHA256
+    - RAW_BYTE_COUNT
+    - SCHEMA_FINGERPRINT
+    - SETTLEMENT_SEMANTICS
+    - TERMS_SNAPSHOT
+    - NO_CONTINUOUS_SERIES_SUBSTITUTION
+
+stop_conditions:
+  - PAYMENT_OR_INACCESSIBLE_ACCOUNT_REQUIRED
+  - NOT_AN_INDIVIDUAL_CONTRACT_MONTH_HISTORY
+  - SETTLEMENT_NOT_DISTINGUISHABLE_FROM_CLOSE
+  - AMBIGUOUS_TIMESTAMPS_OR_CONTRACT_IDENTIFIERS
+  - CONTINUOUS_OR_BACK_ADJUSTED_SERIES_SERVED
+  - TERMS_PROHIBIT_INTERNAL_RESEARCH_USE
+  - RAW_BYTES_CANNOT_BE_RETAINED_WITH_CHECKSUM
+  - CURRENT_PAGE_PROJECTED_BACKWARD_AS_2022_EVIDENCE
+
+authorization:
+  cboe_public_vx_acquisition: true
+  cboe_contract_level_parser_design: true
+  cboe_source_terms_capture: true
+  cboe_same_contract_formula_validation: true
+  cme_public_access_probe: true
+  cme_historical_price_linkage: false
+  ice_public_report_probe: true
+  ice_historical_package_purchase: false
+  price_series_assignment: false
+  returns_computation: false
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_tournament: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  report_2_4_full_authorization: false
+
+final_verdict:
+  provider_contract_ids: 0
+  price_linkage_authorized_rows: 0
+  returns_authorized: false
+  paper_replication_complete: false
+  economic_edge_established: false
+  edge_fut_position_001: INCONCLUSIVE
+  report_2_4: BLOCKED

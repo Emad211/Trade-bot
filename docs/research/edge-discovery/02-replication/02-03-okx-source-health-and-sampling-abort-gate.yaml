@@ -1,0 +1,253 @@
+schema_version: "1.0"
+gate_id: OKX_SOURCE_HEALTH_AND_SAMPLING_ABORT_CONTRACT_V1
+issue_number: 58
+status: GO_VERIFIED
+status_date: "2026-07-21"
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+current_outcome: GO_OKX_SOURCE_HEALTH_AND_SAMPLING_ABORT_CONTRACT
+workflow_evidence:
+  workflow: OKX Source Health and Sampling Abort Contract
+  run_id: 29845596573
+  triggering_head: bfcf8ca98e44c2b05ea79f00dbaf28d4a53fda28
+  permissions: contents_read_only
+  conclusion: SUCCESS
+  artifact_id: 8501219123
+  artifact_digest: "sha256:0abe10d937837032e3ca1a03506bd724e6bb17c10bfa7c24c46e54c335c603f8"
+  evidence_bytes: 3981
+  evidence_sha256: cbb91b6d4dd02704495f477a0cae1a8d0694836a4aff3a085d03b3facb8bf0a3
+  ruff: PASS
+  mypy: PASS
+  scoped_tests_passed: 16
+  independent_verifier: PASS
+  real_market_request_performed: false
+  real_order_request_performed: false
+  private_trading_endpoint_called: false
+
+objective: >-
+  Freeze fail-closed REST and WebSocket health states, explicit staleness/skew
+  policy inputs, sequence continuity, rate-limit and upgrade incidents, and
+  private-batch abort behavior without retaining market values or authorizing
+  numerical calculations.
+
+predecessor_gates:
+  - issue_number: 53
+    outcome: GO_PROSPECTIVE_OKX_PRICE_LINKAGE_METADATA_PILOT
+  - issue_number: 54
+    outcome: GO_OWNER_CONTROLLED_PRIVATE_OKX_SAMPLING_CONTRACT
+  - issue_number: 57
+    outcome: GO_OKX_EXECUTABLE_PRICE_AND_COST_SEMANTICS_CONTRACT
+
+implemented_files:
+  module: src/hybrid_trader/replication/okx_source_health.py
+  validator: scripts/validate_okx_source_health_contract.py
+  tests: tests/test_okx_source_health.py
+  workflow: .github/workflows/okx-source-health-contract.yml
+
+official_contract:
+  api_guide: https://www.okx.com/docs-v5/en/
+  api_best_practices: https://www.okx.com/docs-v5/trick_en/
+  api_changelog: https://www.okx.com/docs-v5/log_en/
+  checksum_deprecation_announcement: https://www.okx.com/en-gb/help/okx-order-book-channels-checksum-field-deprecation
+  public_rest_rate_limit_identity: IP
+  rate_limit_error_code: "50011"
+  service_upgrade_notice_code: "64008"
+  websocket_disconnect_boundary_seconds: 30
+  checksum_deprecation_production_date: "2026-06-23"
+  checksum_deprecated_channels:
+    - books
+    - books-l2-tbt
+    - books50-l2-tbt
+  checksum_after_deprecation: PRESENT_BUT_FIXED_ZERO_NOT_INTEGRITY
+  integrity_fields_after_deprecation:
+    - seqId
+    - prevSeqId
+  snapshot_prev_seq_id: -1
+  heartbeat_empty_book_same_sequence: true
+
+policy_contract:
+  explicit_policy_required: true
+  hidden_thresholds_allowed: false
+  threshold_values_public_evidence: false
+  required_fields:
+    - policy_id
+    - maximum_provider_age_ms
+    - maximum_future_clock_skew_ms
+    - maximum_response_to_research_delay_ms
+    - maximum_websocket_silence_seconds
+    - maximum_cross_source_provider_time_skew_ms
+    - required_source_ids
+    - expected_schema_sha256
+    - expected_identity_sha256
+    - checksum_deprecation_effective_at
+    - sequence_validation_mode
+    - rate_limit_backoff_policy_id
+  websocket_silence_threshold_must_be_below_provider_boundary: true
+  policy_fingerprint_required: true
+
+rest_contract:
+  required_fields:
+    - source_id
+    - request_started_at
+    - response_received_at
+    - provider_timestamp
+    - research_available_at
+    - http_status
+    - provider_code
+    - row_count
+    - response_sha256
+    - schema_sha256
+    - identity_sha256
+  rate_limit_50011_state: RATE_LIMITED
+  non_200_state: HTTP_ERROR
+  transport_failure_state: TRANSPORT_ERROR
+  provider_failure_state: PROVIDER_ERROR
+  empty_response_state: EMPTY_RESPONSE
+  schema_drift_state: SCHEMA_CHANGED
+  identity_drift_state: IDENTITY_CHANGED
+  schema_or_identity_drift_requires_quarantine: true
+  stale_provider_state: STALE_PROVIDER_TIME
+  future_provider_state: FUTURE_PROVIDER_TIME
+  excessive_research_delay_state: RESEARCH_DELAY_EXCEEDED
+  invalid_clock_state: CLOCK_INVALID
+  source_failure_is_market_null: false
+
+websocket_contract:
+  snapshot_initialization:
+    required_prev_seq_id: -1
+    minimum_seq_id: 0
+  normal_update:
+    previous_message_seq_equals_current_prev_seq: true
+    current_seq_must_advance: true
+  heartbeat:
+    asks_empty: true
+    bids_empty: true
+    seq_equals_prev_and_previous: true
+    admitted_as_new_book_data: false
+    stream_live: true
+  sequence_gap_requires_reconnect: true
+  sequence_regression_requires_reconnect: true
+  checksum_used_after_deprecation: false
+  checksum_overrides_sequence_failure: false
+  service_upgrade_64008_state: SERVICE_UPGRADE_DRAIN
+  silence_breach_state: CONNECTION_SILENT
+
+health_states:
+  - HEALTHY
+  - HEARTBEAT_NO_BOOK_CHANGE
+  - STALE_PROVIDER_TIME
+  - FUTURE_PROVIDER_TIME
+  - RESEARCH_DELAY_EXCEEDED
+  - CLOCK_INVALID
+  - RATE_LIMITED
+  - HTTP_ERROR
+  - TRANSPORT_ERROR
+  - PROVIDER_ERROR
+  - CONNECTION_SILENT
+  - SERVICE_UPGRADE_DRAIN
+  - SEQUENCE_GAP
+  - SEQUENCE_REGRESSION
+  - SCHEMA_CHANGED
+  - IDENTITY_CHANGED
+  - EMPTY_RESPONSE
+  - PARTIAL_SOURCE_SET
+  - DUPLICATE_SOURCE
+  - CROSS_SOURCE_SKEW_EXCEEDED
+  - POLICY_VERSION_MISMATCH
+  - QUARANTINED
+
+batch_admission_contract:
+  exact_required_source_set: true
+  duplicate_source: REJECT
+  partial_source_set: REJECT
+  unhealthy_source: REJECT
+  schema_or_identity_drift: QUARANTINE
+  cross_source_skew_above_policy: REJECT
+  nonmonotonic_provider_timestamps_within_policy: DIAGNOSTIC_ONLY
+  carry_forward: false
+  interpolation: false
+  rejected_data_retained: false
+  rejected_batch_continuity_inferred: false
+  numerical_calculation_authorized: false
+
+safe_incident_contract:
+  retain:
+    - incident_id
+    - source_id
+    - health_state
+    - policy_id
+    - policy_fingerprint_sha256
+    - observed_at
+    - response_sha256
+    - schema_sha256
+    - identity_sha256
+    - error_fingerprint_sha256
+  prohibit:
+    - raw_payload
+    - price
+    - size
+    - bid
+    - ask
+    - mark_price
+    - index_price
+    - fill
+    - fee
+    - account_value
+    - pnl
+    - return
+  price_null_created: false
+  carry_forward_used: false
+  interpolation_used: false
+
+synthetic_validation:
+  real_market_request_allowed: false
+  real_order_request_allowed: false
+  private_trading_endpoint_allowed: false
+  credentials_allowed_in_ci: false
+  required_checks:
+    - explicit_policy_validation
+    - healthy_rest_admission
+    - stale_future_delay_and_clock_states
+    - rate_limit_and_transport_error_states
+    - schema_identity_quarantine
+    - snapshot_sequence_initialization
+    - valid_incremental_continuity
+    - heartbeat_classification
+    - sequence_gap_regression_rejection
+    - checksum_deprecation_behavior
+    - service_upgrade_drain
+    - websocket_silence_abort
+    - partial_duplicate_source_rejection
+    - cross_source_skew_rejection
+    - nonmonotonic_cache_diagnostic
+    - safe_incident_evidence
+    - no_carry_forward_or_interpolation
+
+hard_prohibitions:
+  real_market_request_in_ci: false
+  real_order_or_private_trading_call: false
+  raw_order_book_in_public_artifact: false
+  hidden_staleness_or_skew_threshold: false
+  carry_forward: false
+  interpolation: false
+  assumed_fee_rates: false
+  transaction_cost_estimation: false
+  basis_computation: false
+  funding_pnl_computation: false
+  returns_computation: false
+  empirical_fitting: false
+  strategy_testing: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  report_2_4_authorized: false
+
+allowed_outcomes:
+  - GO_OKX_SOURCE_HEALTH_AND_SAMPLING_ABORT_CONTRACT
+  - BLOCKED_SOURCE_HEALTH_SEMANTICS
+  - BLOCKED_THRESHOLD_POLICY
+  - BLOCKED_TERMS_OR_OPERATIONAL_BOUNDARY
+
+paper_replication_pass: false
+economic_edge_verdict: INCONCLUSIVE

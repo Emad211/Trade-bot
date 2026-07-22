@@ -1,0 +1,65 @@
+schema_version: "1.0"
+gate_id: MOREIRA_MUIR_RECURSIVE_REAL_TIME_REPLICATION_CONTRACT_V1
+issue_number: 46
+status: CONTRACT_FROZEN
+status_date: "2026-07-21"
+outcome: GO_RECURSIVE_CONTRACT_FROZEN_EMPIRICAL_EXECUTION_BLOCKED
+verified_components:
+  published_target_contract: VERIFIED
+  current_daily_source_contract: VERIFIED_CURRENT_REVISED_PUBLIC_SOURCE
+  current_monthly_source_contract: VERIFIED_CURRENT_REVISED_PUBLIC_SOURCE
+  current_source_reconciliation: VERIFIED
+  recursive_primary_policy: FROZEN_BEFORE_PERFORMANCE
+  fixed_variance_definitions: FROZEN
+  fixed_burn_in_family: FROZEN
+  fixed_leverage_cap_family: FROZEN
+  fixed_cost_scenarios: FROZEN
+  opposing_evidence_requirement: FROZEN
+  trial_ledger: FROZEN
+  kill_criteria: FROZEN
+workflow_evidence:
+  common_head: c01ca4176a25cf0f150e20b6934a55fd9dff10fd
+  daily:
+    run_id: 29846542945
+    artifact_id: 8501572703
+    artifact_digest: "sha256:c5931bda933faaac96ea39a15dfe7cfcfc45b3b8a902debdf19621727ce9ddab"
+  monthly:
+    run_id: 29846543065
+    artifact_id: 8501596170
+    artifact_digest: "sha256:45487ce75cb69b69d7fc8b1a55f7cfe3d240fd0ce1ac483e8c54c62fd7a8579f"
+  reconciliation:
+    run_id: 29846542979
+    artifact_id: 8501593770
+    artifact_digest: "sha256:c2939f3ced96e8dfb1f13f327f969ac7b22771d557e92a80d40eaab2471f0f95"
+data_and_vintage_boundaries:
+  data_state: CURRENT_REVISED_PUBLIC_RECONSTRUCTION
+  exact_paper_daily_vintage: NOT_VERIFIED
+  exact_paper_monthly_vintage: NOT_VERIFIED
+  historical_publication_time: NOT_VERIFIED
+  current_and_historical_vintages_may_be_mixed: false
+remaining_blockers:
+  - variance_definition_mechanical_identification
+  - retrospective_target_reconstruction
+  - recursive_policy_execution
+  - inference_contract
+  - optimal_combination_contract
+  - transaction_cost_input_authorization
+  - historical_vintage_evidence
+  - opposing_evidence_replication
+non_authorizations:
+  performance_calculation: false
+  annualized_return: false
+  sharpe: false
+  alpha: false
+  utility: false
+  transaction_cost_results: false
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_tournament: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  report_2_4: false
+paper_replication_pass: false
+economic_edge_verdict: INCONCLUSIVE

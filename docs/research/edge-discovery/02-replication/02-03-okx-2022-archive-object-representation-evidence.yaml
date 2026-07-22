@@ -1,0 +1,46 @@
+schema_version: "1.0"
+evidence_id: OKX_BTC_USDT_SWAP_FUNDING_2022_03_OBJECT_REPRESENTATION_V1
+status_date: "2026-07-21"
+issue_number: 51
+source_validation:
+  workflow_name: OKX 2022 Funding Ephemeral File Validation
+  workflow_run_id: 29811051931
+  evidence_artifact_id: 8487415309
+  artifact_digest: sha256:806ed03e82d17be2ecc3cde7e374f16898363c1c9c1ee1fc380338c088a6d082
+  evidence_json_sha256: 4123d7c54ae18829ac0aca2d3d3f4abb16be41fb965506f2bb9301b829c954
+object_identity:
+  host: static.okx.com
+  path: /cdn/okex/traderecords/swaprates/monthly/202203/BTC-USDT-SWAP-fundingrates-2022-03.zip
+  query_parameter_names:
+    - v
+  byte_count: 1403
+  sha256: ce4fe9aaf1dfdee16e1d11cdabcbb405eb348966902950db1ca862dc86779013
+  etag: '"C107A7D014AA053CF61713BD33876C7C"'
+  content_type: application/zip
+  cache_control: public,max-age=31536000
+  last_modified_header: "Sat, 07 Feb 2026 11:42:16 GMT"
+  last_modified_utc: "2026-02-07T11:42:16Z"
+  header_observed_at_utc: "2026-07-21T07:36:11Z"
+interpretation:
+  current_representation_last_modified_observed: true
+  last_modified_is_first_publication_time: false
+  last_modified_proves_file_was_publicly_available_at_that_time: false
+  current_bytes_may_be_assumed_unchanged_since_2022: false
+  current_bytes_may_be_backdated_to_2022: false
+  original_2022_object_version_verified: false
+  backfill_or_replacement_excluded: false
+  specific_file_historical_available_at_verified: false
+research_consequence:
+  current_representation_available_at_policy: CURRENT_VERIFIED_RETRIEVAL_ONLY
+  causal_use_in_2022_authorized: false
+  retrospective_noncausal_replication_candidate: true
+  requires_explicit_retrospective_label: true
+  basis_computation_authorized: false
+  funding_pnl_computation_authorized: false
+  returns_computation_authorized: false
+  empirical_fitting_authorized: false
+  paper_or_live_trading_authorized: false
+verdict:
+  archive_timing: BLOCKED_ARCHIVE_AVAILABILITY_TIMING
+  issue_51_final_outcome: null
+  economic_edge: INCONCLUSIVE

@@ -1,0 +1,184 @@
+name: OKX Private Revocable Retention Contract
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/okx-private-revocable-retention-contract.yml
+      - src/hybrid_trader/replication/revocable_retention.py
+      - tests/test_revocable_retention.py
+      - docs/research/edge-discovery/02-replication/02-03-okx-private-revocable-retention-contract.yaml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: okx-private-revocable-retention-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out triggering commit
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install project verification dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev,replication]"
+
+      - name: Run repository lint rules
+        run: >-
+          python -m ruff check
+          src/hybrid_trader/replication/revocable_retention.py
+          tests/test_revocable_retention.py
+
+      - name: Run strict typing
+        run: >-
+          python -m mypy --strict --ignore-missing-imports
+          src/hybrid_trader/replication/revocable_retention.py
+
+      - name: Run revocable retention lifecycle tests
+        run: python -m pytest -q tests/test_revocable_retention.py
+
+      - name: Exercise synthetic retain, compliance, and delete lifecycle
+        run: |
+          mkdir -p build/okx-private-retention-contract
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          import tempfile
+          from dataclasses import asdict
+          from datetime import UTC, datetime, timedelta
+          from pathlib import Path
+
+          from hybrid_trader.replication.revocable_retention import (
+              PrivateRevocableArtifactStore,
+              RetentionAttestation,
+              RetentionPolicy,
+          )
+
+          now = datetime(2026, 7, 21, 8, 0, tzinfo=UTC)
+          private_root = Path(
+              tempfile.mkdtemp(
+                  prefix="okx-revocable-contract-",
+                  dir=os.environ["RUNNER_TEMP"],
+              )
+          )
+          store = PrivateRevocableArtifactStore(
+              private_root,
+              repository_root=os.environ["GITHUB_WORKSPACE"],
+              policy=RetentionPolicy(
+                  policy_id="OKX_PRIVATE_REVOCABLE_RAW_V1",
+                  license_snapshot_id="OKX_HISTORICAL_DATA_TERMS_2026-07-21_V1",
+                  maximum_retention_days=30,
+              ),
+              attestation=RetentionAttestation(
+                  encryption_at_rest=True,
+                  owner_only_access=True,
+                  backup_and_sync_excluded=True,
+                  public_artifact_upload_disabled=True,
+              ),
+          )
+          synthetic = b"synthetic-contract-test-not-provider-data"
+          lease = store.retain(
+              synthetic,
+              source_id="SYNTHETIC_RETENTION_CONTRACT_TEST",
+              source_object_key_sha256=hashlib.sha256(
+                  b"synthetic-source-key"
+              ).hexdigest(),
+              requested_retention_days=7,
+              now=now,
+          )
+          active = store.assert_compliant(now=now + timedelta(days=1))
+          receipt = store.delete(
+              lease.artifact_id,
+              reason="SYNTHETIC_CONTRACT_VERIFICATION_COMPLETE",
+              now=now + timedelta(days=1),
+          )
+          after = store.assert_compliant(now=now + timedelta(days=1))
+          evidence = {
+              "schema_version": "1.0",
+              "purpose": "SYNTHETIC_REVOCABLE_RETENTION_CONTRACT_TEST",
+              "lease": asdict(lease),
+              "active_compliance": asdict(active),
+              "deletion_receipt": asdict(receipt),
+              "post_delete_compliance": asdict(after),
+              "synthetic_bytes_sha256": hashlib.sha256(synthetic).hexdigest(),
+              "synthetic_bytes_retained_in_evidence": False,
+              "provider_data_used": False,
+              "provider_raw_file_downloaded": False,
+              "secure_erase_claimed": False,
+              "gate_outcome": "GO_PRIVATE_REVOCABLE_2022_FUNDING_PILOT",
+              "bulk_download_authorized": False,
+              "returns_authorized": False,
+              "trading_authorized": False,
+          }
+          Path(
+              "build/okx-private-retention-contract/evidence.json"
+          ).write_text(
+              json.dumps(evidence, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          if receipt.raw_exists_after_delete or receipt.lease_exists_after_delete:
+              raise SystemExit("Synthetic deletion control failed")
+          if after.active_artifact_count != 0 or not after.compliant:
+              raise SystemExit("Synthetic store remained non-compliant after delete")
+          print(json.dumps(evidence, indent=2, sort_keys=True))
+          PY
+
+      - name: Verify safe contract evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          evidence = json.loads(
+              Path("build/okx-private-retention-contract/evidence.json")
+              .read_text(encoding="utf-8")
+          )
+          assert evidence["provider_data_used"] is False
+          assert evidence["provider_raw_file_downloaded"] is False
+          assert evidence["synthetic_bytes_retained_in_evidence"] is False
+          assert evidence["secure_erase_claimed"] is False
+          assert evidence["bulk_download_authorized"] is False
+          assert evidence["returns_authorized"] is False
+          assert evidence["trading_authorized"] is False
+          receipt = evidence["deletion_receipt"]
+          assert receipt["raw_exists_after_delete"] is False
+          assert receipt["lease_exists_after_delete"] is False
+          assert receipt["secure_erase_claimed"] is False
+          assert evidence["post_delete_compliance"]["active_artifact_count"] == 0
+          PY
+
+      - name: Upload safe synthetic contract evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: okx-private-revocable-retention-contract-${{ github.sha }}
+          path: build/okx-private-retention-contract/evidence.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Record authorization boundary
+        run: |
+          {
+            echo "## OKX private revocable retention contract"
+            echo
+            echo "- Storage root outside repository: required"
+            echo "- Encryption/owner/no-backup attestations: required"
+            echo "- Maximum raw retention: 30 days"
+            echo "- Revocation/expiry deletion: required"
+            echo "- Secure erase guaranteed: no"
+            echo "- Public raw artifact or redistribution: prohibited"
+            echo "- Authorized next scope: one private bounded 2022 funding pilot"
+            echo "- Returns, fitting, paper/live trading: not authorized"
+          } >> "$GITHUB_STEP_SUMMARY"

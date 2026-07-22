@@ -1,0 +1,136 @@
+name: Replication Integrity
+
+on:
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - "src/hybrid_trader/replication/**"
+      - "tests/**"
+      - "docs/research/edge-discovery/02-replication/**"
+      - "pyproject.toml"
+      - ".github/workflows/replication-integrity.yml"
+  pull_request:
+    paths:
+      - "src/hybrid_trader/replication/**"
+      - "tests/**"
+      - "docs/research/edge-discovery/02-replication/**"
+      - "pyproject.toml"
+      - ".github/workflows/replication-integrity.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replication-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Create isolated replication environment
+        run: |
+          python -m venv /tmp/hybrid-trader-replication-integrity
+          /tmp/hybrid-trader-replication-integrity/bin/python -m pip install --upgrade pip
+          /tmp/hybrid-trader-replication-integrity/bin/python -m pip install -e ".[dev,replication]"
+          /tmp/hybrid-trader-replication-integrity/bin/python - <<'PY'
+          import json
+          import sys
+          import numpy
+          print(json.dumps({
+              "executable": sys.executable,
+              "prefix": sys.prefix,
+              "numpy_file": numpy.__file__,
+              "numpy_version": numpy.__version__,
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Ruff
+        run: >-
+          /tmp/hybrid-trader-replication-integrity/bin/python -m ruff check
+          src/hybrid_trader/replication tests scripts
+
+      - name: Mypy
+        run: >-
+          /tmp/hybrid-trader-replication-integrity/bin/python -m mypy
+          src/hybrid_trader/replication
+
+      - name: Complete non-optional test suite and replication coverage
+        shell: bash
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+        run: |
+          set +e
+          set -o pipefail
+          COVERAGE=/tmp/hybrid-trader-replication-integrity/bin/coverage
+          PYTHON=/tmp/hybrid-trader-replication-integrity/bin/python
+
+          "$COVERAGE" erase
+          "$COVERAGE" run \
+            --branch \
+            --source=src/hybrid_trader/replication \
+            -m pytest \
+            -q -m "not optional_ml" \
+            2>&1 | tee replication-pytest.log
+          test_status=${PIPESTATUS[0]}
+
+          # XML and JSON are serialization steps, not independent quality gates.
+          # Override the repository-wide 75% default here so export succeeds even
+          # though this workflow intentionally enforces its frozen 70% threshold
+          # exactly once in the following `coverage report` command.
+          "$COVERAGE" xml --fail-under=0 -o replication-coverage.xml \
+            2>&1 | tee replication-coverage-xml.log
+          xml_status=${PIPESTATUS[0]}
+
+          "$COVERAGE" json --fail-under=0 -o replication-coverage.json \
+            2>&1 | tee replication-coverage-json.log
+          json_status=${PIPESTATUS[0]}
+
+          "$COVERAGE" report --show-missing --fail-under=70 \
+            2>&1 | tee -a replication-pytest.log
+          report_status=${PIPESTATUS[0]}
+
+          if [[ -f replication-coverage.json ]]; then
+            "$PYTHON" - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("replication-coverage.json").read_text())
+          print(json.dumps(report["totals"], indent=2, sort_keys=True))
+          PY
+          fi
+
+          cat > replication-coverage-status.json <<JSON
+          {
+            "tests": ${test_status},
+            "xml": ${xml_status},
+            "json": ${json_status},
+            "threshold_report": ${report_status}
+          }
+          JSON
+
+          if (( test_status != 0 || xml_status != 0 || json_status != 0 || report_status != 0 )); then
+            exit 1
+          fi
+
+      - name: Upload replication coverage evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: replication-coverage-${{ github.sha }}
+          path: |
+            replication-coverage.xml
+            replication-coverage.json
+            replication-coverage-status.json
+            replication-coverage-xml.log
+            replication-coverage-json.log
+            replication-pytest.log
+          if-no-files-found: warn
+          retention-days: 30

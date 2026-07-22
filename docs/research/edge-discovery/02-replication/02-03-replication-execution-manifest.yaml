@@ -1,0 +1,264 @@
+schema_version: "1.3"
+document:
+  id: "REPLICATION-EXECUTION-2.3"
+  title: "Controlled Empirical and Code Replication"
+  date: "2026-07-18"
+  status: "PARTIALLY_COMPLETE"
+  completion_state: "IMPLEMENTATION_INDEPENDENTLY_REVERIFIED_OFFICIAL_ARTIFACTS_PENDING"
+  branch: "agent/edge-research-reports"
+  controlling_status_report: "02-03-current-controlling-status.md"
+  initial_execution_snapshot: "02-03-controlled-empirical-and-code-replication.md"
+  independent_verification_log: "02-03-independent-reality-verification-log.md"
+  static_analysis_report: "02-03-static-analysis-and-test-verification.md"
+  parent_contract: "02-02-data-contract-manifest.yaml"
+  next_report: "02-04-sensitivity-cost-failure-disagreement-analysis.md"
+
+authorization:
+  implementation: true
+  unit_testing: true
+  formula_validation: true
+  official_data_acquisition: true
+  empirical_table_reconstruction: "ONLY_AFTER_ARTIFACT_GATES"
+  empirical_fitting: false
+  parameter_tuning: false
+  strategy_tournament: false
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  capital_deployment: false
+  report_2_4_full_authorization: false
+
+verification:
+  original_isolated_run:
+    test_data_class: "CONTROLLED_SYNTHETIC_FIXTURES"
+    pytest_result: "PASS"
+    passed: 11
+    failed: 0
+    duration_seconds: 0.18
+    compileall: "PASS"
+  independent_commit_reconstruction:
+    method: "reconstructed exact committed bytes from authenticated GitHub commit content"
+    sha256_match_checks:
+      artifacts_py: true
+      runner_py: true
+      verdicts_py: true
+    pytest_result: "PASS"
+    passed: 11
+    failed: 0
+    duration_seconds: 0.13
+    compileall: "PASS"
+  hardened_local_verification:
+    test_data_class: "CONTROLLED_SYNTHETIC_FIXTURES"
+    ruff:
+      version: "0.15.22"
+      selection: ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+      ignored: ["E501"]
+      result: "PASS"
+    mypy:
+      version: "2.3.0"
+      mode: "STRICT_IGNORE_MISSING_IMPORTS"
+      result: "PASS"
+      source_files_checked: 9
+    pytest:
+      version: "9.0.2"
+      result: "PASS"
+      passed: 15
+      failed: 0
+    coverage:
+      scope: "hybrid_trader.replication"
+      statement_percent: 85.44
+      minimum_percent: 80.0
+      result: "PASS"
+    compileall: "PASS"
+  github_ci:
+    workflow: ".github/workflows/replication-integrity.yml"
+    workflow_file_committed: true
+    workflow_run_observed: false
+    combined_status: "EMPTY"
+    verdict: "UNVERIFIED"
+  empirical_claim_authorized: false
+
+source_access_states:
+  definitions:
+    METADATA_VERIFIED: "official page or documentation reached"
+    API_REACHABLE: "official endpoint returned structured data"
+    RAW_ARTIFACT_ACQUIRED: "raw bytes, byte count, retrieval time, and SHA-256 recorded"
+    IMMUTABLE_INGESTED: "raw artifact plus license snapshot and immutable storage key recorded"
+    LICENSE_PENDING: "required licensed source not acquired"
+    BLOCKED: "source could not be acquired through the current route"
+  no_status_inheritance: true
+
+hardening_changes:
+  - id: "R23-HARDEN-001"
+    defect: "run_aqr_vintage_audit could return PASS for arbitrary local files"
+    correction: "require immutable official provenance and explicit return units"
+  - id: "R23-HARDEN-002"
+    defect: "generic PASS conflated artifact audit with empirical replication"
+    correction: "introduced ARTIFACT_AUDIT_PASS"
+  - id: "R23-HARDEN-003"
+    defect: "mixed monthly parsing emitted ambiguous inference warnings"
+    correction: "parse YYYYMM and mixed date formats through explicit branches"
+  - id: "R23-HARDEN-004"
+    defect: "strict typing identified seven pandas and column-label type errors"
+    correction: "resolved all errors without type-ignore escapes"
+  - id: "R23-HARDEN-005"
+    defect: "project Ruff rules identified import, annotation, and simplification violations"
+    correction: "resolved all reported violations under repository lint selection"
+
+current_hardened_files:
+  - path: "src/hybrid_trader/replication/__init__.py"
+    sha256_verified_local: "954f6ee2f7f9d5657e1dd2be146146b9dfb518979440d7a08ab5194ae41b895a"
+  - path: "src/hybrid_trader/replication/artifacts.py"
+    sha256_verified_local: "572c8c28bfaba50e8b4b9b7cc3be9fa1a0ff6c29edb3529d732bca61700f194f"
+  - path: "src/hybrid_trader/replication/crypto.py"
+    sha256_verified_local: "bab63c3a9ce643de3b0f890afc4764398b30e8191ad592654ece808dd266893b"
+  - path: "src/hybrid_trader/replication/factor_audit.py"
+    sha256_verified_local: "84b4f1502969f6c9b4b49f472682be92bf1738f56e78a3414e8d3ebf29698cbc"
+  - path: "src/hybrid_trader/replication/futures.py"
+    sha256_verified_local: "15014f294713c052d4640a2a4fa7ee45d18e22eed16e7e5768550bd01b409bf4"
+  - path: "src/hybrid_trader/replication/provenance.py"
+    sha256_verified_local: "e0a14da15bdf511ccc42bbfb238ca6131bc8e61c70e3651ae93d5b4e832212e6"
+  - path: "src/hybrid_trader/replication/runner.py"
+    sha256_verified_local: "7b271e1b549a67b8fa0c0798dea6f2fe544bd1857b94b5864f04f16315feae3a"
+  - path: "src/hybrid_trader/replication/verdicts.py"
+    sha256_verified_local: "ffd6d0fa99b225c2eda3ef3690614d9068e5d3ecc96fea82b0b8c938f813cf53"
+  - path: "tests/test_replication_cftc.py"
+    sha256_verified_local: "9abccaa1b915bbbfd2a51ee86fef6db512eda2a091b203c3e093922270750c93"
+  - path: "tests/test_replication_crypto.py"
+    sha256_verified_local: "9eaf39c20fbab01cbf042b353e18c150fcede91dcaa58da232a68d0be72cc5f2"
+  - path: "tests/test_replication_factor_audit.py"
+    sha256_verified_local: "64ad375541b0d820324d37c9a204dc97bf2d784d6895c0ddbfac8bba9ed7f9fc"
+  - path: "tests/test_replication_futures.py"
+    sha256_verified_local: "cdbf9b30aead8743cd812727ed21c158030bc6fd9f548d1af87335947f6fdb3d"
+  - path: "tests/test_replication_provenance.py"
+    sha256_verified_local: "86f16cc02891234587dbc9f8c1af331b348c9cb76d2699e416a5e7393113ebed"
+
+verified_sources:
+  - source_id: "AQR_TSMOM_ORIGINAL"
+    metadata_verified: true
+    api_reachable: false
+    raw_artifact_acquired: false
+    immutable_ingested: false
+    status: "BLOCKED_AT_BINARY_RETRIEVAL"
+  - source_id: "AQR_TSMOM_MAINTAINED"
+    metadata_verified: true
+    api_reachable: false
+    raw_artifact_acquired: false
+    immutable_ingested: false
+    status: "BLOCKED_AT_BINARY_RETRIEVAL"
+  - source_id: "NBER_MOREIRA_MUIR"
+    metadata_verified: true
+    raw_factor_artifact_acquired: false
+    immutable_ingested: false
+    status: "FACTOR_ARTIFACT_NOT_ACQUIRED"
+  - source_id: "CFTC_TFF_FUTURES_ONLY"
+    dataset_id: "gpe5-46if"
+    metadata_verified: true
+    api_reachable: true
+    structured_json_observed: true
+    raw_artifact_acquired: false
+    immutable_ingested: false
+    status: "API_REACHABLE_RAW_INGESTION_PENDING"
+  - source_id: "CFTC_LEGACY_FUTURES_ONLY"
+    dataset_id: "6dca-aqww"
+    metadata_verified: true
+    api_reachable: "NOT_REVERIFIED_IN_THIS_RUN"
+    raw_artifact_acquired: false
+    immutable_ingested: false
+    status: "METADATA_VERIFIED_RAW_INGESTION_PENDING"
+  - source_id: "CFTC_DISAGGREGATED_FUTURES_ONLY"
+    dataset_id: "72hh-3qpy"
+    metadata_verified: true
+    api_reachable: "NOT_REVERIFIED_IN_THIS_RUN"
+    raw_artifact_acquired: false
+    immutable_ingested: false
+    status: "METADATA_VERIFIED_RAW_INGESTION_PENDING"
+  - source_id: "BINANCE_PUBLIC_DATA"
+    metadata_verified: true
+    checksum_contract_verified: true
+    timestamp_change_documented: true
+    raw_artifact_acquired: false
+    immutable_ingested: false
+    status: "OFFICIAL_METADATA_VERIFIED_RAW_INGESTION_PENDING"
+  - source_id: "OKX_API"
+    metadata_verified: true
+    raw_artifact_acquired: false
+    immutable_ingested: false
+    status: "OFFICIAL_DOCUMENTATION_VERIFIED_RAW_INGESTION_PENDING"
+
+artifact_pass_contract:
+  status: "ARTIFACT_AUDIT_PASS"
+  required:
+    - "official source identity"
+    - "IMMUTABLE_INGESTED access state"
+    - "matching SHA-256"
+    - "matching byte count"
+    - "retrieval time"
+    - "license snapshot"
+    - "immutable storage key"
+    - "explicit return unit"
+  does_not_mean:
+    - "raw paper replication"
+    - "opposing-test survival"
+    - "economic edge"
+    - "live deployability"
+
+hypothesis_status:
+  - hypothesis_id: "EDGE-FUT-TREND-001"
+    implementation: "IMPLEMENTATION_READY"
+    public_factor_audit: "BLOCKED_AT_BINARY_RETRIEVAL"
+    exact_replication: "PENDING_LICENSE"
+    empirical_verdict: "INCONCLUSIVE"
+  - hypothesis_id: "EDGE-RISK-POLICY-001"
+    implementation: "IMPLEMENTATION_READY"
+    public_factor_audit: "FACTOR_ARTIFACT_NOT_ACQUIRED"
+    commodity_exact_replication: "PENDING_LICENSE"
+    empirical_verdict: "INCONCLUSIVE"
+  - hypothesis_id: "EDGE-FUT-CARRY-001"
+    same_contract_engine: "IMPLEMENTATION_READY"
+    roll_ledger: "IMPLEMENTATION_READY"
+    exact_replication: "PENDING_LICENSE"
+    empirical_verdict: "INCONCLUSIVE"
+  - hypothesis_id: "EDGE-FUT-POSITION-001"
+    release_time_engine: "IMPLEMENTATION_READY"
+    cftc_tff_api: "API_REACHABLE_RAW_INGESTION_PENDING"
+    official_immutable_artifact: "NOT_ACQUIRED"
+    licensed_price_linkage: "PENDING_LICENSE"
+    empirical_verdict: "INCONCLUSIVE"
+  - hypothesis_id: "EDGE-CRYPTO-BASIS-001"
+    instrument_version_engine: "IMPLEMENTATION_READY"
+    basis_formula: "IMPLEMENTATION_READY"
+    exact_chi_replication: "INCONCLUSIVE_DATA_ACCESS"
+    constructive_archive: "NOT_INGESTED"
+    empirical_verdict: "INCONCLUSIVE"
+  - hypothesis_id: "EDGE-CRYPTO-RV-001"
+    linear_two_leg_accounting: "IMPLEMENTATION_READY"
+    inverse_accounting: "NOT_IMPLEMENTED"
+    quanto_accounting: "NOT_IMPLEMENTED"
+    archive_ingestion: "NOT_INGESTED"
+    paper_execution: "NOT_AUTHORIZED"
+    empirical_verdict: "INCONCLUSIVE"
+
+completion_gates:
+  - "official AQR original and maintained workbooks immutably ingested"
+  - "AQR overlap and post-sample audit generated under artifact provenance gate"
+  - "Moreira-Muir public factor artifact audited or formally unavailable"
+  - "one official CFTC family immutably acquired and cross-checked with compressed data"
+  - "CFTC exceptional release ledger built from official evidence"
+  - "small Binance or OKX official pilot archive ingested with checksum"
+  - "red-team tests pass on acquired official data"
+  - "all exact inaccessible studies retain pending or inconclusive verdicts"
+  - "repository-hosted CI run observed and passed"
+
+final_verdict:
+  repository_and_branch: "CONFIRMED"
+  code_and_invariants: "PASS_WITH_INDEPENDENT_RERUN"
+  local_static_analysis: "RUFF_PASS_MYPY_STRICT_PASS"
+  hardened_tests: "15_PASS"
+  local_statement_coverage: "85.44_PERCENT_PASS"
+  github_hosted_ci: "UNVERIFIED_NO_RUN_OBSERVED"
+  official_public_artifact_ingestion: "PARTIAL_NOT_IMMUTABLE"
+  licensed_exact_replication: "PENDING"
+  paper_level_numerical_replication: "NOT_COMPLETE"
+  economic_edge_verdict: "INCONCLUSIVE_ALL_HYPOTHESES"
+  report_2_4_authorized: false

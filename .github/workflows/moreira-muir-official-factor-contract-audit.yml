@@ -1,0 +1,251 @@
+name: Moreira Muir Official Factor Contract Audit
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/moreira-muir-official-factor-contract-audit.yml
+      - src/hybrid_trader/replication/moreira_muir.py
+      - scripts/audit_moreira_muir_official_factors.py
+      - tests/test_moreira_muir.py
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - .github/workflows/moreira-muir-official-factor-contract-audit.yml
+      - src/hybrid_trader/replication/moreira_muir.py
+      - scripts/audit_moreira_muir_official_factors.py
+      - tests/test_moreira_muir.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: moreira-muir-official-factor-contract-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  acquire-audit-and-stage-safe-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Check out triggering commit
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install project and verification tools
+        run: >-
+          python -m pip install --upgrade pip &&
+          python -m pip install -e ".[dev,replication]"
+
+      - name: Run project lint rules
+        run: >-
+          python -m ruff check
+          src/hybrid_trader/replication/moreira_muir.py
+          scripts/audit_moreira_muir_official_factors.py
+          tests/test_moreira_muir.py
+
+      - name: Run strict typing
+        run: >-
+          python -m mypy --strict --ignore-missing-imports
+          src/hybrid_trader/replication/moreira_muir.py
+
+      - name: Run parser and contract tests
+        run: python -m pytest -q tests/test_moreira_muir.py
+
+      - name: Acquire exact official author files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/moreira-muir-contract-audit/raw
+          curl \
+            --fail-with-body \
+            --location \
+            --retry 5 \
+            --retry-all-errors \
+            --connect-timeout 20 \
+            --max-time 120 \
+            --user-agent 'Trade-bot research replication/1.0' \
+            --dump-header build/moreira-muir-contract-audit/author-page-headers.txt \
+            --output build/moreira-muir-contract-audit/raw/data.html \
+            'https://tylersmuir.com/data.html'
+          curl \
+            --fail-with-body \
+            --location \
+            --retry 5 \
+            --retry-all-errors \
+            --connect-timeout 20 \
+            --max-time 120 \
+            --user-agent 'Trade-bot research replication/1.0' \
+            --dump-header build/moreira-muir-contract-audit/csv-headers.txt \
+            --output build/moreira-muir-contract-audit/raw/VolManagedFactors.csv \
+            'https://tylersmuir.com/data/VolManagedFactors.csv'
+
+      - name: Run exact snapshot and scaling-contract audit
+        run: >-
+          python scripts/audit_moreira_muir_official_factors.py
+          --csv build/moreira-muir-contract-audit/raw/VolManagedFactors.csv
+          --author-page build/moreira-muir-contract-audit/raw/data.html
+          --output-dir build/moreira-muir-contract-audit/safe
+
+      - name: Independently verify frozen identities and closed gates
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path('build/moreira-muir-contract-audit/safe')
+          evidence_path = root / 'safe-factor-contract-evidence.json'
+          summary_path = root / 'safe-factor-contract-summary.json'
+          evidence = json.loads(evidence_path.read_text(encoding='utf-8'))
+          summary = json.loads(summary_path.read_text(encoding='utf-8'))
+
+          expected = {
+              'source_sha256': 'e9d92955e6ef2154aa55d05eed7b9237a313b987aad9afb0fdffd2103a81a6ba',
+              'source_byte_count': 113060,
+              'row_count': 1189,
+              'column_count': 14,
+              'first_month': '1927-01',
+              'last_month': '2026-01',
+              'factor_pair_count': 6,
+          }
+          actual = {
+              'source_sha256': evidence['source_sha256'],
+              'source_byte_count': evidence['source_byte_count'],
+              'row_count': evidence['profile']['row_count'],
+              'column_count': evidence['profile']['column_count'],
+              'first_month': evidence['profile']['first_month'],
+              'last_month': evidence['profile']['last_month'],
+              'factor_pair_count': len(evidence['profile']['factor_pair_audits']),
+          }
+          if actual != expected:
+              raise SystemExit(f'Frozen factor identity mismatch: {actual}')
+          if evidence['profile']['declared_return_unit'] != 'PERCENT':
+              raise SystemExit('Return-unit contract changed')
+          if evidence['profile']['missing_counts']['RMW_VM'] != 439:
+              raise SystemExit('RMW managed missing-count changed')
+          if evidence['profile']['missing_counts']['RMW'] != 439:
+              raise SystemExit('RMW unmanaged missing-count changed')
+          if evidence['profile']['missing_counts']['CMA_VM'] != 439:
+              raise SystemExit('CMA managed missing-count changed')
+          if evidence['profile']['missing_counts']['CMA'] != 439:
+              raise SystemExit('CMA unmanaged missing-count changed')
+          forbidden_true = {
+              'raw_uploaded': evidence['raw_uploaded'],
+              'row_level_data_uploaded': evidence['row_level_data_uploaded'],
+              'annualized_performance_calculated': evidence['annualized_performance_calculated'],
+              'sharpe_calculated': evidence['sharpe_calculated'],
+              'alpha_calculated': evidence['alpha_calculated'],
+              'empirical_verdict_issued': evidence['empirical_verdict_issued'],
+              'paper_replication_pass': evidence['paper_replication_pass'],
+          }
+          if any(forbidden_true.values()):
+              raise SystemExit(f'Closed-gate invariant violated: {forbidden_true}')
+          if summary['safe_evidence_sha256'] != hashlib.sha256(evidence_path.read_bytes()).hexdigest():
+              raise SystemExit('Safe-evidence hash mismatch')
+          pair_names = [item['factor'] for item in evidence['profile']['factor_pair_audits']]
+          if pair_names != ['Mkt-RF', 'SMB', 'HML', 'Mom', 'RMW', 'CMA']:
+              raise SystemExit(f'Factor-pair order changed: {pair_names}')
+          gate = (
+              'VOLATILITY_SCALING_CONTRACT_MATCH'
+              if evidence['profile']['all_factor_pairs_match_volatility_tolerance']
+              else 'SCALING_CONTRACT_MISMATCH_RETAINED'
+          )
+          gate_record = {
+              'gate': gate,
+              'relative_tolerance': evidence['volatility_match_relative_tolerance'],
+              'factor_results': [
+                  {
+                      'factor': item['factor'],
+                      'ratio': item['standard_deviation_ratio'],
+                      'relative_error': item['relative_standard_deviation_error'],
+                      'pass': item['volatility_match_within_tolerance'],
+                  }
+                  for item in evidence['profile']['factor_pair_audits']
+              ],
+              'paper_replication_pass': False,
+              'economic_edge_verdict': 'INCONCLUSIVE',
+          }
+          (root / 'safe-scaling-gate.json').write_text(
+              json.dumps(gate_record, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
+          print(json.dumps(gate_record, indent=2, sort_keys=True))
+          PY
+
+      - name: Remove author content before artifact upload
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build/moreira-muir-contract-audit/raw
+          rm -f build/moreira-muir-contract-audit/*-headers.txt
+          if find build/moreira-muir-contract-audit -type f \( -name '*.csv' -o -name '*.html' \) | grep -q .; then
+            echo 'Author content remains in safe artifact directory' >&2
+            exit 1
+          fi
+
+      - name: Upload safe contract evidence
+        id: upload_evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: moreira-muir-official-factor-safe-contract-${{ github.sha }}
+          path: build/moreira-muir-contract-audit/safe/
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+      - name: Create safe staging receipt
+        env:
+          ARTIFACT_ID: ${{ steps.upload_evidence.outputs.artifact-id }}
+          ARTIFACT_URL: ${{ steps.upload_evidence.outputs.artifact-url }}
+          ARTIFACT_DIGEST: ${{ steps.upload_evidence.outputs.artifact-digest }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+          root = Path('build/moreira-muir-contract-audit/safe')
+          gate = json.loads((root / 'safe-scaling-gate.json').read_text(encoding='utf-8'))
+          receipt = {
+              'schema_version': '1.0',
+              'repository': os.environ['GITHUB_REPOSITORY'],
+              'commit_sha': os.environ['GITHUB_SHA'],
+              'workflow': os.environ['GITHUB_WORKFLOW'],
+              'run_id': os.environ['GITHUB_RUN_ID'],
+              'run_attempt': os.environ['GITHUB_RUN_ATTEMPT'],
+              'created_at': datetime.now(UTC).isoformat(),
+              'artifact_id': os.environ['ARTIFACT_ID'],
+              'artifact_url': os.environ['ARTIFACT_URL'],
+              'artifact_digest': os.environ['ARTIFACT_DIGEST'],
+              'storage_state': 'ACTIONS_SAFE_EVIDENCE_ONLY_RETENTION_90_DAYS',
+              'scaling_gate': gate['gate'],
+              'raw_uploaded': False,
+              'empirical_verdict_issued': False,
+              'paper_replication_pass': False,
+              'economic_edge_verdict': 'INCONCLUSIVE',
+          }
+          Path('build/moreira-muir-contract-receipt.json').write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
+          print(json.dumps(receipt, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload safe receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: moreira-muir-official-factor-safe-contract-receipt-${{ github.sha }}
+          path: build/moreira-muir-contract-receipt.json
+          if-no-files-found: error
+          retention-days: 90

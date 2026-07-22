@@ -1,0 +1,373 @@
+schema_version: "1.0"
+document:
+  id: "EDGE-MAP-SYNTHESIS-1.5"
+  title: "Edge Map Synthesis and Replication Admissions"
+  date: "2026-07-18"
+  status: "COMPLETE"
+  branch: "agent/edge-research-reports"
+  human_report: "01-05-edge-map-synthesis.md"
+  purpose: >
+    Freeze the Section 1 decisions and provide machine-readable inputs for
+    literature replication, dataset design, strategy evaluation, and runtime architecture.
+
+program_thesis: >
+  Research a multi-asset event-driven portfolio of slow structural futures premia
+  and diversified trend; test positioning and cryptocurrency derivatives state as
+  separate incremental hypotheses; apply simple cost-aware abstention and risk
+  policies only after upstream signals are frozen; preserve value through execution,
+  reconciliation, and operational risk control.
+
+authorization:
+  historical_research: true
+  paper_trading: false
+  live_trading: false
+  leverage: false
+  automatic_promotion: false
+  capital_deployment: false
+
+operator_profile:
+  colocation: false
+  privileged_order_flow: false
+  exclusive_news_feed: false
+  infrastructure: "ordinary_cloud_or_dedicated_servers"
+  capital: "small_to_moderate"
+  prospective_collection_required: true
+
+admission_rubric:
+  economic_mechanism_clarity: 15
+  independent_supporting_and_opposing_evidence: 15
+  falsifiability_and_benchmark_quality: 10
+  point_in_time_data_feasibility: 15
+  execution_and_cost_observability: 15
+  cross_market_or_cross_venue_replication: 10
+  independent_operator_speed_fit: 10
+  capacity_and_operational_fit: 10
+  total: 100
+  bands:
+    primary_replication: [85, 100]
+    constrained_replication: [75, 84]
+    conditional_secondary: [65, 74]
+    watchlist: [50, 64]
+    reject: [0, 49]
+
+workstreams:
+  - id: "WS-FUTURES"
+    title: "Diversified listed-futures economic research"
+    priority: 1
+    hypotheses:
+      - "EDGE-FUT-CARRY-001"
+      - "EDGE-FUT-TREND-001"
+      - "EDGE-FUT-POSITION-001"
+    horizons:
+      - "daily"
+      - "weekly"
+      - "monthly"
+  - id: "WS-CRYPTO"
+    title: "Cryptocurrency derivatives research and runtime bridge"
+    priority: 2
+    hypotheses:
+      - "EDGE-CRYPTO-BASIS-001"
+      - "EDGE-CRYPTO-RV-001"
+    horizons:
+      - "hourly"
+      - "daily"
+      - "multi_day"
+  - id: "WS-RISK"
+    title: "Dependent risk and participation policy"
+    priority: 3
+    hypotheses:
+      - "EDGE-RISK-POLICY-001"
+    dependency: "requires_frozen_upstream_strategy"
+
+hypotheses:
+  - id: "EDGE-FUT-CARRY-001"
+    title: "Diversified listed-futures carry and curve premia"
+    rank: 1
+    score: 95
+    decision: "ADMITTED_FOR_REPLICATION"
+    priority_class: "PRIMARY"
+    primary_mechanism: "risk_transfer_and_structural_curve_premia"
+    market: "diversified_liquid_listed_futures"
+    horizon: "daily_to_monthly"
+    dependencies: []
+    primitive_tests:
+      - "normalized_carry_or_basis"
+      - "basis_momentum_or_curve_change"
+      - "simple_equal_weight_combination_after_primitive_reporting"
+    strongest_benchmarks:
+      - "equal_risk_passive_futures"
+      - "equal_weighted_universe"
+      - "simple_basis_sort"
+      - "randomized_rank_matched_turnover"
+    principal_risks:
+      - "unrealizable_roll_yield"
+      - "funding_liquidity"
+      - "intermediary_constraints"
+      - "sector_concentration"
+      - "contract_roll_error"
+    anchor_dois:
+      - "10.1111/jofi.12096"
+      - "10.1111/jofi.12738"
+    opposing_or_update_dois:
+      - "10.1111/1477-9552.12485"
+      - "10.1002/fut.22559"
+      - "10.1002/fut.70022"
+
+  - id: "EDGE-FUT-TREND-001"
+    title: "Diversified medium-frequency futures trend"
+    rank: 2
+    score: 95
+    decision: "ADMITTED_FOR_REPLICATION"
+    priority_class: "PRIMARY"
+    primary_mechanism: "slow_price_adjustment_and_behavioral_trend"
+    market: "diversified_liquid_listed_futures"
+    horizon: "daily_to_weekly"
+    dependencies:
+      - "shared_futures_contract_data_model"
+    primitive_tests:
+      - "return_sign_trend"
+      - "moving_average_or_breakout_equivalent"
+      - "constant_sizing_decomposition"
+      - "volatility_scaled_decomposition"
+    strongest_benchmarks:
+      - "equal_risk_long_only"
+      - "random_sign_matched_exposure"
+      - "constant_volatility_no_signal"
+      - "simple_12_month_sign"
+    principal_risks:
+      - "whipsaw"
+      - "crowding"
+      - "momentum_crash"
+      - "roll_artifact"
+      - "volatility_scaling_confound"
+    anchor_dois:
+      - "10.1002/fut.22291"
+    opposing_or_update_dois:
+      - "10.1002/ijfe.1833"
+      - "10.1111/fire.12065"
+      - "10.1111/1477-9552.12485"
+      - "10.1002/rfe.1228"
+      - "10.1002/fut.70033"
+
+  - id: "EDGE-CRYPTO-BASIS-001"
+    title: "Cross-sectional cryptocurrency derivatives state"
+    rank: 3
+    score: 82
+    decision: "ADMITTED_FOR_REPLICATION"
+    priority_class: "CONSTRAINED"
+    primary_mechanism: "leverage_demand_and_derivatives_market_segmentation"
+    market: "liquid_crypto_spot_perpetual_and_dated_futures"
+    horizon: "hourly_to_daily"
+    dependencies:
+      - "point_in_time_crypto_universe"
+      - "actual_funding_mark_index_and_margin_data"
+    primitive_tests:
+      - "basis"
+      - "funding"
+      - "open_interest_change"
+      - "liquidation_and_crowding_state"
+      - "predeclared_simple_combination"
+    strongest_benchmarks:
+      - "liquidity_matched_momentum"
+      - "equal_weighted_liquid_crypto"
+      - "btc_eth_passive"
+      - "random_cross_sectional_ranks"
+    principal_risks:
+      - "venue_risk"
+      - "stablecoin_risk"
+      - "liquidation"
+      - "auto_deleveraging"
+      - "survivorship"
+      - "funding_reversal"
+      - "access_constraints"
+    anchor_dois:
+      - "10.1002/fut.22425"
+    opposing_or_update_dois:
+      - "10.1002/fut.22305"
+      - "10.1002/fut.22163"
+      - "10.1002/fut.70089"
+
+  - id: "EDGE-FUT-POSITION-001"
+    title: "Futures positioning and crowding"
+    rank: 4
+    score: 86
+    decision: "ADMITTED_FOR_REPLICATION"
+    priority_class: "PRIMARY_AFTER_DATA_FOUNDATION"
+    primary_mechanism: "hedger_speculator_risk_transfer_and_crowding"
+    market: "diversified_liquid_listed_futures"
+    horizon: "weekly_to_monthly"
+    dependencies:
+      - "shared_futures_contract_data_model"
+      - "publication_time_and_vintage_support"
+    primitive_tests:
+      - "hedging_pressure"
+      - "speculative_pressure"
+      - "crowding_relative_to_trailing_history"
+      - "open_interest_growth_negative_comparator"
+    strongest_benchmarks:
+      - "carry"
+      - "trend"
+      - "carry_plus_trend"
+      - "random_position_ranks"
+      - "stale_position_data"
+    principal_risks:
+      - "publication_delay"
+      - "classification_revision"
+      - "aggregation"
+      - "endogeneity"
+      - "trend_and_carry_overlap"
+    anchor_dois:
+      - "10.1002/fut.22085"
+      - "10.1002/fut.22396"
+    opposing_or_update_dois:
+      - "10.1002/fut.21724"
+      - "10.1002/rfe.1228"
+
+  - id: "EDGE-RISK-POLICY-001"
+    title: "Incremental cost-aware risk and abstention policy"
+    rank: 5
+    score: 93
+    decision: "ADMITTED_AS_DEPENDENT_REPLICATION"
+    priority_class: "DEPENDENT"
+    primary_mechanism: "selective_participation_and_turnover_control"
+    market: "applies_to_frozen_upstream_strategy"
+    horizon: "same_or_slower_than_upstream"
+    dependencies:
+      - "frozen_upstream_signal"
+      - "immutable_upstream_outputs"
+    primitive_tests:
+      - "constant_target_risk"
+      - "simple_ewma_or_realized_volatility_scaling"
+      - "cost_and_uncertainty_abstention"
+      - "no_trade_band"
+      - "operational_stress_shutdown"
+    strongest_benchmarks:
+      - "upstream_fixed_exposure"
+      - "risk_matched_cash_scaled"
+      - "random_abstention_matched_trade_count"
+      - "simple_ewma"
+    principal_risks:
+      - "exposure_reduction_mistaken_for_alpha"
+      - "joint_optimization"
+      - "turnover_confound"
+      - "model_complexity"
+      - "leverage"
+    anchor_dois:
+      - "10.1111/jofi.12513"
+      - "10.1111/jofi.12080"
+    opposing_or_update_dois:
+      - "10.1111/jofi.13395"
+      - "10.1002/jae.70053"
+
+  - id: "EDGE-CRYPTO-RV-001"
+    title: "Delta-neutral cryptocurrency basis dislocations"
+    rank: 6
+    score: 73
+    decision: "CONDITIONAL_SECONDARY_REPLICATION"
+    priority_class: "SECONDARY"
+    primary_mechanism: "market_segmentation_and_limits_to_arbitrage"
+    market: "liquid_crypto_spot_perpetual_and_dated_futures"
+    horizon: "multi_hour_to_multi_week"
+    dependencies:
+      - "two_leg_event_driven_paper_execution"
+      - "collateral_margin_and_transfer_model"
+    primitive_tests:
+      - "same_venue_cash_and_carry"
+      - "cross_venue_cash_and_carry_after_transfer_constraints"
+      - "funding_reversal_stress"
+    strongest_benchmarks:
+      - "cash"
+      - "fully_collateralized_passive"
+      - "same_venue_only"
+    principal_risks:
+      - "one_leg_fill"
+      - "exchange_default"
+      - "stablecoin_depeg"
+      - "withdrawal_suspension"
+      - "basis_widening"
+      - "liquidation"
+      - "auto_deleveraging"
+    anchor_dois:
+      - "10.1002/fut.22305"
+
+deferred:
+  - id: "EDGE-EQUITY-XSEC-WATCH"
+    title: "Cross-sectional equities"
+    decision: "DEFERRED_BY_PREREQUISITE"
+    reentry_requirements:
+      - "point_in_time_universe"
+      - "delisting_and_corporate_action_accounting"
+      - "historical_borrow_availability_and_fees"
+      - "tested_equity_execution_model"
+  - id: "EDGE-OPTIONS-WATCH"
+    title: "Listed option factors and volatility surface"
+    decision: "DEFERRED"
+    reentry_requirements:
+      - "synchronized_option_and_underlying_quotes"
+      - "validated_surface_construction"
+      - "margin_assignment_and_exercise_simulator"
+      - "multi_leg_execution"
+  - id: "EDGE-DEFI-WATCH"
+    title: "Decentralized-finance structural relative value"
+    decision: "WATCHLIST"
+    reentry_requirements:
+      - "protocol_state_replay"
+      - "gas_and_block_inclusion_model"
+      - "oracle_bridge_and_smart_contract_risk_model"
+  - id: "EDGE-SEMANTIC-WATCH"
+    title: "News and language-model semantic signals"
+    decision: "SHADOW_EXPLORATORY_ONLY"
+    reentry_requirements:
+      - "prospective_raw_source_capture"
+      - "frozen_model_revision_and_prompt"
+      - "inference_completion_availability"
+      - "strong_keyword_and_non_llm_baselines"
+
+rejected:
+  - id: "REJECT-GENERIC-SINGLE-ASSET-ML"
+    reason: "weak economic payer, high trial freedom, limited diversification"
+  - id: "REJECT-SUBSECOND-HFT"
+    reason: "requires unavailable physical latency and queue infrastructure"
+  - id: "REJECT-ILLIQUID-ALTCOINS"
+    reason: "survivorship, manipulation, spread, depth, and capacity failures"
+  - id: "REJECT-SAME-BLOCK-MEV"
+    reason: "specialized adversarial infrastructure outside operator profile"
+  - id: "REJECT-NAKED-SHORT-VOL"
+    reason: "unbounded or inadequately observed tail risk for initial system"
+
+universal_prohibitions:
+  - "selecting only high-performance papers"
+  - "omitting opposing evidence"
+  - "tuning after opening the sealed test"
+  - "using continuous futures jumps as realizable returns"
+  - "using current universe membership historically"
+  - "using observation dates before publication availability"
+  - "treating funding as risk-free yield"
+  - "ignoring margin liquidation or auto-deleveraging"
+  - "combining primitive signals before separate reporting"
+  - "using complexity without matched simple benchmarks"
+  - "reusing sealed tests for selection"
+  - "deleting negative results"
+  - "calling risk premium alpha without risk analysis"
+  - "automatic paper or live promotion"
+  - "live deployment based only on historical evidence"
+
+replication_sequence:
+  - "Report 2.1 selects anchor, opposing, modern-update, implementation, and code assets."
+  - "Replicate EDGE-FUT-CARRY-001 primitives."
+  - "Replicate EDGE-FUT-TREND-001 primitives and decompositions."
+  - "Build shared futures contract and roll data model."
+  - "Replicate EDGE-CRYPTO-BASIS-001 primitives."
+  - "Add EDGE-FUT-POSITION-001 after publication-time data support."
+  - "Evaluate EDGE-RISK-POLICY-001 only on frozen upstream outputs."
+  - "Attempt EDGE-CRYPTO-RV-001 only after two-leg paper execution exists."
+
+next_report:
+  id: "2.1"
+  title: "Anchor Papers, Opposing Evidence, and Replication Code Selection"
+  required_outputs:
+    - "paper_selection_matrix"
+    - "exact_tables_and_figures_to_reproduce"
+    - "replication_code_inventory"
+    - "data_source_and_license_matrix"
+    - "paper_specific_information_contracts"

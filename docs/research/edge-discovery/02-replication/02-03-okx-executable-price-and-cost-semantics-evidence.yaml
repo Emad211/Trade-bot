@@ -1,0 +1,153 @@
+schema_version: "1.0"
+evidence_id: OKX_EXECUTABLE_PRICE_AND_COST_SEMANTICS_EVIDENCE_V1
+issue_number: 57
+status_date: "2026-07-21"
+repository: Emad211/Trade-bot
+branch: agent/edge-research-reports
+outcome: GO_OKX_EXECUTABLE_PRICE_AND_COST_SEMANTICS_CONTRACT
+secondary_blocker: BLOCKED_OWNER_FEE_OR_EXECUTION_INPUTS
+
+workflow:
+  name: OKX Executable Price and Cost Semantics Contract
+  run_id: 29841870117
+  conclusion: SUCCESS
+  triggering_head_sha: c509ac0a93629a0a77319fbd0298a0be23aad318
+  permissions: CONTENTS_READ_ONLY
+
+verification:
+  ruff_format: PASS
+  ruff_lint: PASS
+  mypy_strict: PASS
+  scoped_tests:
+    passed: 22
+    failed: 0
+  safe_evidence_generator: PASS
+  independent_safe_evidence_verifier: PASS
+  real_order_request_performed: false
+  private_trading_endpoint_called: false
+
+safe_artifact:
+  artifact_id: 8499736417
+  artifact_digest: sha256:3367ac39c72b69f01c80ecdfbbe31276f9defcdff4373434d790144caf241d47
+  evidence_filename: okx-execution-cost-semantics-safe-evidence.json
+  evidence_byte_count: 4269
+  evidence_sha256: 0a65fcf91393decbb1032840791af5c4dcc7c0228a0ece7105bffb529e86d930
+  expires_at: "2026-10-19"
+  durable_repository_copy: 02-03-okx-executable-price-and-cost-semantics-evidence.json
+  real_prices_present: false
+  real_sizes_present: false
+  real_fills_present: false
+  real_costs_present: false
+  account_values_present: false
+  credentials_present: false
+
+price_identity_findings:
+  buy_executable_quote: BEST_ASK
+  sell_executable_quote: BEST_BID
+  midpoint_is_executable: false
+  last_is_executable: false
+  mark_is_executable: false
+  index_is_executable: false
+  limit_price_is_fill_price: false
+  acknowledgement_is_execution: false
+  cancel_ack_is_final_cancellation: false
+  unfilled_quantity_gets_price: false
+
+order_and_fill_findings:
+  admitted_order_types:
+    - market
+    - limit
+    - post_only
+    - ioc
+    - fok
+    - optimal_limit_ioc
+  maker_taker_from_actual_fill: true
+  order_type_hardcodes_role: false
+  partial_fill_aggregation: QUANTITY_WEIGHTED
+  residual_quantity_preserved: true
+  item_level_batch_result_required: true
+
+clock_findings:
+  client_gateway_unit: MICROSECONDS
+  provider_order_fill_unit: MILLISECONDS
+  gateway_receive_field: inTime
+  gateway_send_field: outTime
+  order_creation_field: cTime
+  order_update_field: uTime
+  fill_matching_field: fillTime
+  acknowledgement_time_used_as_fill_time: false
+  negative_or_reordered_clocks: REJECT
+
+book_and_cache_findings:
+  source_and_version_required: true
+  provider_timestamp_required: true
+  research_available_at_required: true
+  depth_and_aggregation_required: true
+  tick_size_explicit: true
+  elp_and_speed_bump_flags_explicit: true
+  hidden_stale_threshold_allowed: false
+  provider_timestamps_monotonic_in_request_order: false
+  request_order_rewritten: false
+  synthetic_provider_timestamp_spread_ms: 70
+
+slippage_findings:
+  reference_identity_required: true
+  reference_time_required: true
+  buy_adverse_direction: EXECUTION_MINUS_REFERENCE
+  sell_adverse_direction: REFERENCE_MINUS_EXECUTION
+  maker_implies_zero_spread_cost: false
+  unfilled_quantity_price: null
+
+cost_component_findings:
+  full_and_half_spread_both_counted: false
+  implementation_shortfall_and_decomposition_both_counted: false
+  position_aggregate_readds_fill_fee_or_funding: false
+  mixed_currency_without_conversion: REJECT
+  mixed_level_without_transform: REJECT
+  duplicate_reconciliation_keys: REJECT
+  trading_fee_requires_owner_snapshot: true
+  funding_requires_formula_version: true
+  instrument_version_required: true
+
+synthetic_checks:
+  buy_uses_ask_sell_uses_bid: PASS
+  implicit_non_executable_identity_rejection: PASS
+  limit_price_not_fill_price: PASS
+  acknowledgement_not_execution: PASS
+  cancel_ack_not_final_state: PASS
+  partial_fill_weighting: PASS
+  residual_quantity_preservation: PASS
+  actual_fill_liquidity_role: PASS
+  timestamp_unit_and_order_validation: PASS
+  direction_aware_slippage: PASS
+  unfilled_quantity_no_price: PASS
+  cost_double_count_rejection: PASS
+  mixed_currency_and_level_rejection: PASS
+  owner_fee_snapshot_requirement: PASS
+  funding_formula_requirement: PASS
+  provider_cache_nonmonotonic_diagnostic: PASS
+
+owner_input_boundary:
+  owner_fee_snapshot: BLOCKED_OWNER_READ_ONLY_CREDENTIALS
+  real_execution_inputs: NOT_ADMITTED
+  numerical_transaction_costs_allowed: false
+  numerical_returns_allowed: false
+
+non_authorization:
+  real_order_request: false
+  private_trading_endpoint: false
+  owner_credentials_in_repository: false
+  real_book_or_fill_in_public_evidence: false
+  assumed_fee_rates: false
+  basis_computation: false
+  funding_pnl_computation: false
+  returns_computation: false
+  transaction_cost_estimation: false
+  empirical_fitting: false
+  strategy_testing: false
+  paper_trading: false
+  live_trading: false
+  capital_deployment: false
+  report_2_4: false
+
+economic_edge_verdict: INCONCLUSIVE

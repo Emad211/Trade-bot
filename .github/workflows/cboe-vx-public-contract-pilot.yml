@@ -1,0 +1,324 @@
+name: Cboe VX Public Contract Pilot
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/cboe-vx-public-contract-pilot.yml
+      - src/hybrid_trader/replication/cboe_vx_public.py
+      - scripts/build_cboe_vx_public_contract_pilot.py
+      - tests/test_cboe_vx_public.py
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - .github/workflows/cboe-vx-public-contract-pilot.yml
+      - src/hybrid_trader/replication/cboe_vx_public.py
+      - scripts/build_cboe_vx_public_contract_pilot.py
+      - tests/test_cboe_vx_public.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cboe-vx-public-contract-pilot-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  acquire-parse-verify-and-stage-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Check out triggering commit
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install project and verification tools
+        run: >-
+          python -m pip install --upgrade pip &&
+          python -m pip install -e ".[dev,replication]"
+
+      - name: Run project lint rules
+        run: >-
+          python -m ruff check
+          src/hybrid_trader/replication/cboe_vx_public.py
+          scripts/build_cboe_vx_public_contract_pilot.py
+          tests/test_cboe_vx_public.py
+
+      - name: Run strict typing
+        run: >-
+          python -m mypy --strict --ignore-missing-imports
+          src/hybrid_trader/replication/cboe_vx_public.py
+
+      - name: Run Cboe parser tests
+        run: python -m pytest -q tests/test_cboe_vx_public.py
+
+      - name: Acquire exact official Cboe contract files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/cboe-vx-public/raw build/cboe-vx-public/license-raw
+          base='https://cdn.cboe.com/data/us/futures/market_statistics/historical_data/VX'
+          for expiry in 2022-09-21 2022-10-19; do
+            curl \
+              --fail-with-body \
+              --location \
+              --retry 5 \
+              --retry-all-errors \
+              --connect-timeout 20 \
+              --max-time 120 \
+              --user-agent 'Trade-bot research replication/1.0' \
+              --dump-header "build/cboe-vx-public/headers_${expiry}.txt" \
+              --output "build/cboe-vx-public/raw/VX_${expiry}.csv" \
+              "$base/VX_${expiry}.csv"
+          done
+
+      - name: Capture current Cboe terms identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl \
+            --fail-with-body \
+            --location \
+            --retry 5 \
+            --retry-all-errors \
+            --connect-timeout 20 \
+            --max-time 120 \
+            --user-agent 'Trade-bot research replication/1.0' \
+            --output build/cboe-vx-public/license-raw/cboe-terms.html \
+            'https://www.cboe.com/terms/'
+          curl \
+            --fail-with-body \
+            --location \
+            --retry 5 \
+            --retry-all-errors \
+            --connect-timeout 20 \
+            --max-time 120 \
+            --user-agent 'Trade-bot research replication/1.0' \
+            --output build/cboe-vx-public/license-raw/cboe-use-of-content.html \
+            'https://www.cboe.com/en/use-of-content/'
+
+      - name: Build deterministic contract-level pilot
+        run: >-
+          python scripts/build_cboe_vx_public_contract_pilot.py
+          --september build/cboe-vx-public/raw/VX_2022-09-21.csv
+          --october build/cboe-vx-public/raw/VX_2022-10-19.csv
+          --output-dir build/cboe-vx-public/derived
+
+      - name: Independently verify identities and closed authorization gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv
+          import hashlib
+          import json
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+          root = Path('build/cboe-vx-public')
+          expected_raw = {
+              'VX_2022-09-21.csv': {
+                  'byte_count': 15819,
+                  'sha256': 'a74598b17c5e92b068ee46ee38aefdfe8423d62153bee7d879ff4eddc2fbb626',
+              },
+              'VX_2022-10-19.csv': {
+                  'byte_count': 15850,
+                  'sha256': '270abe0333366e5395d88d6e56da51fa403962f03229d119a8208ece339c778d',
+              },
+          }
+          for filename, expected in expected_raw.items():
+              raw = (root / 'raw' / filename).read_bytes()
+              if len(raw) != expected['byte_count']:
+                  raise SystemExit(f'Raw byte-count mismatch: {filename}')
+              if hashlib.sha256(raw).hexdigest() != expected['sha256']:
+                  raise SystemExit(f'Raw SHA-256 mismatch: {filename}')
+
+          pilot_path = root / 'derived/cboe_vx_2022-09_public_contract_pilot.csv'
+          manifest_path = root / 'derived/cboe_vx_public_contract_pilot_manifest.json'
+          pilot = pilot_path.read_bytes()
+          manifest_bytes = manifest_path.read_bytes()
+          if len(pilot) != 12340:
+              raise SystemExit('Unexpected pilot byte count')
+          if hashlib.sha256(pilot).hexdigest() != (
+              'ebe1326a06bc7c11a96e4ca2d489ddba74c73965653991017a958e6ce6f13ad0'
+          ):
+              raise SystemExit('Unexpected pilot SHA-256')
+          if len(manifest_bytes) != 2153:
+              raise SystemExit('Unexpected manifest byte count')
+          if hashlib.sha256(manifest_bytes).hexdigest() != (
+              '6b04d359de6030f11dcdc49cd8c1a401448879f472dbcf0b3d172e5d905f6b34'
+          ):
+              raise SystemExit('Unexpected manifest SHA-256')
+
+          manifest = json.loads(manifest_bytes)
+          profile = manifest['profile']
+          required_profile = {
+              'contract_count': 2,
+              'row_count': 35,
+              'schema_sha256': '7ec53b473b1418928b26414f98e433de7886cf501fedc56a31e70a7a913af3f2',
+              'settlement_close_difference_count': 364,
+              'continuous_series_used': False,
+              'back_adjustment_used': False,
+              'raw_redistribution_authorized': False,
+              'price_linkage_authorized': False,
+              'returns_authorized': False,
+          }
+          for key, expected in required_profile.items():
+              if profile[key] != expected:
+                  raise SystemExit(f'Unexpected profile field {key}: {profile[key]!r}')
+          if manifest['returns_computed'] is not False:
+              raise SystemExit('Returns must not be computed')
+          if manifest['paper_replication_pass'] is not False:
+              raise SystemExit('Paper replication pass must remain false')
+          if manifest['economic_edge_verdict'] != 'INCONCLUSIVE':
+              raise SystemExit('Economic edge verdict must remain INCONCLUSIVE')
+
+          rows = list(csv.DictReader(pilot.decode('utf-8').splitlines()))
+          if len(rows) != 35:
+              raise SystemExit('Unexpected pilot row count')
+          counts: dict[str, int] = {}
+          for row in rows:
+              counts[row['contract_expiry']] = counts.get(row['contract_expiry'], 0) + 1
+              if row['continuous_series'] != 'false' or row['back_adjusted'] != 'false':
+                  raise SystemExit('Continuous/back-adjusted row detected')
+              if row['price_linkage_authorized'] != 'false':
+                  raise SystemExit('Price linkage was unexpectedly authorized')
+              if row['returns_authorized'] != 'false':
+                  raise SystemExit('Return computation was unexpectedly authorized')
+              if row['settle'] == row['close']:
+                  raise SystemExit('Pilot must preserve explicit settle/close distinction')
+          if counts != {'2022-09-21': 14, '2022-10-19': 21}:
+              raise SystemExit(f'Unexpected contract row counts: {counts}')
+
+          license_files = {}
+          for filename, url in {
+              'cboe-terms.html': 'https://www.cboe.com/terms/',
+              'cboe-use-of-content.html': 'https://www.cboe.com/en/use-of-content/',
+          }.items():
+              data = (root / 'license-raw' / filename).read_bytes()
+              if len(data) < 1000:
+                  raise SystemExit(f'Unexpectedly small Cboe terms response: {filename}')
+              license_files[filename] = {
+                  'url': url,
+                  'byte_count': len(data),
+                  'sha256': hashlib.sha256(data).hexdigest(),
+              }
+
+          safe_evidence = root / 'safe-evidence'
+          safe_evidence.mkdir(parents=True, exist_ok=True)
+          evidence = {
+              'schema_version': '1.0',
+              'evidence_id': 'CBOE_VX_PUBLIC_CONTRACT_LEVEL_PILOT_V1',
+              'retrieved_at': datetime.now(UTC).isoformat(),
+              'raw_contract_identities': expected_raw,
+              'schema_sha256': profile['schema_sha256'],
+              'contract_count': 2,
+              'pilot_row_count': 35,
+              'pilot_csv': {
+                  'byte_count': len(pilot),
+                  'sha256': hashlib.sha256(pilot).hexdigest(),
+                  'uploaded': False,
+              },
+              'deterministic_manifest': {
+                  'byte_count': len(manifest_bytes),
+                  'sha256': hashlib.sha256(manifest_bytes).hexdigest(),
+                  'content': manifest,
+              },
+              'license_page_identities': license_files,
+              'restricted_content_handling': {
+                  'raw_contract_files_uploaded': False,
+                  'derived_price_rows_uploaded': False,
+                  'terms_html_uploaded': False,
+                  'reason': 'Cboe redistribution and public redisplay are not authorized.',
+              },
+              'raw_acquisition_verified': True,
+              'raw_retention_complete': False,
+              'internal_research_license_state': 'PENDING_FORMAL_LICENSE_INTERPRETATION',
+              'price_linkage_authorized': False,
+              'returns_authorized': False,
+              'paper_replication_pass': False,
+              'economic_edge_verdict': 'INCONCLUSIVE',
+          }
+          (safe_evidence / 'cboe-vx-public-pilot-evidence.json').write_text(
+              json.dumps(evidence, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
+          print(json.dumps(evidence, indent=2, sort_keys=True))
+          PY
+
+      - name: Remove restricted Cboe content before artifact upload
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf \
+            build/cboe-vx-public/raw \
+            build/cboe-vx-public/license-raw \
+            build/cboe-vx-public/derived \
+            build/cboe-vx-public/headers_*.txt
+          test -s build/cboe-vx-public/safe-evidence/cboe-vx-public-pilot-evidence.json
+
+      - name: Upload safe evidence bundle
+        id: upload_evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: cboe-vx-public-pilot-safe-evidence-${{ github.sha }}
+          path: build/cboe-vx-public/safe-evidence/
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+      - name: Create safe staging receipt
+        env:
+          EVIDENCE_ARTIFACT_ID: ${{ steps.upload_evidence.outputs.artifact-id }}
+          EVIDENCE_ARTIFACT_URL: ${{ steps.upload_evidence.outputs.artifact-url }}
+          EVIDENCE_ARTIFACT_DIGEST: ${{ steps.upload_evidence.outputs.artifact-digest }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+          receipt = {
+              'schema_version': '1.0',
+              'repository': os.environ['GITHUB_REPOSITORY'],
+              'commit_sha': os.environ['GITHUB_SHA'],
+              'workflow': os.environ['GITHUB_WORKFLOW'],
+              'run_id': os.environ['GITHUB_RUN_ID'],
+              'run_attempt': os.environ['GITHUB_RUN_ATTEMPT'],
+              'created_at': datetime.now(UTC).isoformat(),
+              'evidence_artifact_id': os.environ['EVIDENCE_ARTIFACT_ID'],
+              'evidence_artifact_url': os.environ['EVIDENCE_ARTIFACT_URL'],
+              'evidence_artifact_digest': os.environ['EVIDENCE_ARTIFACT_DIGEST'],
+              'storage_state': 'ACTIONS_SAFE_EVIDENCE_ONLY_RETENTION_90_DAYS',
+              'raw_content_uploaded': False,
+              'derived_price_rows_uploaded': False,
+              'raw_retention_complete': False,
+              'price_linkage_authorized': False,
+              'returns_authorized': False,
+              'paper_replication_pass': False,
+              'economic_edge_verdict': 'INCONCLUSIVE',
+          }
+          Path('build/cboe-vx-public-safe-receipt.json').write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
+          print(json.dumps(receipt, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload safe staging receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: cboe-vx-public-pilot-safe-receipt-${{ github.sha }}
+          path: build/cboe-vx-public-safe-receipt.json
+          if-no-files-found: error
+          retention-days: 90

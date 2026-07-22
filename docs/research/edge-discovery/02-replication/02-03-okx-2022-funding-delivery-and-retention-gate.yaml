@@ -1,0 +1,143 @@
+schema_version: '1.0'
+decision:
+  id: OKX-2022-FUNDING-DELIVERY-RETENTION-GATE-2026-07-21
+  date: '2026-07-21'
+  issue: 50
+  outcome: GO_PRIVATE_REVOCABLE_2022_FUNDING_PILOT
+  scope:
+    venue: OKX
+    instrument_family: BTC-USDT
+    contract_identity: BTC-USDT-SWAP
+    initial_month: '2022-03'
+    maximum_private_retention_days: 30
+    purpose: PERSONAL_STRATEGY_RESEARCH_ONLY
+license:
+  snapshot_id: OKX_HISTORICAL_DATA_TERMS_2026-07-21_V1
+  historical_terms_url: https://www.okx.com/en-gb/help/historicaldata-terms-and-conditions
+  api_agreement_url: https://www.okx.com/en-ae/help/okx-api-agreement
+  personal_retention_allowed: true
+  own_strategy_development_allowed: true
+  redistribution_allowed: false
+  sublicensing_allowed: false
+  revocable: true
+  deletion_on_revocation_or_expiry_required: true
+delivery:
+  endpoint: https://www.okx.com/priapi/v5/broker/public/trade-data/download-link
+  method: POST
+  authentication_required: false
+  request:
+    module: '3'
+    inst_type: SWAP
+    inst_family_list:
+      - BTC-USDT
+    date_aggregation: monthly
+    begin_ms: '1646092800000'
+    end_ms: '1648684800000'
+  workflow_run_id: 29810652877
+  workflow_conclusion: SUCCESS
+  artifact_id: 8487263912
+  artifact_digest: sha256:72e8228e6dbec9600d9538cf2b839052d135cc6834825bece7e2f658d6daaac3
+  response:
+    http_status: 200
+    application_code: '0'
+    details_count: 1
+    file_count: 1
+    official_host: static.okx.com
+    official_path: /cdn/okex/traderecords/swaprates/monthly/202203/BTC-USDT-SWAP-fundingrates-2022-03.zip
+    filename: BTC-USDT-SWAP-fundingrates-2022-03.zip
+    raw_link_retained: false
+file_validation:
+  workflow_run_id: 29811051931
+  workflow_conclusion: FAILURE_FINAL_SCAN_FALSE_POSITIVE
+  acquisition_step: SUCCESS
+  zip_validation_step: SUCCESS
+  deletion_verification_step: SUCCESS
+  safe_evidence_upload_step: SUCCESS
+  artifact_id: 8487415309
+  artifact_digest: sha256:806ed03e82d17be2ecc3cde7e374f16898363c1c9c1ee1fc380338c088a6d082
+  evidence_json_sha256: 4123d7c54ae18829ac0aca2d3d3f4abb16be41fb965506f2bb9301b829c954
+  archive:
+    byte_count: 1403
+    sha256: ce4fe9aaf1dfdee16e1d11cdabcbb405eb348966902950db1ca862dc86779013
+    crc_valid: true
+    encrypted_member_count: 0
+    path_traversal_detected: false
+  member:
+    filename: BTC-USDT-SWAP-fundingrates-2022-03.csv
+    byte_count: 4546
+    sha256: 508195adcc2fd9e9a1978926d8da89af4054d79de4675268cbfb2ac9539e73da
+    crc32: 01e95991
+    fieldnames:
+      - instrument_name
+      - funding_rate
+      - funding_time
+    header_sha256: 9a64087a90de9be72d2b9adddc51225bd484e6a717d7a26f20d6adad7860330f
+    row_count: 93
+    unique_timestamp_count: 93
+    minimum_timestamp_utc: '2022-02-28T16:00:00Z'
+    maximum_timestamp_utc: '2022-03-31T08:00:00Z'
+    observed_interval_ms: 28800000
+    observed_interval_occurrences: 92
+    funding_rate_values_retained: false
+  deletion:
+    raw_file_exists_after_delete: false
+    private_directory_exists_after_delete: false
+    secure_erase_claimed: false
+    raw_file_uploaded: false
+retention_control:
+  implementation: src/hybrid_trader/replication/revocable_retention.py
+  tests: tests/test_revocable_retention.py
+  contract: docs/research/edge-discovery/02-replication/02-03-okx-private-revocable-retention-contract.yaml
+  workflow: OKX Private Revocable Retention Contract
+  workflow_run_id: 29811639151
+  workflow_conclusion: SUCCESS
+  artifact_id: 8487687277
+  artifact_digest: sha256:abe567eda91894081e3bd842b12b0cd6b0e02d13723dae45316d562abee06b0e
+  evidence_json_sha256: 28f89edd631d7377c23ed0e63e9fe27c90a9491e0dfa2c58d1c11a59bb46c368
+  verification:
+    ruff: PASS
+    mypy_strict: PASS
+    lifecycle_tests: 8_PASS
+    synthetic_retain: PASS
+    active_compliance: PASS
+    deletion: PASS
+    post_delete_compliance: PASS
+  mandatory_attestations:
+    - ENCRYPTION_AT_REST
+    - OWNER_ONLY_ACCESS
+    - BACKUP_AND_SYNC_EXCLUDED
+    - PUBLIC_ARTIFACT_UPLOAD_DISABLED
+  maximum_artifact_bytes: 20000000
+  maximum_retention_days: 30
+  integrity_mismatch_blocks_deletion: false
+  secure_erase_guaranteed: false
+authorization:
+  private_bounded_raw_pilot: true
+  one_month_initial_scope: true
+  persistent_raw_without_attestations: false
+  public_raw_artifact: false
+  redistribution: false
+  bulk_download: false
+  permanent_non_revocable_storage: false
+  returns: false
+  basis: false
+  funding_pnl: false
+  empirical_fitting: false
+  parameter_tuning: false
+  paper_trading: false
+  live_trading: false
+  capital_deployment: false
+  report_2_4_full_authorization: false
+remaining_gaps:
+  - POINT_IN_TIME_2022_INSTRUMENT_METADATA
+  - HISTORICAL_ARCHIVE_AVAILABLE_AT
+  - PROVIDER_REVISION_AND_VINTAGE_HISTORY
+  - MULTI_MONTH_SUPERSESSION_LEDGER
+  - EXECUTABLE_PRICE_MARK_AND_INDEX_LINKAGE
+  - FUNDING_PAYMENT_ACCOUNTING
+  - RETURNS_AND_EDGE_NOT_EVALUATED
+verdicts:
+  EDGE-CRYPTO-BASIS-001: INCONCLUSIVE
+  EDGE-CRYPTO-RV-001: INCONCLUSIVE
+  paper_replication: NOT_COMPLETE
+  economic_edge: NOT_ESTABLISHED

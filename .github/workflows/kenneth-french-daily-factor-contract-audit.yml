@@ -1,0 +1,252 @@
+name: Kenneth French Daily Factor Contract Audit
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/kenneth-french-daily-factor-contract-audit.yml
+      - src/hybrid_trader/replication/kenneth_french_daily.py
+      - scripts/audit_kenneth_french_daily_sources.py
+      - tests/test_kenneth_french_daily.py
+  push:
+    branches:
+      - agent/edge-research-reports
+    paths:
+      - .github/workflows/kenneth-french-daily-factor-contract-audit.yml
+      - src/hybrid_trader/replication/kenneth_french_daily.py
+      - scripts/audit_kenneth_french_daily_sources.py
+      - tests/test_kenneth_french_daily.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kenneth-french-daily-factor-contract-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  acquire-audit-and-stage-safe-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out triggering commit
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install project and verification tools
+        run: >-
+          python -m pip install --upgrade pip &&
+          python -m pip install -e ".[dev,replication]"
+
+      - name: Run project lint rules
+        run: >-
+          python -m ruff check
+          src/hybrid_trader/replication/kenneth_french_daily.py
+          scripts/audit_kenneth_french_daily_sources.py
+          tests/test_kenneth_french_daily.py
+
+      - name: Run strict typing
+        run: >-
+          python -m mypy --strict --ignore-missing-imports
+          src/hybrid_trader/replication/kenneth_french_daily.py
+          scripts/audit_kenneth_french_daily_sources.py
+
+      - name: Run parser and contract tests
+        run: python -m pytest -q tests/test_kenneth_french_daily.py
+
+      - name: Acquire exact official Dartmouth files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/kenneth-french-daily-contract/raw
+          base='https://mba.tuck.dartmouth.edu/pages/faculty/ken.french'
+          curl --fail-with-body --location --retry 8 --retry-all-errors \
+            --connect-timeout 20 --max-time 180 \
+            --dump-header build/kenneth-french-daily-contract/library-headers.txt \
+            --output build/kenneth-french-daily-contract/raw/data_library.html \
+            "$base/data_library.html"
+          for name in \
+            F-F_Research_Data_Factors_daily_CSV.zip \
+            F-F_Research_Data_5_Factors_2x3_daily_CSV.zip \
+            F-F_Momentum_Factor_daily_CSV.zip; do
+            curl --fail-with-body --location --retry 8 --retry-all-errors \
+              --connect-timeout 20 --max-time 180 \
+              --dump-header "build/kenneth-french-daily-contract/${name}.headers.txt" \
+              --output "build/kenneth-french-daily-contract/raw/$name" \
+              "$base/ftp/$name"
+          done
+
+      - name: Run exact current-snapshot contract audit twice
+        shell: bash
+        run: |
+          set -euo pipefail
+          for run in run1 run2; do
+            python scripts/audit_kenneth_french_daily_sources.py \
+              --data-library build/kenneth-french-daily-contract/raw/data_library.html \
+              --ff3 build/kenneth-french-daily-contract/raw/F-F_Research_Data_Factors_daily_CSV.zip \
+              --ff5 build/kenneth-french-daily-contract/raw/F-F_Research_Data_5_Factors_2x3_daily_CSV.zip \
+              --mom build/kenneth-french-daily-contract/raw/F-F_Momentum_Factor_daily_CSV.zip \
+              --output-dir "build/kenneth-french-daily-contract/$run"
+          done
+          cmp \
+            build/kenneth-french-daily-contract/run1/safe-daily-factor-contract-evidence.json \
+            build/kenneth-french-daily-contract/run2/safe-daily-factor-contract-evidence.json
+          cmp \
+            build/kenneth-french-daily-contract/run1/safe-daily-factor-contract-summary.json \
+            build/kenneth-french-daily-contract/run2/safe-daily-factor-contract-summary.json
+          mkdir -p build/kenneth-french-daily-contract/safe
+          cp build/kenneth-french-daily-contract/run1/*.json \
+            build/kenneth-french-daily-contract/safe/
+
+      - name: Independently verify source mapping and closed gates
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path('build/kenneth-french-daily-contract/safe')
+          evidence_path = root / 'safe-daily-factor-contract-evidence.json'
+          summary_path = root / 'safe-daily-factor-contract-summary.json'
+          evidence = json.loads(evidence_path.read_text(encoding='utf-8'))
+          summary = json.loads(summary_path.read_text(encoding='utf-8'))
+
+          expected_sources = {
+              'ff3': {
+                  'zip_sha256': 'af8aec07d55c98caa15045a77b87455be68cb8847b2ee5bd03bf5c2c8a3f96e2',
+                  'member_sha256': 'f051e37d30c129359c6801d9d2a715c929b19aa3be0ffe684b93995ede9ffebb',
+                  'row_count': 26253,
+                  'first_date': '1926-07-01',
+                  'last_date': '2026-05-29',
+              },
+              'ff5': {
+                  'zip_sha256': 'bcf32ecc9e2bb20383784ac98891e42146a0091eec6ec77d3b5bf0d4e981e3f6',
+                  'member_sha256': '8b6cf2992ccdc6086fc11b594b74ca8095843622deaee0602196b8deab0287b1',
+                  'row_count': 15833,
+                  'first_date': '1963-07-01',
+                  'last_date': '2026-05-29',
+              },
+              'mom': {
+                  'zip_sha256': 'f4237e2e36dffa13fd7823f55376316a94b5ac663af951dd9eaca8ed2c678bcf',
+                  'member_sha256': '3f396e1381861a65f7cd37c86483f163e17fb2516a2ad4d0f66a312d48a860b2',
+                  'row_count': 26152,
+                  'first_date': '1926-11-03',
+                  'last_date': '2026-05-29',
+              },
+          }
+          profiles = {item['source_key']: item for item in evidence['source_profiles']}
+          if set(profiles) != set(expected_sources):
+              raise SystemExit(f'Unexpected sources: {sorted(profiles)}')
+          for key, expected in expected_sources.items():
+              actual = {field: profiles[key][field] for field in expected}
+              if actual != expected:
+                  raise SystemExit(f'{key} source identity mismatch: {actual}')
+              if profiles[key]['sentinel_counts'] != {'-99.99': 0, '-999': 0}:
+                  raise SystemExit(f'{key} sentinel contract changed')
+
+          expected_mapping = {
+              'Mkt-RF': {'source_key': 'ff3', 'column': 'Mkt-RF'},
+              'SMB': {'source_key': 'ff3', 'column': 'SMB'},
+              'HML': {'source_key': 'ff3', 'column': 'HML'},
+              'RMW': {'source_key': 'ff5', 'column': 'RMW'},
+              'CMA': {'source_key': 'ff5', 'column': 'CMA'},
+              'Mom': {'source_key': 'mom', 'column': 'Mom'},
+              'RF': {'source_key': 'ff3', 'column': 'RF'},
+          }
+          if evidence['selected_factor_source'] != expected_mapping:
+              raise SystemExit('Selected factor-source mapping changed')
+          if evidence['declared_return_unit'] != 'PERCENT':
+              raise SystemExit('Return unit changed')
+          if evidence['data_state'] != 'CURRENT_REVISED_PUBLIC_RECONSTRUCTION_SOURCE':
+              raise SystemExit('Data-state label changed')
+          forbidden_true = {
+              'raw_uploaded': evidence['raw_uploaded'],
+              'row_level_data_uploaded': evidence['row_level_data_uploaded'],
+              'monthly_aggregation_calculated': evidence['monthly_aggregation_calculated'],
+              'performance_calculated': evidence['performance_calculated'],
+              'recursive_strategy_constructed': evidence['recursive_strategy_constructed'],
+              'paper_replication_pass': evidence['paper_replication_pass'],
+          }
+          if any(forbidden_true.values()):
+              raise SystemExit(f'Closed gate violated: {forbidden_true}')
+          if summary['safe_evidence_sha256'] != hashlib.sha256(evidence_path.read_bytes()).hexdigest():
+              raise SystemExit('Safe evidence hash mismatch')
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          PY
+
+      - name: Remove official raw content and temporary run copies
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build/kenneth-french-daily-contract/raw
+          rm -rf build/kenneth-french-daily-contract/run1
+          rm -rf build/kenneth-french-daily-contract/run2
+          rm -f build/kenneth-french-daily-contract/*.headers.txt
+          if find build/kenneth-french-daily-contract -type f \
+            \( -name '*.zip' -o -name '*.csv' -o -name '*.html' \) | grep -q .; then
+            echo 'Official Dartmouth content remains before safe upload' >&2
+            exit 1
+          fi
+
+      - name: Upload safe contract evidence
+        id: upload_evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: kenneth-french-current-daily-safe-contract-${{ github.sha }}
+          path: build/kenneth-french-daily-contract/safe/
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+      - name: Create safe receipt
+        env:
+          ARTIFACT_ID: ${{ steps.upload_evidence.outputs.artifact-id }}
+          ARTIFACT_URL: ${{ steps.upload_evidence.outputs.artifact-url }}
+          ARTIFACT_DIGEST: ${{ steps.upload_evidence.outputs.artifact-digest }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+          receipt = {
+              'schema_version': '1.0',
+              'repository': os.environ['GITHUB_REPOSITORY'],
+              'commit_sha': os.environ['GITHUB_SHA'],
+              'workflow': os.environ['GITHUB_WORKFLOW'],
+              'run_id': os.environ['GITHUB_RUN_ID'],
+              'run_attempt': os.environ['GITHUB_RUN_ATTEMPT'],
+              'created_at': datetime.now(UTC).isoformat(),
+              'artifact_id': os.environ['ARTIFACT_ID'],
+              'artifact_url': os.environ['ARTIFACT_URL'],
+              'artifact_digest': os.environ['ARTIFACT_DIGEST'],
+              'storage_state': 'ACTIONS_SAFE_EVIDENCE_ONLY_RETENTION_90_DAYS',
+              'snapshot_id': 'KENNETH_FRENCH_CURRENT_DAILY_2026_05_V1',
+              'source_count': 3,
+              'raw_uploaded': False,
+              'monthly_aggregation_calculated': False,
+              'performance_calculated': False,
+              'paper_replication_pass': False,
+              'economic_edge_verdict': 'INCONCLUSIVE',
+          }
+          Path('build/kenneth-french-daily-contract-receipt.json').write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
+          PY
+
+      - name: Upload safe receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: kenneth-french-current-daily-safe-contract-receipt-${{ github.sha }}
+          path: build/kenneth-french-daily-contract-receipt.json
+          if-no-files-found: error
+          retention-days: 90

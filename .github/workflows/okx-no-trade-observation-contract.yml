@@ -1,0 +1,176 @@
+name: OKX Owner-Controlled No-Trade Observation Contract
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/okx-no-trade-observation-contract.yml
+      - configs/okx_no_trade_observation_policy_v1.yaml
+      - src/hybrid_trader/replication/okx_no_trade_observation.py
+      - scripts/run_okx_no_trade_observation.py
+      - scripts/validate_okx_no_trade_observation_contract.py
+      - tests/test_okx_no_trade_observation.py
+  push:
+    branches: [agent/edge-research-reports]
+    paths:
+      - .github/workflows/okx-no-trade-observation-contract.yml
+      - configs/okx_no_trade_observation_policy_v1.yaml
+      - src/hybrid_trader/replication/okx_no_trade_observation.py
+      - scripts/run_okx_no_trade_observation.py
+      - scripts/validate_okx_no_trade_observation_contract.py
+      - tests/test_okx_no_trade_observation.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: okx-no-trade-observation-contract-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-synthetic-no-trade-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out triggering commit
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install project and verification tools
+        run: >-
+          python -m pip install --upgrade pip &&
+          python -m pip install -e ".[dev]"
+
+      - name: Prove owner credentials are absent from CI
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in OKX_API_KEY OKX_SECRET_KEY OKX_PASSPHRASE; do
+            if [[ -n "${!name:-}" ]]; then
+              echo "Forbidden owner credential environment variable is present: ${name}" >&2
+              exit 1
+            fi
+          done
+
+      - name: Verify code quality and package contract
+        run: |
+          python -m ruff format --check \
+            src/hybrid_trader/replication/okx_no_trade_observation.py \
+            scripts/run_okx_no_trade_observation.py \
+            scripts/validate_okx_no_trade_observation_contract.py \
+            tests/test_okx_no_trade_observation.py
+          python -m ruff check \
+            src/hybrid_trader/replication/okx_no_trade_observation.py \
+            scripts/run_okx_no_trade_observation.py \
+            scripts/validate_okx_no_trade_observation_contract.py \
+            tests/test_okx_no_trade_observation.py
+          python -m mypy --strict --ignore-missing-imports \
+            src/hybrid_trader/replication/okx_no_trade_observation.py \
+            scripts/run_okx_no_trade_observation.py \
+            scripts/validate_okx_no_trade_observation_contract.py
+          python -m pytest -q tests/test_okx_no_trade_observation.py
+
+      - name: Prove CLI has no credential-value arguments
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -E -- '--(api-key|secret-key|passphrase)' \
+            scripts/run_okx_no_trade_observation.py; then
+            echo 'Credential values must be loaded only from owner-local environment variables' >&2
+            exit 1
+          fi
+
+      - name: Generate synthetic safe evidence
+        env:
+          CODE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          rm -rf build/okx-no-trade-observation-safe
+          PYTHONPATH=src python scripts/validate_okx_no_trade_observation_contract.py \
+            --output-dir build/okx-no-trade-observation-safe \
+            --policy configs/okx_no_trade_observation_policy_v1.yaml \
+            --code-head-sha "$CODE_HEAD_SHA"
+
+      - name: Independently verify safe evidence and closed gates
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path('build/okx-no-trade-observation-safe')
+          files = list(root.rglob('*'))
+          regular = [path for path in files if path.is_file()]
+          expected = root / 'okx-no-trade-observation-contract-safe-evidence.json'
+          if regular != [expected]:
+              raise SystemExit(f'Unexpected Gate 61 build files: {regular}')
+          raw = expected.read_bytes()
+          if not 0 < len(raw) < 50_000:
+              raise SystemExit('Safe evidence is empty or oversized')
+          evidence = json.loads(raw)
+          required_false = [
+              'real_public_request_performed',
+              'real_private_fee_request_performed',
+              'private_redirect_following_allowed',
+              'credentials_supplied_to_ci',
+              'credentials_present_in_safe_evidence',
+              'fee_values_present_in_safe_evidence',
+              'market_values_present_in_safe_evidence',
+              'orders_sent',
+              'trade_permission_used',
+              'withdraw_permission_used',
+              'basis_computation_authorized',
+              'funding_pnl_computation_authorized',
+              'returns_computation_authorized',
+              'transaction_cost_estimation_authorized',
+              'strategy_testing_authorized',
+              'paper_or_live_trading_authorized',
+              'report_2_4_authorized',
+          ]
+          if any(evidence[key] is not False for key in required_false):
+              raise SystemExit('A closed Gate 61 field changed')
+          if evidence['private_endpoint_allowlist'] != ['/api/v5/account/trade-fee']:
+              raise SystemExit('Private endpoint allowlist changed')
+          if evidence['private_method_allowlist'] != ['GET']:
+              raise SystemExit('Private method allowlist changed')
+          if evidence['public_source_count'] != 4 or evidence['private_fee_query_count'] != 2:
+              raise SystemExit('Observation source/query count changed')
+          if evidence['batch_admitted'] is not True or evidence['batch_deleted'] is not True:
+              raise SystemExit('Synthetic lifecycle did not complete')
+          forbidden = [
+              'synthetic-gate61-api-key',
+              'synthetic-gate61-secret',
+              'synthetic-gate61-passphrase',
+              '987654.321987',
+              '-0.00112233',
+              '-0.00223344',
+              '-0.00334455',
+              '-0.00445566',
+              'OK-ACCESS-SIGN',
+              'OK-ACCESS-PASSPHRASE',
+          ]
+          text = raw.decode('utf-8')
+          leaked = [token for token in forbidden if token in text]
+          if leaked:
+              raise SystemExit(f'Forbidden safe-evidence tokens: {leaked}')
+          print({
+              'byte_count': len(raw),
+              'sha256': hashlib.sha256(raw).hexdigest(),
+              'real_requests': False,
+              'orders_sent': False,
+          })
+          PY
+
+      - name: Upload safe synthetic evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: okx-no-trade-observation-safe-evidence-${{ github.sha }}
+          path: build/okx-no-trade-observation-safe/
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

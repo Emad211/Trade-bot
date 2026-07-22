@@ -1,0 +1,91 @@
+name: CFTC TFF PRE API Diagnostic
+
+on:
+  workflow_dispatch:
+    inputs:
+      report_date:
+        description: Frozen CFTC TFF report date
+        required: true
+        default: "2022-09-13"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cftc-tff-pre-api-manual
+  cancel-in-progress: false
+
+jobs:
+  manual-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out the selected commit
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install project and verification tools
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev,replication]"
+
+      - name: Verify the PRE ingestion implementation
+        run: |
+          python -m ruff check \
+            src/hybrid_trader/replication/cftc_ingestion.py \
+            scripts/ingest_cftc_tff_pilot.py \
+            tests/test_cftc_ingestion.py
+          python -m mypy --strict --ignore-missing-imports \
+            src/hybrid_trader/replication/cftc_ingestion.py
+          python -m pytest -q tests/test_cftc_ingestion.py
+
+      - name: Attempt official PRE acquisition without promotion
+        id: acquire
+        shell: bash
+        env:
+          CFTC_APP_TOKEN: ${{ secrets.CFTC_APP_TOKEN }}
+        run: |
+          mkdir -p build/diagnostics
+          set +e
+          python scripts/ingest_cftc_tff_pilot.py \
+            --report-date "${{ inputs.report_date }}" \
+            --output-dir build/cftc-tff-pre-api \
+            > build/diagnostics/pre-api.txt 2>&1
+          code=$?
+          cat build/diagnostics/pre-api.txt
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload PRE diagnostic and any quarantined bytes
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cftc-tff-pre-api-diagnostic-${{ github.sha }}
+          path: |
+            build/diagnostics/pre-api.txt
+            build/cftc-tff-pre-api/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+      - name: Preserve diagnostic failure
+        if: ${{ steps.acquire.outputs.exit_code != '0' }}
+        run: exit 1
+
+      - name: Record non-promotional summary
+        run: |
+          {
+            echo "## CFTC TFF PRE API diagnostic"
+            echo
+            echo "- This workflow is manual only."
+            echo "- Success means raw PRE bytes were acquired and validated."
+            echo "- Failure remains diagnostic evidence."
+            echo "- PRE acquisition is not immutable ingestion."
+            echo "- PRE acquisition is not paper replication."
+            echo "- PRE acquisition does not establish an economic edge."
+          } >> "$GITHUB_STEP_SUMMARY"
